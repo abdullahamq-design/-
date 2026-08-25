@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{
+:root{
     --navy:#0F2771; --blue:#004D9F; --cyan:#0C96C5; --purple:#32146D;
     --magenta:#853283; --coral:#D54B51; --ink:#1A1F2E; --paper:#F4F7FB;
     --line:#E1E7F2; --muted:#8892A6; --white:#FFFFFF;
@@ -50,7 +50,32 @@
   .sidebar-footer{
     font-size:11px; color:#7B8FCB; text-align:center; padding-top:18px;
     border-top:1px solid rgba(255,255,255,.12); margin-top:16px;
+    display:flex; flex-direction:column; gap:10px; align-items:center;
   }
+  .logout-btn{
+    width:100%; background:rgba(255,255,255,.08); border:none; color:#C6D0F0;
+    font-size:12px; font-weight:700; padding:9px 14px; border-radius:999px;
+  }
+  .logout-btn:hover{background:rgba(255,255,255,.16); color:#fff;}
+
+  /* ---------- Login ---------- */
+  .login-screen{
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(135deg, var(--navy), var(--purple)); padding:24px;
+  }
+  .login-card{
+    background:#fff; border-radius:20px; padding:40px 36px; width:100%; max-width:380px;
+    box-shadow:0 24px 60px rgba(11,30,86,.35);
+  }
+  .login-logo{display:block; width:100%; max-width:220px; margin:0 auto 14px;}
+  .login-sub{text-align:center; font-size:12.5px; font-weight:600; color:var(--muted); margin-bottom:28px;}
+  .login-form .field{margin-bottom:16px;}
+  .login-form .field input{width:100%;}
+  .login-error{
+    background:#FBEAEA; color:var(--coral); font-size:12.5px; font-weight:700;
+    border-radius:10px; padding:9px 12px; margin-bottom:14px; text-align:center;
+  }
+  .btn.full{width:100%; justify-content:center; padding:12px 18px; font-size:14px; margin-top:6px;}
 
   /* ---------- Main content ---------- */
   .content{flex:1; min-width:0; padding:32px 40px 64px;}
@@ -409,6 +434,9 @@ const TASK_TYPES = ["يومي", "أسبوعي", "شهري", "لمرة واحدة
 const PRIORITIES = ["عالية", "متوسطة", "منخفضة"];
 const PRIORITY_COLOR = { "عالية":"var(--coral)", "متوسطة":"var(--cyan)", "منخفضة":"var(--blue)" };
 const STORAGE_KEY = "andalus-activity-platform-data";
+const AUTH_KEY = "andalus-activity-platform-auth";
+const LOGIN_USERNAME = "raed";
+const LOGIN_PASSWORD = "andalus2026";
 
 const COMP_LEVELS = ["مدرسي","تعليم المدينة","منطقة","وطني","دولي"];
 const COMP_STATUSES = ["تسجيل مفتوح","قيد التحضير","جارية","منتهية"];
@@ -554,6 +582,8 @@ function compressImageDataUrl(dataUrl, maxDim=1100, quality=0.72){
 /* الحالة العامة */
 /* ============================================================ */
 let DATA = JSON.parse(JSON.stringify(DEFAULT_DATA));
+let AUTHED = false;
+let LOGIN_ERROR = "";
 let TAB = "dashboard";
 let TASK_FILTER = "الكل";
 let SHOW_WEEKLY_FORM = false;
@@ -1511,7 +1541,34 @@ const TAB_TITLES = {
   alerts:["المتابعة","التنبيهات"],
 };
 
+function viewLogin(){
+  return `
+    <div class="login-screen">
+      <div class="login-card">
+        <img class="login-logo" src="${LOGO.colorLockup}" alt="مدارس الأندلس الأهلية">
+        <div class="login-sub">منصة رائد النشاط · القسم الثانوي بنين</div>
+        <form id="login-form" class="login-form">
+          <div class="field">
+            <label>اسم المستخدم</label>
+            <input type="text" id="login-username" autocomplete="username" placeholder="أدخل اسم المستخدم" autofocus>
+          </div>
+          <div class="field">
+            <label>كلمة المرور</label>
+            <input type="password" id="login-password" autocomplete="current-password" placeholder="أدخل كلمة المرور">
+          </div>
+          ${LOGIN_ERROR ? `<div class="login-error">${LOGIN_ERROR}</div>` : ""}
+          <button type="submit" class="btn accent full">تسجيل الدخول</button>
+        </form>
+      </div>
+    </div>
+  `;
+}
+
 function render(){
+  if (!AUTHED) {
+    document.getElementById("app").innerHTML = viewLogin();
+    return;
+  }
   const today = todayInfo();
   const [eyebrow, title] = TAB_TITLES[TAB];
   const body =
@@ -1537,7 +1594,10 @@ function render(){
               ${ICONS[t.icon]}<span>${t.label}</span>
             </button>`).join("")}
         </nav>
-        <div class="sidebar-footer">مدارس الأندلس الأهلية · 1984</div>
+        <div class="sidebar-footer">
+          <button class="logout-btn" data-action="logout">تسجيل الخروج</button>
+          <div>مدارس الأندلس الأهلية · 1984</div>
+        </div>
       </aside>
 
       <main class="content">
@@ -1557,6 +1617,24 @@ function render(){
 }
 
 /* ============================================================ */
+/* تسجيل الدخول */
+/* ============================================================ */
+document.addEventListener("submit", (e) => {
+  if (e.target.id !== "login-form") return;
+  e.preventDefault();
+  const username = document.getElementById("login-username").value.trim();
+  const password = document.getElementById("login-password").value;
+  if (username === LOGIN_USERNAME && password === LOGIN_PASSWORD) {
+    AUTHED = true;
+    LOGIN_ERROR = "";
+    try { sessionStorage.setItem(AUTH_KEY, "1"); } catch(e){}
+  } else {
+    LOGIN_ERROR = "اسم المستخدم أو كلمة المرور غير صحيحة";
+  }
+  render();
+});
+
+/* ============================================================ */
 /* التعامل مع الأحداث (تفويض الأحداث) */
 /* ============================================================ */
 document.addEventListener("click", async (e) => {
@@ -1565,6 +1643,13 @@ document.addEventListener("click", async (e) => {
   const action = btn.dataset.action;
 
   if (action === "setTab") { TAB = btn.dataset.tab; SHOW_WEEKLY_FORM=false; EDIT_WEEKLY_ID=null; NEW_WEEKLY_DAY=null; SHOW_TASK_FORM=false; REPORT_COPIED=false; render(); return; }
+
+  if (action === "logout") {
+    AUTHED = false;
+    try { sessionStorage.removeItem(AUTH_KEY); } catch(e){}
+    render();
+    return;
+  }
 
   if (action === "toggleTask") {
     const id = btn.dataset.id;
@@ -1789,6 +1874,7 @@ document.addEventListener("change", async (e) => {
 /* التشغيل */
 /* ============================================================ */
 (async function init(){
+  try { AUTHED = sessionStorage.getItem(AUTH_KEY) === "1"; } catch(e){ AUTHED = false; }
   const saved = await storageGet(STORAGE_KEY);
   if (saved) {
     try { DATA = JSON.parse(saved); } catch(e) { DATA = JSON.parse(JSON.stringify(DEFAULT_DATA)); }

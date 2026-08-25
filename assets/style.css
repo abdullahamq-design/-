@@ -40,7 +40,32 @@
   .sidebar-footer{
     font-size:11px; color:#7B8FCB; text-align:center; padding-top:18px;
     border-top:1px solid rgba(255,255,255,.12); margin-top:16px;
+    display:flex; flex-direction:column; gap:10px; align-items:center;
   }
+  .logout-btn{
+    width:100%; background:rgba(255,255,255,.08); border:none; color:#C6D0F0;
+    font-size:12px; font-weight:700; padding:9px 14px; border-radius:999px;
+  }
+  .logout-btn:hover{background:rgba(255,255,255,.16); color:#fff;}
+
+  /* ---------- Login ---------- */
+  .login-screen{
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(135deg, var(--navy), var(--purple)); padding:24px;
+  }
+  .login-card{
+    background:#fff; border-radius:20px; padding:40px 36px; width:100%; max-width:380px;
+    box-shadow:0 24px 60px rgba(11,30,86,.35);
+  }
+  .login-logo{display:block; width:100%; max-width:220px; margin:0 auto 14px;}
+  .login-sub{text-align:center; font-size:12.5px; font-weight:600; color:var(--muted); margin-bottom:28px;}
+  .login-form .field{margin-bottom:16px;}
+  .login-form .field input{width:100%;}
+  .login-error{
+    background:#FBEAEA; color:var(--coral); font-size:12.5px; font-weight:700;
+    border-radius:10px; padding:9px 12px; margin-bottom:14px; text-align:center;
+  }
+  .btn.full{width:100%; justify-content:center; padding:12px 18px; font-size:14px; margin-top:6px;}
 
   /* ---------- Main content ---------- */
   .content{flex:1; min-width:0; padding:32px 40px 64px;}
