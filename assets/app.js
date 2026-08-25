@@ -682,11 +682,13 @@ function viewCompetitions(){
         </select>
       </td>
       <td style="width:100px; font-size:12px; font-weight:700; color:${d!==null && d<0 ? "var(--coral)" : "var(--muted)"};">${deadlineTxt}</td>
-      <td style="width:150px; white-space:nowrap;">
-        <button class="icon-btn" data-action="toggleStudents" data-id="${c.id}" title="الطلاب المسجلون">👥</button>
-        <button class="icon-btn" data-action="toggleEvidence" data-id="${c.id}" title="الشواهد">${evidenceCount ? `📎${evidenceCount}` : "📎"}</button>
-        <button class="icon-btn" data-action="editCompetition" data-id="${c.id}" title="تعديل">${ICONS.pencil}</button>
-        <button class="trash-btn" data-action="removeCompetition" data-id="${c.id}">${ICONS.trash}</button>
+      <td style="width:230px;">
+        <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+          <button class="evidence-btn ${studentCount ? "has" : ""}" data-action="toggleStudents" data-id="${c.id}">👥 الطلاب المسجلون${studentCount ? ` (${studentCount})` : ""}</button>
+          <button class="evidence-btn ${evidenceCount ? "has" : ""}" data-action="toggleEvidence" data-id="${c.id}">📎 شواهد التسجيل${evidenceCount ? ` (${evidenceCount})` : ""}</button>
+          <button class="icon-btn" data-action="editCompetition" data-id="${c.id}" title="تعديل المسابقة">${ICONS.pencil}</button>
+          <button class="trash-btn" data-action="removeCompetition" data-id="${c.id}" title="حذف">${ICONS.trash}</button>
+        </div>
       </td>
     </tr>`;
 
