@@ -493,7 +493,7 @@ function viewTasks(){
       <div class="field" id="t-day-wrap"><label>اليوم</label>
         <select id="t-day">${DAYS.map(d=>`<option value="${d}">${d}</option>`).join("")}</select>
       </div>
-      <div class="field hidden" id="t-date-wrap"><label>تاريخ الاستحقاق</label><input id="t-dueDate" type="date"></div>
+      <div class="field hidden" id="t-date-wrap"><label>تاريخ الاستحقاق</label><input id="t-dueDate" type="date" required></div>
       <div class="actions">
         <button class="btn ghost" data-action="closeTaskForm">إلغاء</button>
         <button class="btn" data-action="addTask">إضافة المهمة</button>
@@ -933,7 +933,7 @@ function reportPlainText(title, rangeLabel, data){
   lines.push("");
   if (data.recurringTasks.length){
     lines.push("المهام المتكررة (يومية/أسبوعية):");
-    data.recurringTasks.forEach(t => lines.push(`- ${t.done?"✔":"◻"} ${t.title} (${t.type}${t.day?" - "+t.day:""})`));
+    data.recurringTasks.forEach(t => lines.push(`- ${t.done?"✔":"◻"} ${t.title} (${t.type}${t.day?" - "+t.day:""})${(t.evidence&&t.evidence.length)?` [📎${t.evidence.length}]`:""}`));
     lines.push("");
   }
   lines.push("متابعة الابتكار والمسابقات:");
@@ -945,8 +945,9 @@ function reportPlainText(title, rangeLabel, data){
 function reportHtml(title, rangeLabel, data){
   const done = data.tasksInRange.filter(t=>t.done);
   const notDone = data.tasksInRange.filter(t=>!t.done);
+  const doneRecurring = data.recurringTasks.filter(t=>t.done);
   const allEvidence = [];
-  done.forEach(t => (t.evidence||[]).forEach(e => allEvidence.push({...e, taskTitle:t.title})));
+  [...done, ...doneRecurring].forEach(t => (t.evidence||[]).forEach(e => allEvidence.push({...e, taskTitle:t.title})));
   const evidenceCount = allEvidence.length;
   const completionPct = data.tasksInRange.length ? Math.round((done.length/data.tasksInRange.length)*100) : 0;
 
@@ -1024,7 +1025,7 @@ function reportHtml(title, rangeLabel, data){
       ${data.recurringTasks.map(t=>`
         <div class="rpt-activity-card ${t.done?'done':'pending'}">
           <span class="badge" style="background:${t.done?'var(--cyan)':'var(--coral)'}">${t.done?"✔":"◻"}</span>
-          <div class="body"><div class="t">${esc(t.title)}</div><div class="m">${esc(t.type)}${t.day?` · ${esc(t.day)}`:""}</div></div>
+          <div class="body"><div class="t">${esc(t.title)}</div><div class="m">${esc(t.type)}${t.day?` · ${esc(t.day)}`:""}${(t.evidence&&t.evidence.length)?` · 📎 ${t.evidence.length} شاهد مرفق`:""}</div></div>
         </div>`).join("")}
     </div>` : ""}
 
@@ -1116,10 +1117,11 @@ function viewReports(){
   `;
 }
 function onTaskTypeChange(){
-  const type = document.getElementById("t-type").value;
+  const typeEl = document.getElementById("t-type");
   const dayWrap = document.getElementById("t-day-wrap");
   const dateWrap = document.getElementById("t-date-wrap");
-  if (!dayWrap || !dateWrap) return;
+  if (!typeEl || !dayWrap || !dateWrap) return;
+  const type = typeEl.value;
   dayWrap.classList.toggle("hidden", type !== "أسبوعي");
   dateWrap.classList.toggle("hidden", !(type === "شهري" || type === "لمرة واحدة"));
 }
@@ -1317,8 +1319,10 @@ document.addEventListener("click", async (e) => {
     const type = document.getElementById("t-type").value;
     const priority = document.getElementById("t-priority").value;
     const day = document.getElementById("t-day").value;
-    const dueDate = document.getElementById("t-dueDate").value;
+    const dueDateInput = document.getElementById("t-dueDate");
+    const dueDate = dueDateInput.value;
     if (!title) return;
+    if ((type==="شهري"||type==="لمرة واحدة") && !dueDate) { dueDateInput.reportValidity(); return; }
     await mutate(d => { d.tasks.push({id:uid(), title, type, priority, day: type==="أسبوعي"?day:"", dueDate: (type==="شهري"||type==="لمرة واحدة")?dueDate:"", done:false}); });
     SHOW_TASK_FORM = false; render();
     return;
