@@ -593,14 +593,15 @@ let SHOW_TASK_FORM = false;
 let SHOW_PLAN_FORM = false;
 let SHOW_COMP_FORM = false;
 const _now = new Date();
-let CAL_YEAR = _now.getFullYear();
-let CAL_MONTH = _now.getMonth();
-let CAL_SELECTED = isoDate(_now.getFullYear(), _now.getMonth(), _now.getDate());
+const SCHOOL_YEAR_START = "2026-08-30";
+let CAL_YEAR = 2026;
+let CAL_MONTH = 7; // أغسطس — بداية العام الدراسي
+let CAL_SELECTED = SCHOOL_YEAR_START;
 let CAL_VIEW = "grid";
 let REPORT_MODE = "weekly";
 let REPORT_WEEK_ID = null;
-let REPORT_YEAR = _now.getFullYear();
-let REPORT_MONTH = _now.getMonth();
+let REPORT_YEAR = 2026;
+let REPORT_MONTH = 7; // أغسطس — بداية العام الدراسي
 let REPORT_COPIED = false;
 let EVIDENCE_OPEN_ID = null;
 let STUDENTS_OPEN_ID = null;
@@ -1213,13 +1214,18 @@ function viewCalendar(){
     ${sel.tasksDue.length ? `
       <div style="font-weight:800;color:var(--navy);margin-bottom:8px;font-size:13px;">المهام المستحقة</div>
       <div class="list">
-        ${sel.tasksDue.map(t=>`
+        ${sel.tasksDue.map(t=>{
+          const evCount = (t.evidence || []).length;
+          const panel = EVIDENCE_OPEN_ID === t.id ? `<div class="item" style="display:block;">${evidencePanel(t)}</div>` : "";
+          return `
           <div class="item">
             <button class="check ${t.done?"done":""}" data-action="toggleTask" data-id="${t.id}">${ICONS.check}</button>
             <div class="flex1 title" style="${t.done?'text-decoration:line-through;opacity:.6;':''}">${esc(t.title)}</div>
             ${chip(t.priority, PRIORITY_COLOR[t.priority])}
+            <button class="evidence-btn ${evCount?'has':''}" data-action="toggleEvidence" data-id="${t.id}" title="إتمام الإنجاز وإدراج الشواهد">📎${evCount?` ${evCount}`:""}</button>
             <button class="trash-btn" data-action="removeTask" data-id="${t.id}">${ICONS.trash}</button>
-          </div>`).join("")}
+          </div>${panel}`;
+        }).join("")}
       </div>` : ""}
   `;
 
