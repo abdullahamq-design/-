@@ -131,6 +131,73 @@ async function storageSet(key, value){
 }
 
 /* ============================================================ */
+/* المزامنة السحابية بين الأجهزة (Firebase — اختيارية) */
+/* تُفعَّل تلقائياً فقط إذا عبّأت بياناتك في assets/firebase-config.js */
+/* الشواهد (صور/فيديو) لا تُزامَن — تبقى محفوظة محلياً في كل جهاز فقط */
+/* ============================================================ */
+const SYNC_COLLECTION = "andalus-activity-platform";
+const SYNC_DOC_ID = "shared-data";
+let SYNC_ENABLED = false;
+let SYNC_APPLYING_REMOTE = false;
+let SYNC_STATUS = "offline"; // offline | connecting | synced | error
+
+function stripEvidenceForSync(data){
+  const copy = JSON.parse(JSON.stringify(data));
+  (copy.tasks||[]).forEach(t => { delete t.evidence; });
+  (copy.competitions||[]).forEach(c => { delete c.evidence; });
+  return copy;
+}
+
+function mergeRemoteData(remote){
+  const evidenceByTask = {};
+  DATA.tasks.forEach(t => { if (t.evidence && t.evidence.length) evidenceByTask[t.id] = t.evidence; });
+  const evidenceByComp = {};
+  DATA.competitions.forEach(c => { if (c.evidence && c.evidence.length) evidenceByComp[c.id] = c.evidence; });
+  DATA = remote;
+  (DATA.tasks||[]).forEach(t => { if (evidenceByTask[t.id]) t.evidence = evidenceByTask[t.id]; });
+  (DATA.competitions||[]).forEach(c => { if (evidenceByComp[c.id]) c.evidence = evidenceByComp[c.id]; });
+}
+
+function initSync(){
+  const cfg = window.FIREBASE_CONFIG;
+  if (!cfg || !cfg.apiKey || !cfg.projectId) return;
+  if (typeof firebase === "undefined") return;
+  try {
+    firebase.initializeApp(cfg);
+    const db = firebase.firestore();
+    SYNC_ENABLED = true;
+    SYNC_STATUS = "connecting";
+    const ref = db.collection(SYNC_COLLECTION).doc(SYNC_DOC_ID);
+    window.__syncPush = (data) => {
+      ref.set({ payload: JSON.stringify(stripEvidenceForSync(data)), updatedAt: Date.now() })
+        .then(()=>{ SYNC_STATUS = "synced"; render(); })
+        .catch(err => { SYNC_STATUS = "error"; render(); console.warn("تعذّرت مزامنة البيانات:", err); });
+    };
+    ref.onSnapshot(snap => {
+      SYNC_STATUS = "synced";
+      if (snap.exists) {
+        const remote = snap.data();
+        if (remote && remote.payload) {
+          try {
+            SYNC_APPLYING_REMOTE = true;
+            mergeRemoteData(JSON.parse(remote.payload));
+            SYNC_APPLYING_REMOTE = false;
+          } catch(e) { SYNC_APPLYING_REMOTE = false; }
+        }
+      } else {
+        window.__syncPush(DATA); // أول جهاز يتصل يبذر المستند المشترك ببياناته الحالية
+      }
+      render();
+    }, err => { SYNC_STATUS = "error"; render(); console.warn("خطأ في الاتصال بالمزامنة السحابية:", err); });
+  } catch(e) { SYNC_ENABLED = false; console.warn("تعذّر تفعيل المزامنة السحابية:", e); }
+}
+
+function pushToCloud(){
+  if (!SYNC_ENABLED || SYNC_APPLYING_REMOTE || !window.__syncPush) return;
+  window.__syncPush(DATA);
+}
+
+/* ============================================================ */
 /* أدوات مساعدة */
 /* ============================================================ */
 function uid(){ return Math.random().toString(36).slice(2,10); }
@@ -213,7 +280,7 @@ let STUDENTS_OPEN_ID = null;
 let EDIT_COMP_ID = null;
 
 async function persist(){ return await storageSet(STORAGE_KEY, JSON.stringify(DATA)); }
-async function mutate(fn){ fn(DATA); render(); return await persist(); }
+async function mutate(fn){ fn(DATA); render(); pushToCloud(); return await persist(); }
 
 /* ============================================================ */
 /* عناصر واجهة مشتركة */
@@ -1210,6 +1277,7 @@ function render(){
             </button>`).join("")}
         </nav>
         <div class="sidebar-footer">
+          ${SYNC_ENABLED ? `<div class="sync-badge sync-${SYNC_STATUS}">${SYNC_STATUS==="synced"?"🔄 متزامن مع كل الأجهزة":SYNC_STATUS==="error"?"⚠️ خطأ في المزامنة":"⏳ جاري الاتصال بالمزامنة"}</div>` : ""}
           <button class="logout-btn" data-action="logout">تسجيل الخروج</button>
           <div>مدارس الأندلس الأهلية · 1984</div>
         </div>
@@ -1509,4 +1577,5 @@ document.addEventListener("change", async (e) => {
     try { DATA = JSON.parse(saved); } catch(e) { DATA = JSON.parse(JSON.stringify(DEFAULT_DATA)); }
   }
   render();
+  initSync();
 })();
