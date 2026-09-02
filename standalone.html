@@ -283,6 +283,8 @@
   .cal-more{font-size:10px; font-weight:700; color:var(--muted); padding:1px 6px;}
   .cal-details{margin-top:26px;}
   .cal-details .head{font-family:'Cairo'; font-weight:800; font-size:15px; color:var(--navy); margin-bottom:14px;}
+  .sy-badge{display:inline-block; background:#EAF1FC; color:var(--navy); border-radius:20px;
+    padding:3px 11px; font-size:11px; font-weight:800; margin-inline-start:8px; vertical-align:middle;}
   .cal-view-toggle{display:flex; gap:6px; background:#F0F2F6; border-radius:10px; padding:4px;}
   .cal-view-toggle button{border:none; background:transparent; border-radius:8px; padding:8px 16px; font-family:'Cairo'; font-weight:700; font-size:13px; color:var(--muted); cursor:pointer;}
   .cal-view-toggle button.active{background:#fff; color:var(--navy); box-shadow:0 1px 4px rgba(0,0,0,.08);}
@@ -307,65 +309,183 @@
   .report-mode-toggle button.active{background:#fff; color:var(--navy); box-shadow:0 1px 4px rgba(0,0,0,.08);}
   .report-toolbar select{border:1px solid var(--line); border-radius:10px; padding:8px 12px; font-family:'Cairo'; font-size:13px; background:#fff;}
 
-  /* ---------- تصميم التقرير بأسلوب التقرير السنوي الرسمي ---------- */
-  .rpt-cover{background:linear-gradient(135deg, var(--navy), var(--purple) 130%); padding:34px 32px; color:#fff; position:relative; overflow:hidden;}
-  .rpt-cover-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:34px;}
-  .rpt-cover-top img{height:44px;}
-  .rpt-cover-school{text-align:end; font-family:'Cairo';}
-  .rpt-cover-school .n{font-weight:800; font-size:14px;}
-  .rpt-cover-school .b{font-size:11.5px; opacity:.75; margin-top:2px;}
-  .rpt-cover-eyebrow{display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700; opacity:.85; margin-bottom:10px;}
-  .rpt-cover-eyebrow::before{content:""; width:22px; height:2px; background:var(--cyan); display:inline-block;}
-  .rpt-cover-title{font-family:'Cairo'; font-weight:800; font-size:30px; line-height:1.25; margin-bottom:6px;}
-  .rpt-cover-range{font-size:14px; opacity:.85; margin-bottom:22px;}
-  .rpt-cover-pills{display:flex; gap:10px; flex-wrap:wrap;}
-  .rpt-pill{background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25); border-radius:24px; padding:8px 18px; font-size:12.5px; font-weight:700;}
-  .rpt-pill b{font-size:15px; margin-inline-end:5px;}
+  /* ================= تقرير النشاط — بأسلوب التقرير السنوي الرسمي ================= */
+  .rpt-doc{background:#E7EAF0; padding:22px; border-radius:16px;}
+  .rpt-page{
+    width:100%; max-width:820px; margin:0 auto 22px; background:#fff; position:relative;
+    box-shadow:0 6px 26px rgba(15,39,113,.10); border-radius:6px; overflow:hidden;
+    padding:52px 56px 64px; min-height:1000px;
+  }
+  .rpt-page.dark{background:linear-gradient(160deg,#12306F 0%,#0F2771 55%,#14357C 100%); color:#fff;}
 
-  .rpt-stat-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; padding:26px 28px;}
-  .rpt-stat-card{border-radius:14px; padding:16px 18px; color:#fff;}
-  .rpt-stat-card .num{font-family:'Cairo'; font-weight:800; font-size:28px;}
-  .rpt-stat-card .lbl{font-size:12px; opacity:.9; margin-top:2px;}
+  /* غلاف */
+  .rpt-cover-head{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:120px;}
+  .rpt-cover-head img{height:74px;}
+  .rpt-cover-org{text-align:end; font-family:'Cairo';}
+  .rpt-cover-org .a{font-weight:800; font-size:15px; color:#fff;}
+  .rpt-cover-org .b{font-size:12.5px; opacity:.62; margin-top:4px;}
+  .rpt-eyebrow-w{display:flex; align-items:center; gap:10px; justify-content:flex-end; font-size:13px; font-weight:700; color:#8FD4EA; margin-bottom:16px;}
+  .rpt-eyebrow-w::after{content:""; width:26px; height:2px; background:#8FD4EA;}
+  .rpt-cover-title{font-family:'Cairo'; font-weight:800; font-size:56px; line-height:1.12; text-align:end; margin-bottom:14px;}
+  .rpt-cover-sub{font-family:'Cairo'; font-weight:800; font-size:24px; color:#7FD3EC; text-align:end; margin-bottom:6px;}
+  .rpt-cover-sub small{display:block; font-size:17px; font-weight:600; opacity:.8; margin-top:6px;}
+  .rpt-chips{display:flex; gap:12px; justify-content:flex-end; flex-wrap:wrap; margin-top:34px;}
+  .rpt-chip{background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.22); border-radius:26px; padding:10px 20px; font-size:13px; font-weight:700;}
+  .rpt-signbox{margin-top:96px; margin-inline-start:auto; width:max-content; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.18);
+    border-radius:12px; padding:16px 22px; display:flex; align-items:center; gap:16px;}
+  .rpt-signbox .bar{width:3px; align-self:stretch; background:#7FD3EC; border-radius:3px;}
+  .rpt-signbox .r{font-size:12px; opacity:.7; margin-bottom:4px;}
+  .rpt-signbox .n{font-family:'Cairo'; font-weight:800; font-size:19px; color:#7FD3EC;}
 
-  .rpt-section{padding:6px 28px 28px;}
-  .rpt-section-eyebrow{font-size:11.5px; font-weight:700; color:var(--muted); display:flex; align-items:center; gap:8px; margin-bottom:6px;}
-  .rpt-section-eyebrow::before{content:""; width:18px; height:2px; background:var(--cyan); display:inline-block;}
-  .rpt-section-title{font-family:'Cairo'; font-weight:800; font-size:19px; color:var(--navy); margin-bottom:14px;}
+  /* رأس الصفحات الداخلية */
+  .rpt-watermark{position:absolute; top:26px; inset-inline-start:44px; font-family:'Cairo'; font-weight:800;
+    font-size:104px; line-height:1; color:#EDF0F6; user-select:none;}
+  .rpt-eyebrow{display:flex; align-items:center; gap:10px; justify-content:flex-end; font-size:12.5px; font-weight:700; color:var(--muted); margin-bottom:10px;}
+  .rpt-eyebrow::after{content:""; width:22px; height:2px; background:var(--cyan);}
+  .rpt-h1{font-family:'Cairo'; font-weight:800; font-size:34px; color:var(--navy); text-align:end; margin-bottom:8px; position:relative; z-index:1;}
+  .rpt-lead{font-size:13.5px; color:var(--muted); text-align:end; margin-bottom:30px;}
+  .rpt-body p{font-size:14px; line-height:2.05; color:#33405C; text-align:justify; margin:0 0 16px;}
+  .rpt-body b{color:var(--navy);}
 
-  .rpt-plan-bar{background:linear-gradient(90deg, var(--magenta), var(--purple)); color:#fff; border-radius:12px; padding:14px 18px; font-size:13.5px; line-height:1.7; margin-bottom:8px;}
+  /* بطاقات إحصاء */
+  .rpt-stats{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin:30px 0 6px;}
+  .rpt-stat{background:#F4F6FA; border-radius:12px; padding:22px 10px; text-align:center;}
+  .rpt-stat .n{font-family:Georgia,'Times New Roman',serif; font-weight:700; font-size:34px; color:var(--navy); line-height:1;}
+  .rpt-stat .l{font-size:11.5px; color:var(--muted); margin-top:8px;}
 
-  .rpt-activity-card{background:#F7F8FA; border:1px solid var(--line); border-radius:12px; padding:12px 16px; margin-bottom:10px; display:flex; align-items:center; gap:12px;}
-  .rpt-activity-card .badge{background:var(--navy); color:#fff; font-size:11px; font-weight:700; border-radius:20px; padding:4px 12px; white-space:nowrap;}
-  .rpt-activity-card .body{flex:1;}
-  .rpt-activity-card .t{font-weight:700; font-size:13.5px; color:var(--ink);}
-  .rpt-activity-card .m{font-size:11.5px; color:var(--muted); margin-top:2px;}
-  .rpt-activity-card.done{border-color:#CDEBD9;}
-  .rpt-activity-card.pending{border-color:#F5D9D9;}
+  /* بطاقات إحصاء ملوّنة */
+  .rpt-bigstats{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:16px;}
+  .rpt-bigstat{border-radius:14px; padding:22px 20px; color:#fff; position:relative; min-height:104px;}
+  .rpt-bigstat .n{font-family:Georgia,serif; font-weight:700; font-size:38px; line-height:1;}
+  .rpt-bigstat .l{font-size:12.5px; opacity:.92; margin-top:8px;}
+  .rpt-bigstat .badge{position:absolute; top:16px; inset-inline-start:18px; background:rgba(255,255,255,.18);
+    border-radius:8px; padding:4px 11px; font-size:12px; font-weight:700;}
+  .rpt-bigstat.soft{background:#F4F6FA; color:var(--navy);}
+  .rpt-bigstat.soft .l{color:var(--muted);}
+  .rpt-bigstat.soft .badge{background:#E4E9F2; color:var(--muted);}
 
-  .rpt-comp-card{border-radius:12px; padding:13px 16px; margin-bottom:10px; background:#fff; border:1px solid var(--line); display:flex; align-items:center; gap:12px;}
-  .rpt-comp-card .t{font-weight:700; font-size:13.5px; color:var(--ink); flex:1;}
-  .rpt-comp-card .m{font-size:11.5px; color:var(--muted); margin-top:2px;}
-  .rpt-status-pill{border-radius:20px; padding:5px 12px; font-size:11px; font-weight:800; color:#fff; white-space:nowrap;}
+  /* شريط مجال */
+  .rpt-domain{border-radius:14px; padding:20px 24px; color:#fff; display:flex; align-items:center;
+    justify-content:space-between; margin:26px 0 16px;}
+  .rpt-domain .n{font-family:Georgia,serif; font-weight:700; font-size:32px; line-height:1;}
+  .rpt-domain .l{font-size:12.5px; opacity:.9; margin-top:6px;}
+  .rpt-domain .pill{background:rgba(255,255,255,.18); border-radius:22px; padding:8px 18px; font-size:12.5px; font-weight:700;}
 
-  .rpt-gallery{display:grid; grid-template-columns:repeat(auto-fill, minmax(140px,1fr)); gap:10px;}
-  .rpt-gallery figure{margin:0; border-radius:10px; overflow:hidden; border:1px solid var(--line); background:#000;}
-  .rpt-gallery img, .rpt-gallery video{width:100%; height:120px; object-fit:cover; display:block;}
-  .rpt-gallery figcaption{font-size:11px; color:var(--muted); padding:6px 8px; background:#fff;}
+  /* بطاقات البرامج */
+  .rpt-cards{display:grid; grid-template-columns:repeat(3,1fr); gap:12px;}
+  .rpt-cards.two{grid-template-columns:repeat(2,1fr);}
+  .rpt-cards.one{grid-template-columns:1fr;}
+  .rpt-cardx{background:#F7F9FC; border:1px solid #EAEEF5; border-radius:12px; padding:15px 17px;
+    border-inline-end:3px solid var(--navy);}
+  .rpt-cardx .t{font-family:'Cairo'; font-weight:800; font-size:13.5px; color:var(--navy); margin-bottom:6px;
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end;}
+  .rpt-cardx .d{font-size:11.5px; color:#5B6780; line-height:1.75;}
+  .rpt-datepill{background:var(--navy); color:#fff; border-radius:20px; padding:3px 11px; font-size:10.5px; font-weight:700;}
+  .rpt-cardx.hi{background:var(--navy); border-color:var(--navy);}
+  .rpt-cardx.hi .t{color:#fff;} .rpt-cardx.hi .d{color:rgba(255,255,255,.82);}
 
-  .rpt-empty{color:var(--muted); font-size:13px; background:#F7F8FA; border-radius:10px; padding:14px 16px;}
+  /* معرض */
+  .rpt-gal{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:18px;}
+  .rpt-gal.wide{grid-template-columns:1fr;}
+  .rpt-gal figure{margin:0; position:relative; border-radius:12px; overflow:hidden; background:#0F2771;}
+  .rpt-gal img, .rpt-gal video{width:100%; height:150px; object-fit:cover; display:block;}
+  .rpt-gal.wide img, .rpt-gal.wide video{height:250px;}
+  .rpt-gal figcaption{position:absolute; inset-inline:0; bottom:0; padding:26px 14px 12px; color:#fff;
+    font-family:'Cairo'; font-weight:800; font-size:13px; text-align:end;
+    background:linear-gradient(to top, rgba(10,25,64,.88), rgba(10,25,64,0));}
 
-  .rpt-closing{background:linear-gradient(135deg, var(--navy), var(--blue) 140%); color:#fff; padding:28px 30px; margin-top:6px;}
-  .rpt-closing .h{font-family:'Cairo'; font-weight:800; font-size:18px; margin-bottom:8px;}
-  .rpt-closing .p{font-size:13px; opacity:.85; line-height:1.8; max-width:640px;}
-  .rpt-closing .sig{margin-top:20px; padding-top:16px; border-top:1px solid rgba(255,255,255,.2); display:flex; justify-content:space-between; align-items:flex-end; font-size:12px;}
-  .rpt-closing .sig b{font-size:14px; display:block; margin-bottom:2px;}
-  .rpt-closing .sig .school{opacity:.7; text-align:end;}
+  /* شبكة الأثر */
+  .rpt-impact{display:grid; grid-template-columns:repeat(2,1fr); gap:14px;}
+  .rpt-impactx{background:#fff; border:1px solid #E6EAF2; border-radius:12px; padding:18px 20px; border-top:3px solid var(--navy);}
+  .rpt-impactx .t{font-family:'Cairo'; font-weight:800; font-size:14px; color:var(--navy); margin-bottom:7px; text-align:end;}
+  .rpt-impactx .d{font-size:12px; color:#5B6780; line-height:1.85; text-align:end;}
+  .rpt-quote{background:linear-gradient(120deg,#12306F,#0F2771); color:#fff; border-radius:12px;
+    padding:20px 24px; font-size:13.5px; line-height:1.9; margin-top:18px; text-align:end;}
+
+  /* تذييل الصفحة */
+  .rpt-foot{position:absolute; inset-inline:56px; bottom:26px; display:flex; justify-content:space-between;
+    align-items:center; border-top:1px solid #E6EAF2; padding-top:12px; font-size:11px; color:#9AA4B8;}
+  .rpt-empty2{color:var(--muted); font-size:13px; background:#F4F6FA; border-radius:10px; padding:16px 18px; text-align:end;}
+
+  /* خاتمة */
+  .rpt-page.dark .rpt-eyebrow{color:#8FD4EA;} .rpt-page.dark .rpt-eyebrow::after{background:#8FD4EA;}
+  .rpt-end-title{font-family:'Cairo'; font-weight:800; font-size:52px; line-height:1.15; text-align:end; margin-bottom:34px;}
+  .rpt-end-body p{font-size:14px; line-height:2.1; opacity:.9; text-align:justify; margin:0 0 18px;}
+  .rpt-end-sign{position:absolute; inset-inline:56px; bottom:56px; display:flex; justify-content:space-between; align-items:flex-end;}
+  .rpt-end-sign .who{display:flex; align-items:center; gap:14px;}
+  .rpt-end-sign .bar{width:3px; height:42px; background:#7FD3EC; border-radius:3px;}
+  .rpt-end-sign .n{font-family:'Cairo'; font-weight:800; font-size:17px;}
+  .rpt-end-sign .r{font-size:12px; opacity:.7; margin-top:3px;}
+  .rpt-end-sign img{height:42px; opacity:.9;}
 
   @media print {
-    .sidebar, .topbar, .report-toolbar { display:none !important; }
-    .main { padding:0 !important; }
-    .report-card { border:none !important; }
+    @page { size:A4 portrait; margin:0; }
+    body{background:#fff;}
+    .sidebar, .topbar, .report-toolbar, .nav-item { display:none !important; }
+    .app, .main { display:block !important; padding:0 !important; margin:0 !important; }
+    .rpt-doc{background:#fff !important; padding:0 !important; border-radius:0 !important;}
+    .rpt-page{
+      max-width:none !important; width:210mm !important; min-height:297mm !important;
+      margin:0 !important; box-shadow:none !important; border-radius:0 !important;
+      padding:16mm 15mm 20mm !important; page-break-after:always; break-after:page;
+    }
+    .rpt-page:last-child{page-break-after:auto; break-after:auto;}
+    .rpt-page.dark{background:#0F2771 !important;}
+    .rpt-foot{inset-inline:15mm !important; bottom:9mm !important;}
+    .rpt-end-sign{inset-inline:15mm !important; bottom:18mm !important;}
+    *{-webkit-print-color-adjust:exact !important; print-color-adjust:exact !important;}
   }
+
+
+  /* ===== الإطار الوزاري ===== */
+  .moe-box{background:#fff; border:1px solid var(--line); border-radius:16px; padding:26px 28px;}
+  .moe-head{display:flex; justify-content:space-between; align-items:flex-start; gap:16px;
+    border-bottom:2px solid var(--cyan); padding-bottom:16px; margin-bottom:20px; flex-wrap:wrap;}
+  .moe-head .eyebrow{font-size:11.5px; font-weight:700; color:var(--muted); margin-bottom:5px;}
+  .moe-head .ttl{font-family:'Cairo'; font-weight:800; font-size:19px; color:var(--navy);}
+  .moe-ref{background:#EAF1FC; color:var(--navy); border-radius:20px; padding:7px 14px; font-size:11.5px; font-weight:700;}
+  .moe-sub{font-family:'Cairo'; font-weight:800; font-size:13.5px; color:var(--navy); margin:22px 0 12px;
+    display:flex; align-items:center; gap:8px;}
+  .moe-sub::before{content:""; width:4px; height:15px; background:var(--cyan); border-radius:3px;}
+  .moe-tracks{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px;}
+  .moe-track{background:#F7F9FC; border:1px solid var(--line); border-inline-start:4px solid var(--navy);
+    border-radius:10px; padding:14px 16px;}
+  .moe-track b{display:block; font-family:'Cairo'; font-size:13.5px; color:var(--navy); margin-bottom:6px;}
+  .moe-track span{font-size:12px; color:#5B6780; line-height:1.8;}
+  .moe-cov{display:flex; flex-direction:column; gap:9px;}
+  .moe-cov-row{display:flex; align-items:center; gap:12px;}
+  .moe-cov-row .nm{width:150px; font-size:12.5px; font-weight:700; flex-shrink:0;}
+  .moe-cov-row .br{flex:1; height:9px; background:#EEF1F6; border-radius:6px; overflow:hidden;}
+  .moe-cov-row .br i{display:block; height:100%; border-radius:6px; min-width:3px;}
+  .moe-cov-row .vl{width:26px; text-align:center; font-size:12.5px; font-weight:800; flex-shrink:0;}
+  .moe-targets{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:9px;}
+  .moe-target{display:flex; align-items:center; gap:10px; background:#F7F9FC; border:1px solid var(--line);
+    border-radius:9px; padding:10px 13px;}
+  .moe-target b{font-family:Georgia,serif; font-size:15px; color:var(--cyan); flex-shrink:0;}
+  .moe-target span{font-size:11.5px; color:#41506B; line-height:1.6;}
+  .moe-tools{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:10px;}
+  .moe-tool{background:#fff; border:1px solid var(--line); border-top:3px solid var(--purple);
+    border-radius:10px; padding:13px 15px;}
+  .moe-tool b{display:block; font-family:'Cairo'; font-size:12.5px; color:var(--navy); margin-bottom:5px;}
+  .moe-tool span{font-size:11.5px; color:#5B6780; line-height:1.7;}
+  .moe-progs{display:grid; grid-template-columns:repeat(auto-fit,minmax(215px,1fr)); gap:12px;}
+  .moe-prog-col{border:1px solid var(--line); border-radius:11px; overflow:hidden; background:#fff; display:flex; flex-direction:column;}
+  .moe-prog-col .hd{color:#fff; font-family:'Cairo'; font-weight:800; font-size:12px; padding:9px 12px;
+    display:flex; justify-content:space-between; align-items:center;}
+  .moe-prog-col .hd span{background:rgba(255,255,255,.22); border-radius:11px; padding:1px 8px; font-size:11px;}
+  .moe-prog-col .bd{padding:7px 9px; max-height:190px; overflow-y:auto; flex:1;}
+  .moe-prog-col .pr{display:flex; align-items:center; justify-content:space-between; gap:6px;
+    font-size:11.5px; color:#41506B; padding:5px 6px; border-radius:6px; line-height:1.5;}
+  .moe-prog-col .pr:hover{background:#F4F6FA;}
+  .moe-prog-col .pr.empty{color:var(--muted); font-style:italic;}
+  .moe-prog-col .pr .trash-btn svg{width:12px; height:12px;}
+  .moe-prog-col .ft{display:flex; gap:5px; padding:8px 9px; border-top:1px solid var(--line); background:#FAFBFD;}
+  .moe-prog-col .ft input{flex:1; min-width:0; border:1px solid var(--line); border-radius:7px;
+    padding:6px 8px; font-family:'Cairo'; font-size:11.5px;}
+  .moe-prog-col .ft .btn{padding:6px 9px;}
+  .moe-prog-col .ft .btn svg{width:13px; height:13px;}
+  .moe-note{margin-top:20px; background:#FBEBEB; border:1px solid #F0D2D2; border-radius:10px;
+    padding:13px 16px; font-size:11.5px; color:#8C3A3E; line-height:1.85;}
 
   .hidden{display:none !important;}
 
@@ -460,6 +580,48 @@ const AUTH_KEY = "andalus-activity-platform-auth";
 const LOGIN_USERNAME = "عبدالله";
 const LOGIN_PASSWORD = "1083991719";
 
+/* ===== الإطار الوزاري للنشاط الطلابي — دليل الخطط الدراسية / المركز الوطني للمناهج ===== */
+const MOE_DOMAINS = [
+  {key:"المواطنة والحياة",   color:"var(--navy)",    hex:"0F2771"},
+  {key:"العلوم والتقنية",     color:"var(--blue)",    hex:"004D9F"},
+  {key:"الثقافة والفنون",     color:"var(--magenta)", hex:"853283"},
+  {key:"الرياضة والصحة",      color:"var(--cyan)",    hex:"0C96C5"},
+  {key:"النشاط الكشفي",       color:"var(--purple)",  hex:"32146D"},
+  {key:"الأيام والمناسبات",   color:"var(--coral)",   hex:"D54B51"},
+  {key:"الفترات اللاصفية",    color:"#8A6D1F",        hex:"8A6D1F"},
+];
+const MOE_DOMAIN_KEYS = MOE_DOMAINS.map(d=>d.key);
+/* سجل تنفيذ الفعاليات المجدولة: مفتاحه معرّف الفعالية + التاريخ */
+const logKey = (id, iso) => id + "@" + iso;
+const getLog = (id, iso) => (DATA.eventLog && DATA.eventLog[logKey(id,iso)]) || null;
+const progBank = () => (DATA && DATA.programs) ? DATA.programs : MOE_PROGRAMS;
+const progsOf = (k) => (progBank()[k] || []);
+const domainColor = k => (MOE_DOMAINS.find(d=>d.key===k)||{color:"var(--muted)"}).color;
+
+/* المستهدفات التسعة المعتمدة للنشاط الطلابي */
+const MOE_TARGETS = [
+  "رضا الطالب عن الحياة",
+  "تعزيز مشاركة أولياء الأمور في الأنشطة المدرسية",
+  "زيادة جاذبية البيئة المدرسية",
+  "تحسين الأنشطة الطلابية لنواتج التعلم",
+  "تعزيز الأنشطة الطلابية للانضباط المدرسي",
+  "دعم الأنشطة الطلابية للسلوك الإيجابي",
+  "اعتزاز الطلبة بثقافتهم واحترامهم للتنوع الثقافي",
+  "أنشطة تعلم تطبيقية ترتبط بحياة المتعلمين",
+  "تعزيز المدرسة للشراكة المجتمعية",
+];
+
+/* البرامج المعتمدة من المركز الوطني للمناهج — مصنّفة حسب المجال */
+const MOE_PROGRAMS = {
+  "المواطنة والحياة": ["التطوع الطلابي","مهارات طموحة","نموذج الأمم المتحدة","قيمنا حياة","إرث وطموح","ريادة الأعمال","السيرة النبوية"],
+  "العلوم والتقنية": ["برنامج تطبيقات STEM","التصميم والابتكار التقني","الفضاء والاستكشاف العلمي","الاستدامة وجودة الحياة","الذكاء الاصطناعي","إنترنت الأشياء","الأمن السيبراني","البحث العلمي","حوكمة البيانات"],
+  "الثقافة والفنون": ["الفن السابع (السينما)","الفنون البصرية والتشكيلية","الأزياء السعودية","الثقافة الإعلامية","الفن التراثي المعاصر","الفنون الصوتية والموسيقية","حكايات مرئية (أنمي استديو)","الفنون المسرحية","مهارات اللغة والتواصل الثقافي","الكتابة الإبداعية والأدبية","الحرف والمهن","الخط العربي"],
+  "الرياضة والصحة": ["منافسة المهارات الرياضية الجماعية","منافسة المهارات الرياضية الفردية","منافسة مهارات رياضات الدفاع عن النفس","الرياضة والترفيه الإلكتروني","الرياضات الذهنية","الأولمبياد الرياضي","الإسعافات الأولية","اللياقة والصحة البدنية","مهارات التحكيم الرياضي (أنا حكم)","صحتي في بيئتي"],
+  "النشاط الكشفي": ["بوصلة الاكتشاف","خيمة التجارب المسلية","مخيمي التقني","واحة الإبداع الكشفي","عاداتي الصحية الكشفية","خطواتي الكشفية الصحية","مهاراتي وكشفيتي","صافرة واصطفاف","أفقي الكشفي الواسع","خشبة وحبل","أغامر واكتشف","براعم البيئة والمجتمع","أشارك مجتمعي وأزرع شجرة","مجتمعي وبيئتي مسؤوليتي","سفير البيئة والمجتمع","بصمتي الكشفية","وطني في قلبي","صناع التغيير"],
+  "الأيام والمناسبات": ["اليوم الوطني","يوم التأسيس","يوم السعودية الخضراء","يوم العلم","يوم الصحة العالمي","اليوم العالمي للتعليم","يوم اللغة العربية العالمي","يوم التسامح العالمي","اليوم العالمي للطفل","اليوم العالمي لذوي الإعاقة","يوم المعلم العالمي","اليوم الدولي للأسرة"],
+  "الفترات اللاصفية": ["رحلة نجاح","صحتي مسؤوليتي","سفراء الاستدامة والوعي البيئي","مهارات المستقبل","كن واعيًا","النادي الثقافي","الإرث والأمجاد","صانع الأثر","القيم","النسك"],
+};
+
 const COMP_LEVELS = ["مدرسي","تعليم المدينة","منطقة","وطني","دولي"];
 const COMP_STATUSES = ["تسجيل مفتوح","قيد التحضير","جارية","منتهية"];
 const COMP_STATUS_COLOR = {
@@ -478,42 +640,42 @@ const DEFAULT_DATA = {
     {id:"w3", day:"الأربعاء", time:"12:30", title:"نادي الأنشطة اللاصفية", location:"الملعب المغطى"}
   ],
   weeklyPlan: [
-    {id:"p1", startDate:"2026-08-30", endDate:"2026-09-03", focus:"الأسبوع التمهيدي: تزيين الأروقة بالملصقات وبوابة بالونات، إذاعة ترحيبية بكلمة المدير والوكيل، ضيافة ترحيبية بكل فصل (تمر وقهوة)، توزيع بطاقات تحفيزية، وجولة تعريفية بالأنشطة والمرافق للطلاب المستجدين."},
-    {id:"p2", startDate:"2026-09-06", endDate:"2026-09-10", focus:"تشكيل مجلس النشاط الطلابي وانتخاب قادة الفصول، وتوزيع اللجان (إعلامية، رياضية، ثقافية، اجتماعية)."},
-    {id:"p3", startDate:"2026-09-13", endDate:"2026-09-17", focus:"إطلاق برنامج الإذاعة المدرسية الأسبوعي، وتفعيل نادي القراءة، وتحفيز الطلاب المتميزين على التسجيل في أولمبياد «إبداع» و«نسمو» وأولمبياد الموهبة (قبل إغلاق التسجيل 30 سبتمبر)."},
-    {id:"p4", startDate:"2026-09-20", endDate:"2026-09-24", focus:"الاحتفال باليوم الوطني السعودي (23 سبتمبر): فعاليات وطنية ومسابقة رسم، مع متابعة نادي الابتكار وتذكير الطلاب بقرب إغلاق تسجيل الأولمبياد الوطني نهاية الشهر."},
-    {id:"p5", startDate:"2026-09-27", endDate:"2026-10-01", focus:"الدفعة الأخيرة لتسجيل طلاب نادي الابتكار في أولمبياد «إبداع» و«نسمو» وأولمبياد الموهبة قبل إغلاق الباب 30 سبتمبر، وبدء أسبوع اللياقة البدنية ودوري كرة القدم بين الفصول."},
-    {id:"p6", startDate:"2026-10-04", endDate:"2026-10-08", focus:"اليوم العالمي للمعلم (5 أكتوبر): فعالية تكريم المعلمين من الطلاب ومسابقة «أجمل رسالة شكر»، وتنسيق لقاء أولياء الأمور مع إدارة المدرسة."},
-    {id:"p7", startDate:"2026-10-11", endDate:"2026-10-15", focus:"أسبوع الموهوبين: عرض مشاريع الطلاب الموهوبين وورشة اكتشاف مواهب، مع تنظيم بازار طلابي والتنسيق مع وكالة شؤون الطلاب لبرنامج رحلات العمرة (كل صف في يوم)."},
-    {id:"p8", startDate:"2026-10-18", endDate:"2026-10-22", focus:"تفعيل نادي الابتكار والعلوم: ورش تدريبية لفرق أولمبياد «إبداع» و«نسمو»، ومشاركة نادي النشاط في فعالية اليوم المفتوح للمدرسة."},
-    {id:"p9", startDate:"2026-10-25", endDate:"2026-10-29", focus:"أسبوع المرور: محاضرة توعوية بالتعاون مع إدارة المرور، ومسابقة «قائد المستقبل الآمن»."},
-    {id:"p10", startDate:"2026-11-01", endDate:"2026-11-05", focus:"تقييم منتصف الفصل: استبيان رضا الطلاب عن الأنشطة، واجتماع لجنة النشاط لمراجعة الخطة."},
-    {id:"p11", startDate:"2026-11-08", endDate:"2026-11-12", focus:"نادي الإعلام المدرسي: إصدار أول عدد من الصحيفة الإلكترونية للمدرسة، وتغطية فعاليات الفصل."},
-    {id:"p12", startDate:"2026-11-15", endDate:"2026-11-19", focus:"مسابقة «الأندلس للخطابة»: تصفيات على مستوى الفصول تمهيداً للنهائي، والاحتفاء باليوم العالمي للتسامح (16 نوفمبر) بفقرة إذاعية قصيرة."},
-    {id:"p13", startDate:"2026-11-22", endDate:"2026-11-28", focus:"إجازة الخريف — لا فعاليات مجدولة هذا الأسبوع. فرصة لتوثيق إنجازات الفصل حتى الآن وتجهيز خطة الأسابيع القادمة."},
-    {id:"p14", startDate:"2026-11-29", endDate:"2026-12-03", focus:"العودة من إجازة الخريف: نهائي مسابقة الخطابة وتكريم الفائزين، ندوة توعوية عن الاستخدام الآمن للإنترنت والألعاب الإلكترونية، ومتابعة فرق نادي الابتكار قبل نهائيات يناير."},
-    {id:"p15", startDate:"2026-12-06", endDate:"2026-12-10", focus:"تجهيز فعاليات اليوم العالمي للغة العربية: مسابقة الخط العربي والإملاء."},
-    {id:"p16", startDate:"2026-12-13", endDate:"2026-12-17", focus:"الاحتفال باليوم العالمي للغة العربية (18 ديسمبر): مسابقة الخط والإلقاء الشعري، ومعرض عن جمال اللغة العربية."},
-    {id:"p17", startDate:"2026-12-20", endDate:"2026-12-24", focus:"مراجعة إنجازات الفصل الأول وتوثيقها في ملف الإنجاز، والتحضير لاختبارات نهاية الفصل."},
-    {id:"p18", startDate:"2026-12-27", endDate:"2026-12-31", focus:"متابعة اختبارات نهاية الفصل الأول بأجواء داعمة، وتجهيز التقرير الفصلي الشامل، مع مراجعة أخيرة لمشاريع مرشّحي نادي الابتكار قبل نهائيات إبداع/نسمو أواخر يناير بالرياض."},
-    {id:"p19", startDate:"2027-01-17", endDate:"2027-01-21", focus:"استئناف الفصل الثاني: مراجعة الخطة التشغيلية في ضوء نتائج الفصل الأول، وتحديث لوحة الإنجازات."},
-    {id:"p20", startDate:"2027-01-24", endDate:"2027-01-28", focus:"تفعيل نادي الحاسب والتقنية: ورشة عن الذكاء الاصطناعي وأدواته للطلاب."},
-    {id:"p21", startDate:"2027-01-31", endDate:"2027-02-04", focus:"أسبوع الإبداع الرقمي: عرض إبداعات فنية وتقنية من نادي المهارات الرقمية."},
-    {id:"p22", startDate:"2027-02-07", endDate:"2027-02-11", focus:"تجهيز فعاليات يوم التأسيس وتوزيع مهام اللجان لإحياء المناسبة."},
-    {id:"p23", startDate:"2027-02-14", endDate:"2027-02-18", focus:"بروفات فقرات ومسابقات يوم التأسيس القادم، وتجهيز معرض تراثي مصغّر."},
-    {id:"p24", startDate:"2027-02-21", endDate:"2027-02-25", focus:"إحياء يوم التأسيس (22 فبراير): فعالية تراثية ومسابقة «تراثنا هويتنا»."},
-    {id:"p25", startDate:"2027-03-14", endDate:"2027-03-18", focus:"العودة من إجازة عيد الفطر: استئناف الأنشطة، والاحتفال المتأخر بيوم العلم (11 مارس) الذي تزامن مع الإجازة."},
-    {id:"p26", startDate:"2027-03-21", endDate:"2027-03-25", focus:"انطلاق «تحدي القراءة الأندلسي»: المرحلة المدرسية بالتعاون مع مكتبة المدرسة."},
-    {id:"p27", startDate:"2027-03-28", endDate:"2027-04-01", focus:"أسبوع الفنون: معرض فني ومسرحية قصيرة من إعداد نادي المسرح المدرسي."},
-    {id:"p28", startDate:"2027-04-04", endDate:"2027-04-08", focus:"اليوم العالمي للصحة (7 أبريل): محاضرة توعوية ومسابقة رياضية «الأندلس الأصح»."},
-    {id:"p29", startDate:"2027-04-11", endDate:"2027-04-15", focus:"استعدادات الرحلة العلمية السنوية، والتنسيق مع الشؤون المدرسية وأولياء الأمور."},
-    {id:"p30", startDate:"2027-04-18", endDate:"2027-04-22", focus:"تنفيذ الرحلة العلمية/الترفيهية السنوية لطلاب النشاط المتميزين."},
-    {id:"p31", startDate:"2027-04-25", endDate:"2027-04-29", focus:"تجهيز معرض النشاط الختامي، وتوثيق إنجازات العام لعرضها على الإدارة ووزارة التعليم."},
-    {id:"p32", startDate:"2027-05-16", endDate:"2027-05-20", focus:"العودة من إجازة عيد الأضحى: استكمال تجهيزات المعرض الختامي للأنشطة."},
-    {id:"p33", startDate:"2027-05-23", endDate:"2027-05-27", focus:"إقامة معرض النشاط الختامي وحفل تكريم الطلاب والمعلمين المتميزين في الأنشطة."},
-    {id:"p34", startDate:"2027-05-30", endDate:"2027-06-03", focus:"رفع التقرير السنوي الشامل لريادة النشاط لوكيل الشؤون المدرسية وإدارة التعليم."},
-    {id:"p35", startDate:"2027-06-06", endDate:"2027-06-10", focus:"دعم أسبوع الاختبارات النهائية بأجواء محفزة: لوحات تحفيزية وركن تشجيعي."},
-    {id:"p36", startDate:"2027-06-13", endDate:"2027-06-17", focus:"إغلاق ملفات الأندية والأرشفة النهائية، وتوثيق الدروس المستفادة للعام القادم."}
+    {id:"p1", startDate:"2026-08-30", endDate:"2026-09-03", domain:"المواطنة والحياة", program:"قيمنا حياة", focus:"الأسبوع التمهيدي: تزيين الأروقة بالملصقات وبوابة بالونات، إذاعة ترحيبية بكلمة المدير والوكيل، ضيافة ترحيبية بكل فصل (تمر وقهوة)، توزيع بطاقات تحفيزية، وجولة تعريفية بالأنشطة والمرافق للطلاب المستجدين."},
+    {id:"p2", startDate:"2026-09-06", endDate:"2026-09-10", domain:"المواطنة والحياة", program:"مهارات طموحة", focus:"تشكيل مجلس النشاط الطلابي وانتخاب قادة الفصول، وتوزيع اللجان (إعلامية، رياضية، ثقافية، اجتماعية)."},
+    {id:"p3", startDate:"2026-09-13", endDate:"2026-09-17", domain:"الثقافة والفنون", program:"مهارات اللغة والتواصل الثقافي", focus:"إطلاق برنامج الإذاعة المدرسية الأسبوعي، وتفعيل نادي القراءة، وتحفيز الطلاب المتميزين على التسجيل في أولمبياد «إبداع» و«نسمو» وأولمبياد الموهبة (قبل إغلاق التسجيل 30 سبتمبر)."},
+    {id:"p4", startDate:"2026-09-20", endDate:"2026-09-24", domain:"الأيام والمناسبات", program:"اليوم الوطني", focus:"الاحتفال باليوم الوطني السعودي (23 سبتمبر): فعاليات وطنية ومسابقة رسم، مع متابعة نادي الابتكار وتذكير الطلاب بقرب إغلاق تسجيل الأولمبياد الوطني نهاية الشهر."},
+    {id:"p5", startDate:"2026-09-27", endDate:"2026-10-01", domain:"الرياضة والصحة", program:"اللياقة والصحة البدنية", focus:"الدفعة الأخيرة لتسجيل طلاب نادي الابتكار في أولمبياد «إبداع» و«نسمو» وأولمبياد الموهبة قبل إغلاق الباب 30 سبتمبر، وبدء أسبوع اللياقة البدنية ودوري كرة القدم بين الفصول."},
+    {id:"p6", startDate:"2026-10-04", endDate:"2026-10-08", domain:"الأيام والمناسبات", program:"يوم المعلم العالمي", focus:"اليوم العالمي للمعلم (5 أكتوبر): فعالية تكريم المعلمين من الطلاب ومسابقة «أجمل رسالة شكر»، وتنسيق لقاء أولياء الأمور مع إدارة المدرسة."},
+    {id:"p7", startDate:"2026-10-11", endDate:"2026-10-15", domain:"المواطنة والحياة", program:"ريادة الأعمال", focus:"أسبوع الموهوبين: عرض مشاريع الطلاب الموهوبين وورشة اكتشاف مواهب، مع تنظيم بازار طلابي والتنسيق مع وكالة شؤون الطلاب لبرنامج رحلات العمرة (كل صف في يوم)."},
+    {id:"p8", startDate:"2026-10-18", endDate:"2026-10-22", domain:"العلوم والتقنية", program:"برنامج تطبيقات STEM", focus:"تفعيل نادي الابتكار والعلوم: ورش تدريبية لفرق أولمبياد «إبداع» و«نسمو»، ومشاركة نادي النشاط في فعالية اليوم المفتوح للمدرسة."},
+    {id:"p9", startDate:"2026-10-25", endDate:"2026-10-29", domain:"الفترات اللاصفية", program:"كن واعيًا", focus:"أسبوع المرور: محاضرة توعوية بالتعاون مع إدارة المرور، ومسابقة «قائد المستقبل الآمن»."},
+    {id:"p10", startDate:"2026-11-01", endDate:"2026-11-05", domain:"الرياضة والصحة", program:"الرياضات الذهنية", focus:"إطلاق بطولة الرياضات الذهنية (شطرنج وسودوكو) بين الفصول، مع تقييم منتصف الفصل: استبيان رضا الطلاب واجتماع لجنة النشاط."},
+    {id:"p11", startDate:"2026-11-08", endDate:"2026-11-12", domain:"الثقافة والفنون", program:"الثقافة الإعلامية", focus:"نادي الإعلام المدرسي: إصدار أول عدد من الصحيفة الإلكترونية، وتغطية فعاليات الفصل، والاحتفاء باليوم العالمي للطفل (20 نوفمبر)."},
+    {id:"p12", startDate:"2026-11-15", endDate:"2026-11-19", domain:"الأيام والمناسبات", program:"يوم التسامح العالمي", focus:"مسابقة «الأندلس للخطابة»: تصفيات على مستوى الفصول تمهيداً للنهائي، والاحتفاء باليوم العالمي للتسامح (16 نوفمبر) بفقرة إذاعية قصيرة."},
+    {id:"p13", startDate:"2026-11-22", endDate:"2026-11-28", domain:"", program:"", focus:"إجازة الخريف — لا فعاليات مجدولة هذا الأسبوع. فرصة لتوثيق إنجازات الفصل حتى الآن وتجهيز خطة الأسابيع القادمة."},
+    {id:"p14", startDate:"2026-11-29", endDate:"2026-12-03", domain:"العلوم والتقنية", program:"الأمن السيبراني", focus:"العودة من إجازة الخريف: نهائي مسابقة الخطابة وتكريم الفائزين، ندوة الاستخدام الآمن للإنترنت، والاحتفاء باليوم العالمي لذوي الإعاقة (3 ديسمبر)."},
+    {id:"p15", startDate:"2026-12-06", endDate:"2026-12-10", domain:"الثقافة والفنون", program:"الخط العربي", focus:"تجهيز فعاليات اليوم العالمي للغة العربية: مسابقة الخط العربي والإملاء."},
+    {id:"p16", startDate:"2026-12-13", endDate:"2026-12-17", domain:"الأيام والمناسبات", program:"يوم اللغة العربية العالمي", focus:"الاحتفال باليوم العالمي للغة العربية (18 ديسمبر): مسابقة الخط والإلقاء الشعري، ومعرض عن جمال اللغة العربية."},
+    {id:"p17", startDate:"2026-12-20", endDate:"2026-12-24", domain:"الفترات اللاصفية", program:"صانع الأثر", focus:"مراجعة إنجازات الفصل الأول وتوثيقها في ملف الإنجاز، والتحضير لاختبارات نهاية الفصل."},
+    {id:"p18", startDate:"2026-12-27", endDate:"2026-12-31", domain:"العلوم والتقنية", program:"البحث العلمي", focus:"متابعة اختبارات نهاية الفصل الأول بأجواء داعمة، وتجهيز التقرير الفصلي الشامل، مع مراجعة أخيرة لمشاريع مرشّحي نادي الابتكار قبل نهائيات إبداع/نسمو أواخر يناير بالرياض."},
+    {id:"p19", startDate:"2027-01-17", endDate:"2027-01-21", domain:"المواطنة والحياة", program:"مهارات طموحة", focus:"استئناف الفصل الثاني: مراجعة الخطة التشغيلية، وتحديث لوحة الإنجازات، والاحتفاء باليوم العالمي للتعليم (24 يناير)."},
+    {id:"p20", startDate:"2027-01-24", endDate:"2027-01-28", domain:"العلوم والتقنية", program:"الذكاء الاصطناعي", focus:"تفعيل نادي الحاسب والتقنية: ورشة عن الذكاء الاصطناعي وأدواته للطلاب."},
+    {id:"p21", startDate:"2027-01-31", endDate:"2027-02-04", domain:"العلوم والتقنية", program:"التصميم والابتكار التقني", focus:"أسبوع الإبداع الرقمي: عرض إبداعات فنية وتقنية من نادي المهارات الرقمية."},
+    {id:"p22", startDate:"2027-02-07", endDate:"2027-02-11", domain:"الأيام والمناسبات", program:"يوم التأسيس", focus:"تجهيز فعاليات يوم التأسيس وتوزيع مهام اللجان لإحياء المناسبة."},
+    {id:"p23", startDate:"2027-02-14", endDate:"2027-02-18", domain:"الثقافة والفنون", program:"الفن التراثي المعاصر", focus:"بروفات فقرات ومسابقات يوم التأسيس القادم، وتجهيز معرض تراثي مصغّر."},
+    {id:"p24", startDate:"2027-02-21", endDate:"2027-02-25", domain:"الأيام والمناسبات", program:"يوم التأسيس", focus:"إحياء يوم التأسيس (22 فبراير): فعالية تراثية ومسابقة «تراثنا هويتنا»."},
+    {id:"p25", startDate:"2027-03-14", endDate:"2027-03-18", domain:"الأيام والمناسبات", program:"يوم العلم", focus:"العودة من إجازة عيد الفطر: استئناف الأنشطة، والاحتفال المتأخر بيوم العلم (11 مارس) الذي تزامن مع الإجازة."},
+    {id:"p26", startDate:"2027-03-21", endDate:"2027-03-25", domain:"الفترات اللاصفية", program:"النادي الثقافي", focus:"انطلاق «تحدي القراءة الأندلسي» بالتعاون مع مكتبة المدرسة، وإحياء يوم السعودية الخضراء بمبادرة تشجير."},
+    {id:"p27", startDate:"2027-03-28", endDate:"2027-04-01", domain:"الثقافة والفنون", program:"الفنون المسرحية", focus:"أسبوع الفنون: معرض فني ومسرحية قصيرة من إعداد نادي المسرح المدرسي."},
+    {id:"p28", startDate:"2027-04-04", endDate:"2027-04-08", domain:"الأيام والمناسبات", program:"يوم الصحة العالمي", focus:"اليوم العالمي للصحة (7 أبريل): محاضرة توعوية ومسابقة رياضية «الأندلس الأصح»."},
+    {id:"p29", startDate:"2027-04-11", endDate:"2027-04-15", domain:"النشاط الكشفي", program:"أغامر واكتشف", focus:"استعدادات الرحلة العلمية السنوية، والتنسيق مع الشؤون المدرسية وأولياء الأمور."},
+    {id:"p30", startDate:"2027-04-18", endDate:"2027-04-22", domain:"النشاط الكشفي", program:"بوصلة الاكتشاف", focus:"تنفيذ الرحلة العلمية/الترفيهية السنوية لطلاب النشاط المتميزين."},
+    {id:"p31", startDate:"2027-04-25", endDate:"2027-04-29", domain:"الفترات اللاصفية", program:"صانع الأثر", focus:"تجهيز معرض النشاط الختامي، وتوثيق إنجازات العام لعرضها على الإدارة ووزارة التعليم."},
+    {id:"p32", startDate:"2027-05-16", endDate:"2027-05-20", domain:"الفترات اللاصفية", program:"النسك", focus:"العودة من إجازة عيد الأضحى: استكمال تجهيزات المعرض الختامي، والاحتفاء باليوم الدولي للأسرة (15 مايو)."},
+    {id:"p33", startDate:"2027-05-23", endDate:"2027-05-27", domain:"المواطنة والحياة", program:"إرث وطموح", focus:"إقامة معرض النشاط الختامي وحفل تكريم الطلاب والمعلمين المتميزين في الأنشطة."},
+    {id:"p34", startDate:"2027-05-30", endDate:"2027-06-03", domain:"الفترات اللاصفية", program:"صانع الأثر", focus:"رفع التقرير السنوي الشامل لريادة النشاط لوكيل الشؤون المدرسية وإدارة التعليم."},
+    {id:"p35", startDate:"2027-06-06", endDate:"2027-06-10", domain:"الفترات اللاصفية", program:"رحلة نجاح", focus:"دعم أسبوع الاختبارات النهائية بأجواء محفزة: لوحات تحفيزية وركن تشجيعي."},
+    {id:"p36", startDate:"2027-06-13", endDate:"2027-06-17", domain:"الفترات اللاصفية", program:"صانع الأثر", focus:"إغلاق ملفات الأندية والأرشفة النهائية، وتوثيق الدروس المستفادة للعام القادم."}
   ],
   tasks: [
     {id:"t1", title:"رفع التقرير الأسبوعي لوكيل الشؤون المدرسية", type:"أسبوعي", day:"الخميس", dueDate:"", priority:"عالية", done:false},
@@ -528,7 +690,9 @@ const DEFAULT_DATA = {
     {id:"c4", name:"تحدي القراءة العربي", organizer:"مؤسسة محمد بن راشد آل مكتوم للمعرفة", level:"وطني", status:"قيد التحضير", deadline:"", result:"", students:[], evidence:[]},
     {id:"c5", name:"مسابقة الإبداع والابتكار (محلية - تعليم جدة)", organizer:"إدارة تعليم جدة", level:"تعليم المدينة", status:"قيد التحضير", deadline:"", result:"", students:[], evidence:[]}
   ],
-  evidence: {}
+  evidence: {},
+  programs: JSON.parse(JSON.stringify(MOE_PROGRAMS)),
+  eventLog: {}
 };
 
 /* ============================================================ */
@@ -549,7 +713,7 @@ async function storageSet(key, value){
 
 /* ============================================================ */
 /* المزامنة السحابية بين الأجهزة (Firebase — اختيارية) */
-/* تُفعَّل تلقائياً فقط إذا عبّأت بيانات FIREBASE_CONFIG بالأعلى */
+/* تُفعَّل تلقائياً فقط إذا عبّأت بياناتك في assets/firebase-config.js */
 /* الشواهد (صور/فيديو) لا تُزامَن — تبقى محفوظة محلياً في كل جهاز فقط */
 /* ============================================================ */
 const SYNC_COLLECTION = "andalus-activity-platform";
@@ -562,6 +726,9 @@ function stripEvidenceForSync(data){
   const copy = JSON.parse(JSON.stringify(data));
   (copy.tasks||[]).forEach(t => { delete t.evidence; });
   (copy.competitions||[]).forEach(c => { delete c.evidence; });
+  if (copy.eventLog) {
+    Object.keys(copy.eventLog).forEach(k => { if (copy.eventLog[k]) delete copy.eventLog[k].evidence; });
+  }
   return copy;
 }
 
@@ -570,9 +737,16 @@ function mergeRemoteData(remote){
   DATA.tasks.forEach(t => { if (t.evidence && t.evidence.length) evidenceByTask[t.id] = t.evidence; });
   const evidenceByComp = {};
   DATA.competitions.forEach(c => { if (c.evidence && c.evidence.length) evidenceByComp[c.id] = c.evidence; });
+  const evidenceByLog = {};
+  Object.keys(DATA.eventLog||{}).forEach(k => { const lg = DATA.eventLog[k]; if (lg && lg.evidence && lg.evidence.length) evidenceByLog[k] = lg.evidence; });
   DATA = remote;
   (DATA.tasks||[]).forEach(t => { if (evidenceByTask[t.id]) t.evidence = evidenceByTask[t.id]; });
   (DATA.competitions||[]).forEach(c => { if (evidenceByComp[c.id]) c.evidence = evidenceByComp[c.id]; });
+  if (!DATA.eventLog) DATA.eventLog = {};
+  Object.keys(evidenceByLog).forEach(k => {
+    if (!DATA.eventLog[k]) DATA.eventLog[k] = {done:false, doneDate:"", evidence:[]};
+    DATA.eventLog[k].evidence = evidenceByLog[k];
+  });
 }
 
 function initSync(){
@@ -682,15 +856,26 @@ let SHOW_TASK_FORM = false;
 let SHOW_PLAN_FORM = false;
 let SHOW_COMP_FORM = false;
 const _now = new Date();
-const SCHOOL_YEAR_START = "2026-08-30";
-let CAL_YEAR = 2026;
-let CAL_MONTH = 7; // أغسطس — بداية العام الدراسي
-let CAL_SELECTED = SCHOOL_YEAR_START;
+/* ===== العام الدراسي: يبدأ الأحد 30 أغسطس 2026 ===== */
+const SY_START = "2026-08-30";
+const SY_END   = "2027-06-17";
+function syWeekNo(iso){
+  const a = new Date(SY_START+"T00:00:00"), b = new Date(iso+"T00:00:00");
+  if (b < a) return 0;
+  const aSun = new Date(a); aSun.setDate(a.getDate() - a.getDay());
+  const bSun = new Date(b); bSun.setDate(b.getDate() - b.getDay());
+  return Math.floor((bSun - aSun) / 604800000) + 1;
+}
+const _syS = new Date(SY_START+"T00:00:00"), _syE = new Date(SY_END+"T00:00:00");
+const _inSY = _now >= _syS && _now <= _syE;
+let CAL_YEAR = _inSY ? _now.getFullYear() : _syS.getFullYear();
+let CAL_MONTH = _inSY ? _now.getMonth() : _syS.getMonth();
+let CAL_SELECTED = _inSY ? isoDate(_now.getFullYear(), _now.getMonth(), _now.getDate()) : SY_START;
 let CAL_VIEW = "grid";
 let REPORT_MODE = "weekly";
 let REPORT_WEEK_ID = null;
-let REPORT_YEAR = 2026;
-let REPORT_MONTH = 7; // أغسطس — بداية العام الدراسي
+let REPORT_YEAR = _inSY ? _now.getFullYear() : _syS.getFullYear();
+let REPORT_MONTH = _inSY ? _now.getMonth() : _syS.getMonth();
 let REPORT_COPIED = false;
 let EVIDENCE_OPEN_ID = null;
 let STUDENTS_OPEN_ID = null;
@@ -724,8 +909,14 @@ function gradientDivider(){
 function viewDashboard(){
   const today = todayInfo();
   const todaysWeekly = DATA.weekly.filter(w => w.day === today.dayName);
-  const dailyTasks = DATA.tasks.filter(t => t.type === "يومي" && !t.done);
-  const weeklyTasksToday = DATA.tasks.filter(t => t.type === "أسبوعي" && t.day === today.dayName && !t.done);
+  const todayStr = isoDate(_now.getFullYear(), _now.getMonth(), _now.getDate());
+  const dailyTasks = DATA.tasks.filter(t => t.type === "يومي");
+  const weeklyTasksToday = DATA.tasks.filter(t => t.type === "أسبوعي" && t.day === today.dayName);
+  /* كل مهمة مؤرّخة اليوم أو أُنجزت اليوم — مهما كان نوعها */
+  const datedToday = DATA.tasks.filter(t =>
+    (t.dueDate === todayStr || t.doneDate === todayStr) &&
+    t.type !== "يومي" && !(t.type === "أسبوعي" && t.day === today.dayName));
+  const openDaily = dailyTasks.filter(t=>!t.done);
   const dueSoon = DATA.tasks.filter(t => !t.done && t.dueDate)
     .map(t => ({...t, diff: daysUntil(t.dueDate)}))
     .filter(t => t.diff !== null && t.diff <= 3)
@@ -739,10 +930,13 @@ function viewDashboard(){
         <div class="flex1"><div class="title">${esc(w.title)}</div>
         ${w.location ? `<div class="meta">${ICONS.pin.replace('viewBox="0 0 24 24"','viewBox="0 0 24 24" width="11" height="11"')} ${esc(w.location)}</div>` : ""}</div>
       </div>`),
-    ...weeklyTasksToday.map(t => `
+    ...[...weeklyTasksToday, ...datedToday].map(t => `
       <div class="item">
         <button class="check ${t.done?"done":""}" data-action="toggleTask" data-id="${t.id}">${ICONS.check}</button>
-        <div class="flex1 title">${esc(t.title)}</div>
+        <div class="flex1">
+          <div class="title" style="${t.done?'text-decoration:line-through;opacity:.6;':''}">${esc(t.title)}</div>
+          <div class="meta">${esc(t.type)}${t.domain?` · ${esc(t.domain)}`:""}${(t.evidence&&t.evidence.length)?` · 📎 ${t.evidence.length}`:""}</div>
+        </div>
         ${chip(t.priority, PRIORITY_COLOR[t.priority])}
       </div>`)
   ].join("");
@@ -753,13 +947,13 @@ function viewDashboard(){
       <div class="rel">
         <div class="when">${esc(today.dayName)} · ${esc(today.formatted)}</div>
         <h2>مساء الخير، عبدالله</h2>
-        <div class="sub">لديك ${todaysWeekly.length + weeklyTasksToday.length} فعالية مجدولة و${dailyTasks.length} مهمة يومية بانتظارك اليوم.</div>
+        <div class="sub">لديك ${todaysWeekly.length + weeklyTasksToday.length + datedToday.length} عملًا مجدولًا اليوم، منها ${openDaily.length} مهمة يومية بانتظارك.</div>
       </div>
     </div>
 
     <div class="stat-row">
-      <div class="stat-card"><div class="num">${todaysWeekly.length + weeklyTasksToday.length}</div><div class="lbl">فعاليات اليوم</div></div>
-      <div class="stat-card"><div class="num">${dailyTasks.length}</div><div class="lbl">مهام يومية متبقية</div></div>
+      <div class="stat-card"><div class="num">${todaysWeekly.length + weeklyTasksToday.length + datedToday.length}</div><div class="lbl">أعمال اليوم</div></div>
+      <div class="stat-card"><div class="num">${openDaily.length}</div><div class="lbl">مهام يومية متبقية</div></div>
       <div class="stat-card"><div class="num">${dueSoon.length}</div><div class="lbl">مواعيد قريبة</div></div>
       <div class="stat-card"><div class="num">${compsOpen.length}</div><div class="lbl">مسابقات تسجيلها مفتوح</div></div>
     </div>
@@ -775,9 +969,12 @@ function viewDashboard(){
           ${dailyTasks.length ? dailyTasks.map(t => `
             <div class="item">
               <button class="check ${t.done?"done":""}" data-action="toggleTask" data-id="${t.id}">${ICONS.check}</button>
-              <div class="flex1 title">${esc(t.title)}</div>
+              <div class="flex1">
+                <div class="title" style="${t.done?'text-decoration:line-through;opacity:.6;':''}">${esc(t.title)}</div>
+                ${(t.domain||(t.evidence&&t.evidence.length))?`<div class="meta">${t.domain?esc(t.domain):""}${(t.evidence&&t.evidence.length)?`${t.domain?" · ":""}📎 ${t.evidence.length} شاهد`:""}</div>`:""}
+              </div>
               ${chip(t.priority, PRIORITY_COLOR[t.priority])}
-            </div>`).join("") : emptyState("لا توجد مهام يومية متبقية — أحسنت")}
+            </div>`).join("") : emptyState("لا توجد مهام يومية بعد")}
         </div>
       </div>
 
@@ -807,6 +1004,18 @@ function viewVision(){
     <div class="panel">
       <div class="field"><label>من تاريخ</label><input id="p-start" type="date"></div>
       <div class="field"><label>إلى تاريخ</label><input id="p-end" type="date"></div>
+      <div class="field full"><label>مجال النشاط (وفق دليل وزارة التعليم)</label>
+        <select id="p-domain">
+          <option value="">— بدون تصنيف —</option>
+          ${MOE_DOMAIN_KEYS.map(k=>`<option value="${k}">${k}</option>`).join("")}
+        </select>
+      </div>
+      <div class="field full"><label>البرنامج المعتمد (اختياري)</label>
+        <select id="p-program">
+          <option value="">— بدون برنامج محدد —</option>
+          ${MOE_DOMAINS.map(d=>`<optgroup label="${esc(d.key)}">${progsOf(d.key).map(pr=>`<option value="${esc(pr)}">${esc(pr)}</option>`).join("")}</optgroup>`).join("")}
+        </select>
+      </div>
       <div class="field full"><label>أهداف وأنشطة الأسبوع</label><textarea id="p-focus" rows="2" placeholder="مثال: تنظيم مسابقة القراءة الأسبوعية وتفعيل الإذاعة الصباحية"></textarea></div>
       <div class="actions">
         <button class="btn ghost" data-action="closePlanForm">إلغاء</button>
@@ -821,12 +1030,97 @@ function viewVision(){
           ${p.startDate ? esc(p.startDate) : "؟"} — ${p.endDate ? esc(p.endDate) : "؟"}
         </div>
         <div class="title" style="font-weight:600; line-height:1.7;">${esc(p.focus) || "—"}</div>
+        ${(p.domain||p.program)?`<div style="margin-top:6px; display:flex; gap:6px; flex-wrap:wrap;">${p.domain?chip(p.domain, domainColor(p.domain)):""}${p.program?chip("📘 "+p.program, "var(--muted)"):""}</div>`:""}
       </div>
       <button class="trash-btn" data-action="removePlanWeek" data-id="${p.id}">${ICONS.trash}</button>
     </div>`).join("") : emptyState("لم تُضف بعد أي أسابيع للخطة التشغيلية");
 
+  /* تغطية المجالات الوزارية عبر المهام والخطة */
+  const cov = MOE_DOMAINS.map(d => {
+    const n = DATA.tasks.filter(t=>t.domain===d.key).length
+            + DATA.weeklyPlan.filter(p=>p.domain===d.key).length;
+    return {...d, n};
+  });
+  const covMax = Math.max(1, ...cov.map(c=>c.n));
+  const covered = cov.filter(c=>c.n>0).length;
+
+  const moeFrame = `
+    <div class="moe-box">
+      <div class="moe-head">
+        <div>
+          <div class="eyebrow">المرجعية النظامية</div>
+          <div class="ttl">إطار النشاط الطلابي — وزارة التعليم</div>
+        </div>
+        <div class="moe-ref">دليل الخطط الدراسية · المركز الوطني للمناهج</div>
+      </div>
+
+      <div class="moe-sub">مسارا التنفيذ</div>
+      <div class="moe-tracks">
+        <div class="moe-track" style="border-inline-start-color:var(--navy);">
+          <b>النشاط الصفي</b>
+          <span>حصة النشاط الأسبوعية — تُفعّل فيها البرامج المعتمدة في مجالات النشاط، وتبدأ من الأسبوع الثاني وتتوقف قبل الاختبارات النهائية بأسبوعين.</span>
+        </div>
+        <div class="moe-track" style="border-inline-start-color:var(--cyan);">
+          <b>النشاط اللاصفي</b>
+          <span>ساعة يوميًا وفق خطة زمنية معتمدة من مدير المدرسة، وتُنفّذ في الاصطفاف الصباحي أو الفسح أو أوقات الصلاة دون الإخلال بالحصص.</span>
+        </div>
+      </div>
+
+      <div class="moe-sub">مجالات النشاط المعتمدة — ومدى تغطيتها في خطتك (${covered} من ${MOE_DOMAINS.length})</div>
+      <div class="moe-cov">
+        ${cov.map(c=>`
+          <div class="moe-cov-row">
+            <div class="nm" style="color:${c.color}">${c.key}</div>
+            <div class="br"><i style="width:${Math.round(c.n/covMax*100)}%; background:${c.color}"></i></div>
+            <div class="vl" style="color:${c.n?c.color:'var(--muted)'}">${c.n}</div>
+          </div>`).join("")}
+      </div>
+
+      <div class="moe-sub">مستهدفات النشاط الطلابي التسعة</div>
+      <div class="moe-targets">
+        ${MOE_TARGETS.map((t,i)=>`<div class="moe-target"><b>${String(i+1).padStart(2,"0")}</b><span>${t}</span></div>`).join("")}
+      </div>
+
+      <div class="moe-sub">أدوات متابعة الأداء والالتزام</div>
+      <div class="moe-tools">
+        ${[["خطة النشاط الطلابي","إطار البرامج المعتمدة، مزمّنة ومعتمدة من مدير المدرسة"],
+           ["بطاقة تنفيذ برنامج نشاط","تُعبّأ عند استكمال حصص البرنامج وتوثّق المشاركين والشراكات"],
+           ["بطاقة تنفيذ مسابقة نشاط","تُعبّأ عند استكمال حصص الإعداد والتأهيل وتوثّق الفائزين والمتأهلين"],
+           ["سجل رائد النشاط الإلكتروني","ملف إكسل تُدخل فيه بيانات الأنشطة المنفذة"],
+           ["نموذج التقرير الشهري","يُرفع للإدارة التعليمية عبر البريد بين 20 و26 من كل شهر"]
+          ].map(([t,d])=>`<div class="moe-tool"><b>${t}</b><span>${d}</span></div>`).join("")}
+      </div>
+
+      <div class="moe-sub">بنك البرامج المعتمدة — قابل للإضافة</div>
+      <div class="moe-progs">
+        ${MOE_DOMAINS.map(d=>`
+          <div class="moe-prog-col">
+            <div class="hd" style="background:${d.color}">${d.key}<span>${progsOf(d.key).length}</span></div>
+            <div class="bd">
+              ${progsOf(d.key).map(pr=>`
+                <div class="pr">
+                  <span>${esc(pr)}</span>
+                  <button class="trash-btn" data-action="removeProgram" data-domain="${esc(d.key)}" data-name="${esc(pr)}">${ICONS.trash}</button>
+                </div>`).join("") || `<div class="pr empty">لا توجد برامج</div>`}
+            </div>
+            <div class="ft">
+              <input type="text" id="np-${d.hex}" placeholder="أضف برنامجًا جديدًا">
+              <button class="btn small" data-action="addProgram" data-domain="${esc(d.key)}" data-hex="${d.hex}">${ICONS.plus}</button>
+            </div>
+          </div>`).join("")}
+      </div>
+
+      <div class="moe-note">
+        ⚠ يُحظر تنفيذ أي برنامج خارج الخطط المعتمدة إلا بموافقة المركز الوطني للمناهج
+        (المادة الرابعة من قرار مجلس الوزراء رقم ٦٣١ وتاريخ ١٤٤٥/٠٨/٠٣هـ)،
+        ويجوز للإدارة التعليمية اقتراح برامج محلية بعد اعتمادها من المركز.
+      </div>
+    </div>`;
+
   return `
     ${sectionTitle("الإطار العام", "الخطة والرؤية", "compass")}
+    ${moeFrame}
+    <div style="height:30px"></div>
     <div class="vision-wrap">
       <div class="vision-field">
         <label>رؤية المدرسة</label>
@@ -975,6 +1269,12 @@ function viewTasks(){
       <div class="field"><label>الأولوية</label>
         <select id="t-priority">${PRIORITIES.map(p=>`<option value="${p}">${p}</option>`).join("")}</select>
       </div>
+      <div class="field full"><label>مجال النشاط (وفق دليل وزارة التعليم)</label>
+        <select id="t-domain">
+          <option value="">— بدون تصنيف —</option>
+          ${MOE_DOMAIN_KEYS.map(k=>`<option value="${k}">${k}</option>`).join("")}
+        </select>
+      </div>
       <div class="field" id="t-day-wrap"><label>اليوم</label>
         <select id="t-day">${DAYS.map(d=>`<option value="${d}">${d}</option>`).join("")}</select>
       </div>
@@ -991,7 +1291,7 @@ function viewTasks(){
     <tr class="${t.done ? "done-row":""}">
       <td style="width:36px"><button class="check ${t.done?"done":""}" data-action="toggleTask" data-id="${t.id}">${ICONS.check}</button></td>
       <td><div class="tt">${esc(t.title)}</div>
-        <div class="meta">${esc(t.type)}${t.day?` · ${esc(t.day)}`:""}${t.dueDate?` · ${esc(t.dueDate)}`:""}</div>
+        <div class="meta">${esc(t.type)}${t.day?` · ${esc(t.day)}`:""}${t.dueDate?` · ${esc(t.dueDate)}`:""}${t.doneDate?` · أُنجزت ${esc(t.doneDate)}`:""}</div>${t.domain?`<div style="margin-top:5px;">${chip(t.domain, domainColor(t.domain))}</div>`:""}
       </td>
       <td style="width:110px">${chip(t.priority, PRIORITY_COLOR[t.priority])}</td>
       <td style="width:80px"><button class="evidence-btn ${evCount?'has':''}" data-action="toggleEvidence" data-id="${t.id}">📎${evCount?` ${evCount}`:""}</button></td>
@@ -1230,6 +1530,7 @@ function buildTableRows(){
     else if (planEntry) rowClasses.push("cal-row-plan");
     rows += `
       <tr class="${rowClasses.join(" ")}">
+        <td style="width:70px; text-align:center; font-weight:800; color:${syWeekNo(iso)?'var(--navy)':'#B8C0CE'};">${syWeekNo(iso)||"—"}</td>
         <td class="cal-table-day">${weekdayName}</td>
         <td class="cal-table-date">${esc(formatLongAr(iso))}</td>
         <td class="cal-table-items">${items.length ? items.join("") : `<span style="color:var(--muted)">—</span>`}</td>
@@ -1291,27 +1592,43 @@ function viewCalendar(){
     </div>
     ${sel.weeklyEvents.length ? `
       <div class="list" style="margin-bottom:16px;">
-        ${sel.weeklyEvents.map(w=> EDIT_WEEKLY_ID === w.id ? `
-          <div class="item" style="display:block;">${inlineWeeklyEditForm(w)}</div>` : `
+        ${sel.weeklyEvents.map(w=> {
+          if (EDIT_WEEKLY_ID === w.id) return `<div class="item" style="display:block;">${inlineWeeklyEditForm(w)}</div>`;
+          const k = logKey(w.id, CAL_SELECTED);
+          const lg = getLog(w.id, CAL_SELECTED);
+          const evN = lg && lg.evidence ? lg.evidence.length : 0;
+          const isDone = !!(lg && lg.done);
+          const panel = EVIDENCE_OPEN_ID === k
+            ? `<div class="item" style="display:block;">${evidencePanel({id:k, evidence: lg?lg.evidence:[]}, "eventlog")}</div>` : "";
+          return `
           <div class="item">
+            <button class="check ${isDone?"done":""}" data-action="toggleEventDone" data-id="${w.id}" data-date="${CAL_SELECTED}">${ICONS.check}</button>
             <div class="time">${ICONS.clock.replace('viewBox="0 0 24 24"','viewBox="0 0 24 24" width="14" height="14"')}<span>${esc(w.time)}</span></div>
-            <div class="flex1"><div class="title">${esc(w.title)}</div>${w.location?`<div class="meta">${ICONS.pin.replace('viewBox="0 0 24 24"','viewBox="0 0 24 24" width="11" height="11"')} ${esc(w.location)}</div>`:""}</div>
+            <div class="flex1">
+              <div class="title" style="${isDone?'text-decoration:line-through;opacity:.65;':''}">${esc(w.title)}</div>
+              <div class="meta">${w.location?`${esc(w.location)}`:""}${isDone?`${w.location?" · ":""}✔ مُنفّذ`:""}${evN?` · 📎 ${evN} شاهد`:""}</div>
+            </div>
+            <button class="evidence-btn ${evN?'has':''}" data-action="toggleEvidence" data-id="${k}" title="الشواهد">📎${evN?` ${evN}`:""}</button>
             <button class="icon-btn" data-action="editWeekly" data-id="${w.id}">${ICONS.pencil}</button>
             <button class="trash-btn" data-action="removeWeekly" data-id="${w.id}">${ICONS.trash}</button>
-          </div>`).join("")}
+          </div>${panel}`;
+        }).join("")}
       </div>` : (SHOW_WEEKLY_FORM ? "" : `<div style="color:var(--muted); font-size:12.5px; margin-bottom:16px;">لا توجد فعاليات متكررة في هذا اليوم</div>`)}
     ${sel.tasksDue.length ? `
       <div style="font-weight:800;color:var(--navy);margin-bottom:8px;font-size:13px;">المهام المستحقة</div>
       <div class="list">
         ${sel.tasksDue.map(t=>{
-          const evCount = (t.evidence || []).length;
-          const panel = EVIDENCE_OPEN_ID === t.id ? `<div class="item" style="display:block;">${evidencePanel(t)}</div>` : "";
+          const evN=(t.evidence||[]).length;
+          const panel = EVIDENCE_OPEN_ID === t.id ? `<div class="item" style="display:block;">${evidencePanel(t,"task")}</div>` : "";
           return `
           <div class="item">
             <button class="check ${t.done?"done":""}" data-action="toggleTask" data-id="${t.id}">${ICONS.check}</button>
-            <div class="flex1 title" style="${t.done?'text-decoration:line-through;opacity:.6;':''}">${esc(t.title)}</div>
+            <div class="flex1">
+              <div class="title" style="${t.done?'text-decoration:line-through;opacity:.6;':''}">${esc(t.title)}</div>
+              ${(t.domain||evN)?`<div class="meta">${t.domain?esc(t.domain):""}${evN?`${t.domain?" · ":""}📎 ${evN} شاهد`:""}</div>`:""}
+            </div>
             ${chip(t.priority, PRIORITY_COLOR[t.priority])}
-            <button class="evidence-btn ${evCount?'has':''}" data-action="toggleEvidence" data-id="${t.id}" title="إتمام الإنجاز وإدراج الشواهد">📎${evCount?` ${evCount}`:""}</button>
+            <button class="evidence-btn ${evN?'has':''}" data-action="toggleEvidence" data-id="${t.id}" title="الشواهد">📎${evN?` ${evN}`:""}</button>
             <button class="trash-btn" data-action="removeTask" data-id="${t.id}">${ICONS.trash}</button>
           </div>${panel}`;
         }).join("")}
@@ -1324,9 +1641,12 @@ function viewCalendar(){
         <div class="cal-nav">
           <button data-action="calPrevMonth">${ICONS.chevronNext}</button>
           <button class="cal-today-btn" data-action="calToday">اليوم</button>
+          <button class="cal-today-btn" data-action="calStart">بداية العام</button>
           <button data-action="calNextMonth">${ICONS.chevronPrev}</button>
         </div>
-        <div class="cal-title">${MONTH_NAME_FMT.format(new Date(CAL_YEAR, CAL_MONTH, 1))}</div>
+        <div class="cal-title">${MONTH_NAME_FMT.format(new Date(CAL_YEAR, CAL_MONTH, 1))}
+          ${syWeekNo(CAL_SELECTED)?`<span class="sy-badge">الأسبوع الدراسي ${syWeekNo(CAL_SELECTED)}</span>`:""}
+        </div>
       </div>
       <div class="cal-grid">
         ${FULL_DAYS.map(d=>`<div class="cal-daylabel">${d}</div>`).join("")}
@@ -1335,7 +1655,7 @@ function viewCalendar(){
     </div>
 
     <div class="cal-details">
-      <div class="head">${formatLongAr(CAL_SELECTED)}</div>
+      <div class="head">${formatLongAr(CAL_SELECTED)}${syWeekNo(CAL_SELECTED)?` <span class="sy-badge">الأسبوع ${syWeekNo(CAL_SELECTED)} من العام الدراسي</span>`:""}</div>
       ${detailBody}
     </div>
   `;
@@ -1346,12 +1666,15 @@ function viewCalendar(){
         <div class="cal-nav">
           <button data-action="calPrevMonth">${ICONS.chevronNext}</button>
           <button class="cal-today-btn" data-action="calToday">اليوم</button>
+          <button class="cal-today-btn" data-action="calStart">بداية العام</button>
           <button data-action="calNextMonth">${ICONS.chevronPrev}</button>
         </div>
-        <div class="cal-title">${MONTH_NAME_FMT.format(new Date(CAL_YEAR, CAL_MONTH, 1))}</div>
+        <div class="cal-title">${MONTH_NAME_FMT.format(new Date(CAL_YEAR, CAL_MONTH, 1))}
+          ${syWeekNo(CAL_SELECTED)?`<span class="sy-badge">الأسبوع الدراسي ${syWeekNo(CAL_SELECTED)}</span>`:""}
+        </div>
       </div>
       <table class="cal-table">
-        <thead><tr><th>اليوم</th><th>التاريخ</th><th>المناسبة / الفعالية</th></tr></thead>
+        <thead><tr><th>الأسبوع</th><th>اليوم</th><th>التاريخ</th><th>المناسبة / الفعالية</th></tr></thead>
         <tbody>${buildTableRows()}</tbody>
       </table>
     </div>
@@ -1388,13 +1711,20 @@ function buildReportData(startDate, endDate){
   }
   weeklyEvents.sort((a,b)=> a.date===b.date ? a.time.localeCompare(b.time) : a.date.localeCompare(b.date));
 
-  const tasksInRange = DATA.tasks.filter(t => t.dueDate && t.dueDate>=startDate && t.dueDate<=endDate);
+  /* تُحتسب المهمة ضمن الفترة إذا: استُحقّت فيها، أو أُنجزت فيها،
+     أو كانت متكررة/بلا تاريخ (فتتبع الفترة الحالية) — حتى لا تضيع أي مهمة منجزة */
+  const inR = (v) => v && v>=startDate && v<=endDate;
+  const tasksInRange = DATA.tasks.filter(t =>
+    inR(t.dueDate) || inR(t.doneDate) ||
+    (!t.dueDate && !t.doneDate && (t.type==="يومي" || t.type==="أسبوعي" || t.type==="شهري")) ||
+    (!t.dueDate && !t.doneDate && t.done)
+  );
   const recurringTasks = DATA.tasks.filter(t => (t.type==="أسبوعي" || t.type==="يومي"));
   const plansInRange = DATA.weeklyPlan.filter(p => p.startDate<=endDate && p.endDate>=startDate);
   const compsInRange = DATA.competitions.filter(c =>
     (c.deadline && c.deadline>=startDate && c.deadline<=endDate) || c.status==="تسجيل مفتوح" || c.status==="جارية");
 
-  return {weeklyEvents, tasksInRange, recurringTasks, plansInRange, compsInRange};
+  return {weeklyEvents, tasksInRange, recurringTasks, plansInRange, compsInRange, range0:startDate, range1:endDate};
 }
 
 function reportPlainText(title, rangeLabel, data){
@@ -1423,7 +1753,7 @@ function reportPlainText(title, rangeLabel, data){
   lines.push("");
   if (data.recurringTasks.length){
     lines.push("المهام المتكررة (يومية/أسبوعية):");
-    data.recurringTasks.forEach(t => lines.push(`- ${t.done?"✔":"◻"} ${t.title} (${t.type}${t.day?" - "+t.day:""})${(t.evidence&&t.evidence.length)?` [📎${t.evidence.length}]`:""}`));
+    data.recurringTasks.forEach(t => lines.push(`- ${t.done?"✔":"◻"} ${t.title} (${t.type}${t.day?" - "+t.day:""})`));
     lines.push("");
   }
   lines.push("متابعة الابتكار والمسابقات:");
@@ -1432,126 +1762,343 @@ function reportPlainText(title, rangeLabel, data){
   return lines.join("\n");
 }
 
+function rptFoot(n){
+  return `<div class="rpt-foot"><span>${n}</span><span>تقرير النشاط الطلابي · مدارس الأندلس الأهلية</span></div>`;
+}
+
 function reportHtml(title, rangeLabel, data){
   const done = data.tasksInRange.filter(t=>t.done);
   const notDone = data.tasksInRange.filter(t=>!t.done);
-  const doneRecurring = data.recurringTasks.filter(t=>t.done);
-  const allEvidence = [];
-  [...done, ...doneRecurring].forEach(t => (t.evidence||[]).forEach(e => allEvidence.push({...e, taskTitle:t.title})));
-  const evidenceCount = allEvidence.length;
-  const completionPct = data.tasksInRange.length ? Math.round((done.length/data.tasksInRange.length)*100) : 0;
+  /* كل شاهد مرفوع يظهر — سواء كانت المهمة مؤرّخة أو متكررة */
+  const evidence = [];
+  const seenT = new Set();
+  done.forEach(t => { seenT.add(t.id); (t.evidence||[]).forEach(e => evidence.push({...e, cap:t.title})); });
+  DATA.tasks.forEach(t => { if (!seenT.has(t.id)) (t.evidence||[]).forEach(e => evidence.push({...e, cap:t.title})); });
+  DATA.competitions.forEach(c => (c.evidence||[]).forEach(e => evidence.push({...e, cap:c.name})));
+  /* شواهد الفعاليات المجدولة المُنفّذة داخل الفترة */
+  Object.keys(DATA.eventLog||{}).forEach(k => {
+    const lg = DATA.eventLog[k]; const iso = k.split("@")[1] || "";
+    if (!lg || iso < data.range0 || iso > data.range1) return;
+    const ev = DATA.weekly.find(w => w.id === k.split("@")[0]);
+    (lg.evidence||[]).forEach(e => evidence.push({...e, cap:(ev?ev.title:"فعالية مجدولة")+" · "+iso}));
+  });
+  const pct = data.tasksInRange.length ? Math.round(done.length/data.tasksInRange.length*100) : 0;
+  const comps = data.compsInRange;
+  const wins = DATA.competitions.filter(c=>c.result && c.result.trim());
+  const students = DATA.competitions.reduce((n,c)=> n + ((c.students||[]).length), 0);
+  let pg = 0;
 
-  const statCards = [
-    {num: data.weeklyEvents.length, lbl:"فعالية متكررة منفذة", bg:"var(--navy)"},
-    {num: done.length, lbl:"مهمة منجزة", bg:"var(--blue)"},
-    {num: data.compsInRange.length, lbl:"مسابقة متابَعة", bg:"var(--purple)"},
-    {num: evidenceCount, lbl:"شاهد موثّق (صور/فيديو)", bg:"var(--magenta)"},
-    {num: `${completionPct}%`, lbl:"نسبة إنجاز المهام", bg:"var(--cyan)"},
-    {num: data.recurringTasks.length, lbl:"مهمة متكررة قيد المتابعة", bg:"#8A6D1F"},
-  ];
-
-  return `
-    <div class="rpt-cover">
-      <div class="rpt-cover-top">
-        <img src="${LOGO.colorMark}" alt="">
-        <div class="rpt-cover-school">
-          <div class="n">مدارس الأندلس الأهلية</div>
+  /* ---- 1) الغلاف ---- */
+  const cover = `
+    <div class="rpt-page dark">
+      <div class="rpt-cover-head">
+        <img src="${LOGO.whiteLockup}" alt="">
+        <div class="rpt-cover-org">
+          <div class="a">مدارس الأندلس الأهلية</div>
           <div class="b">القسم الثانوي — بنين</div>
         </div>
       </div>
-      <div class="rpt-cover-eyebrow">${esc(title)}</div>
-      <div class="rpt-cover-title">تقرير النشاط الطلابي</div>
-      <div class="rpt-cover-range">الفترة: ${esc(rangeLabel)}</div>
-      <div class="rpt-cover-pills">
-        <div class="rpt-pill"><b>${data.weeklyEvents.length}</b>فعالية منفذة</div>
-        <div class="rpt-pill"><b>${done.length}</b>مهمة منجزة</div>
-        <div class="rpt-pill"><b>${data.compsInRange.length}</b>مسابقة نشطة</div>
-        <div class="rpt-pill"><b>${evidenceCount}</b>شاهد موثّق</div>
+      <div class="rpt-eyebrow-w">${esc(title)}</div>
+      <div class="rpt-cover-title">تقرير النشاط<br>الطلابي</div>
+      <div class="rpt-cover-sub">للعام الدراسي 1448هـ<small>${esc(rangeLabel)}</small></div>
+      <div class="rpt-chips">
+        <div class="rpt-chip">${data.weeklyEvents.length} فعالية منفذة</div>
+        <div class="rpt-chip">${done.length} مهمة منجزة</div>
+        <div class="rpt-chip">${comps.length} مسابقة متابَعة</div>
       </div>
-    </div>
+      <div class="rpt-signbox">
+        <div class="bar"></div>
+        <div>
+          <div class="r">رائد النشاط الطلابي</div>
+          <div class="n">عبدالله محمد القرني</div>
+        </div>
+      </div>
+    </div>`;
 
-    <div class="rpt-stat-grid">
-      ${statCards.map(s=>`<div class="rpt-stat-card" style="background:${s.bg}"><div class="num">${s.num}</div><div class="lbl">${esc(s.lbl)}</div></div>`).join("")}
-    </div>
+  /* ---- 2) كلمة رائد النشاط ---- */
+  pg++;
+  const intro = `
+    <div class="rpt-page">
+      <div class="rpt-watermark">٠١</div>
+      <div class="rpt-eyebrow">افتتاحية</div>
+      <div class="rpt-h1">كلمة رائد النشاط</div>
+      <div class="rpt-body" style="margin-top:26px;">
+        <p style="text-align:center; font-size:17px; color:var(--navy); font-weight:700;">بِسْمِ اللهِ الرَّحْمَنِ الرَّحِيمِ</p>
+        <p style="text-align:center; color:var(--muted);">الحمد لله والصلاة والسلام على رسول الله، وبعد..</p>
+        <p>يسعدني أن أقدّم هذا التقرير الذي يرصد مسيرة النشاط الطلابي في <b>مدارس الأندلس الأهلية — القسم الثانوي</b>
+        خلال الفترة ${esc(rangeLabel)}، موثّقًا ما تحقّق من برامج وفعاليات أثرت الحياة المدرسية لأبنائنا الطلاب.</p>
+        <p>شهدت هذه الفترة تنفيذ <b>${data.weeklyEvents.length} فعالية وبرنامجًا</b> وإنجاز <b>${done.length} مهمة</b>
+        من أصل ${data.tasksInRange.length}، إلى جانب متابعة <b>${comps.length} مسابقة وأولمبياد</b> على المستويين
+        المحلي والوطني، بما يخدم توجّه الإدارة نحو تعزيز الابتكار والمراكز التنافسية.</p>
+        <p>سائلًا الله أن يجعل هذه الجهود في ميزان الحسنات، وأن يوفقنا لما فيه خير أبنائنا الطلاب ونماء وطننا الغالي.</p>
+      </div>
+      <div class="rpt-stats">
+        <div class="rpt-stat"><div class="n">${data.weeklyEvents.length}</div><div class="l">فعالية وبرنامجًا</div></div>
+        <div class="rpt-stat"><div class="n">${done.length}</div><div class="l">مهمة منجزة</div></div>
+        <div class="rpt-stat"><div class="n">${comps.length}</div><div class="l">مسابقة متابَعة</div></div>
+        <div class="rpt-stat"><div class="n">${pct}%</div><div class="l">نسبة الإنجاز</div></div>
+      </div>
+      <div style="margin-top:40px; padding-top:20px; border-top:1px solid #E6EAF2; display:flex; align-items:center; gap:14px; justify-content:flex-end;">
+        <div style="text-align:end;">
+          <div style="font-family:'Cairo'; font-weight:800; font-size:15px; color:var(--navy);">عبدالله محمد القرني</div>
+          <div style="font-size:11.5px; color:var(--muted); margin-top:3px;">رائد النشاط الطلابي — القسم الثانوي</div>
+        </div>
+        <div style="width:3px; height:38px; background:var(--cyan); border-radius:3px;"></div>
+      </div>
+      ${rptFoot(pg)}
+    </div>`;
 
-    ${data.plansInRange.length ? `
-    <div class="rpt-section">
-      <div class="rpt-section-eyebrow">الإطار العام</div>
-      <div class="rpt-section-title">الخطة والتركيز</div>
-      ${data.plansInRange.map(p=>`<div class="rpt-plan-bar">📌 (${esc(p.startDate)} إلى ${esc(p.endDate)}) — ${esc(p.focus)}</div>`).join("")}
-    </div>` : ""}
+  /* ---- 3) الأرقام تتحدث ---- */
+  pg++;
+  const numbers = `
+    <div class="rpt-page">
+      <div class="rpt-watermark">٠٢</div>
+      <div class="rpt-eyebrow">لمحة عامة</div>
+      <div class="rpt-h1">الأرقام تتحدّث</div>
+      <div class="rpt-lead">حصاد الفترة في أرقام موجزة</div>
+      <div class="rpt-bigstats">
+        <div class="rpt-bigstat" style="background:var(--navy);"><div class="badge">فعاليات</div>
+          <div class="n">${data.weeklyEvents.length}</div><div class="l">فعالية وبرنامجًا</div></div>
+        <div class="rpt-bigstat" style="background:var(--cyan);"><div class="badge">مسابقات</div>
+          <div class="n">${comps.length}</div><div class="l">مسابقة وأولمبياد</div></div>
+        <div class="rpt-bigstat" style="background:var(--purple);"><div class="badge">توثيق</div>
+          <div class="n">${evidence.length}</div><div class="l">شاهد مصوّر</div></div>
+      </div>
+      <div class="rpt-bigstats">
+        <div class="rpt-bigstat soft"><div class="badge">إنجاز</div>
+          <div class="n">${done.length}</div><div class="l">مهمة منجزة من ${data.tasksInRange.length}</div></div>
+        <div class="rpt-bigstat soft"><div class="badge">طلاب</div>
+          <div class="n">${students}</div><div class="l">طالبًا مسجلًا في المسابقات</div></div>
+        <div class="rpt-bigstat soft"><div class="badge">تميّز</div>
+          <div class="n">${wins.length}</div><div class="l">إنجازًا محقّقًا</div></div>
+      </div>
+      ${data.plansInRange.length ? `
+        <div class="rpt-domain" style="background:var(--magenta); margin-top:26px;">
+          <div><div class="n">${data.plansInRange.length}</div><div class="l">أسبوعًا ضمن الخطة التشغيلية</div></div>
+          <div class="pill">محاور التركيز</div>
+        </div>
+        <div class="rpt-cards one">
+          ${data.plansInRange.map(p=>`<div class="rpt-cardx" style="border-inline-end-color:var(--magenta);">
+            <div class="t"><span class="rpt-datepill" style="background:var(--magenta);">${esc(p.startDate)} — ${esc(p.endDate)}</span></div>
+            <div class="d">${esc(p.focus)}</div></div>`).join("")}
+        </div>` : ""}
+      ${rptFoot(pg)}
+    </div>`;
 
-    <div class="rpt-section">
-      <div class="rpt-section-eyebrow">التنفيذ</div>
-      <div class="rpt-section-title">الفعاليات والأنشطة المنفذة</div>
-      ${data.weeklyEvents.length ? data.weeklyEvents.map(w=>`
-        <div class="rpt-activity-card done">
-          <span class="badge">${esc(w.date)}</span>
-          <div class="body"><div class="t">${esc(w.title)}</div><div class="m">${esc(w.time)}${w.location?` · ${esc(w.location)}`:""}</div></div>
-        </div>`).join("") : `<div class="rpt-empty">لا توجد فعاليات متكررة ضمن هذه الفترة</div>`}
-    </div>
+  /* ---- 4) الفعاليات المنفذة ---- */
+  pg++;
+  const events = `
+    <div class="rpt-page">
+      <div class="rpt-watermark">٠٣</div>
+      <div class="rpt-eyebrow">المجال الأول</div>
+      <div class="rpt-h1">الفعاليات والأنشطة المنفذة</div>
+      <div class="rpt-lead">البرامج التي نُفذت خلال الفترة وفق الجدول التشغيلي</div>
+      <div class="rpt-domain" style="background:var(--navy);">
+        <div><div class="n">${data.weeklyEvents.length}</div><div class="l">فعالية وبرنامجًا</div></div>
+        <div class="pill">تنفيذٌ ميداني</div>
+      </div>
+      ${data.weeklyEvents.length ? `<div class="rpt-cards">
+        ${data.weeklyEvents.map(w=>{
+          const lg = (DATA.eventLog||{})[w.id+"@"+w.date];
+          const ok = lg && lg.done; const en = lg&&lg.evidence?lg.evidence.length:0;
+          return `<div class="rpt-cardx"${ok?' style="border-inline-end-color:var(--cyan);"':''}>
+          <div class="t">${ok?"✔ ":""}${esc(w.title)}<span class="rpt-datepill"${ok?' style="background:var(--cyan);"':''}>${esc(w.date)}</span></div>
+          <div class="d">${esc(w.time)}${w.location?` · ${esc(w.location)}`:""}${ok?" · مُنفّذ":""}${en?` · 📎 ${en} شاهد`:""}</div></div>`;}).join("")}
+      </div>` : `<div class="rpt-empty2">لا توجد فعاليات متكررة مسجّلة ضمن هذه الفترة</div>`}
 
-    <div class="rpt-section">
-      <div class="rpt-section-eyebrow">الإنجاز</div>
-      <div class="rpt-section-title">المهام المنجزة (${done.length} من ${data.tasksInRange.length})</div>
-      ${done.length ? done.map(t=>`
-        <div class="rpt-activity-card done">
-          <span class="badge" style="background:var(--cyan)">✔</span>
-          <div class="body"><div class="t">${esc(t.title)}</div>${(t.evidence&&t.evidence.length)?`<div class="m">📎 ${t.evidence.length} شاهد مرفق</div>`:""}</div>
-        </div>`).join("") : `<div class="rpt-empty">لا توجد مهام منجزة بعد ضمن هذه الفترة</div>`}
+      <div class="rpt-domain" style="background:var(--cyan); margin-top:30px;">
+        <div><div class="n">${done.length}</div><div class="l">مهمة منجزة من ${data.tasksInRange.length}</div></div>
+        <div class="pill">نسبة الإنجاز ${pct}%</div>
+      </div>
+      ${done.length ? `<div class="rpt-cards two">
+        ${done.map(t=>`<div class="rpt-cardx" style="border-inline-end-color:var(--cyan);">
+          <div class="t">${esc(t.title)}</div>
+          <div class="d">${(t.evidence&&t.evidence.length)?`موثّقة بـ ${t.evidence.length} شاهد`:"منجزة"}</div></div>`).join("")}
+      </div>` : `<div class="rpt-empty2">لا توجد مهام منجزة ضمن هذه الفترة</div>`}
       ${notDone.length ? `
-        <div style="font-weight:800; color:var(--coral); font-size:13px; margin:14px 0 8px;">مهام لم تُنجز بعد</div>
-        ${notDone.map(t=>`
-          <div class="rpt-activity-card pending">
-            <span class="badge" style="background:var(--coral)">◻</span>
-            <div class="body"><div class="t">${esc(t.title)}</div></div>
-          </div>`).join("")}` : ""}
-    </div>
+        <div class="rpt-domain" style="background:var(--coral); margin-top:30px;">
+          <div><div class="n">${notDone.length}</div><div class="l">مهمة قيد التنفيذ</div></div>
+          <div class="pill">متابعة مستمرة</div>
+        </div>
+        <div class="rpt-cards two">
+          ${notDone.map(t=>`<div class="rpt-cardx" style="border-inline-end-color:var(--coral);">
+            <div class="t">${esc(t.title)}</div><div class="d">لم تُنجز بعد</div></div>`).join("")}
+        </div>` : ""}
+      ${rptFoot(pg)}
+    </div>`;
 
-    ${data.recurringTasks.length ? `
-    <div class="rpt-section">
-      <div class="rpt-section-eyebrow">المتابعة الدورية</div>
-      <div class="rpt-section-title">المهام المتكررة (يومية/أسبوعية)</div>
-      ${data.recurringTasks.map(t=>`
-        <div class="rpt-activity-card ${t.done?'done':'pending'}">
-          <span class="badge" style="background:${t.done?'var(--cyan)':'var(--coral)'}">${t.done?"✔":"◻"}</span>
-          <div class="body"><div class="t">${esc(t.title)}</div><div class="m">${esc(t.type)}${t.day?` · ${esc(t.day)}`:""}${(t.evidence&&t.evidence.length)?` · 📎 ${t.evidence.length} شاهد مرفق`:""}</div></div>
-        </div>`).join("")}
-    </div>` : ""}
-
-    <div class="rpt-section">
-      <div class="rpt-section-eyebrow">تثبيت الحضور والتميز</div>
-      <div class="rpt-section-title">متابعة الابتكار والمسابقات</div>
-      ${data.compsInRange.length ? data.compsInRange.map(c=>`
-        <div class="rpt-comp-card">
-          <div class="t">${esc(c.name)}${c.result?` — 🏆 ${esc(c.result)}`:""}</div>
-          <div class="rpt-status-pill" style="background:${COMP_STATUS_COLOR[c.status]}">${esc(c.status)}</div>
-        </div>`).join("") : `<div class="rpt-empty">لا توجد مسابقات نشطة هذه الفترة</div>`}
-    </div>
-
-    <div class="rpt-section">
-      <div class="rpt-section-eyebrow">لقطات من الميدان</div>
-      <div class="rpt-section-title">معرض الشواهد</div>
-      ${evidenceCount ? `
-        <div class="rpt-gallery">
-          ${allEvidence.map(e=>`
-            <figure>
-              ${e.type==="video" ? `<video src="${e.dataUrl}" controls></video>` : `<img src="${e.dataUrl}" alt="">`}
-              <figcaption>${esc(e.taskTitle)}</figcaption>
-            </figure>`).join("")}
-        </div>` : `<div class="rpt-empty">لا توجد شواهد مصوّرة مرفوعة بعد لمهام هذه الفترة — أضِفها من تبويب "المهام"</div>`}
-    </div>
-
-    <div class="rpt-closing">
-      <div class="h">شكراً وتقديراً</div>
-      <div class="p">هذا التقرير يوثّق ما تحقق فعلياً على أرض الواقع من برامج وفعاليات ريادة النشاط خلال هذه الفترة، تمهيداً لرفعه للإدارة ومتابعة الأثر التربوي على مدار العام.</div>
-      <div class="sig">
-        <div><b>عبدالله</b>رائد النشاط الطلابي — القسم الثانوي</div>
-        <div class="school">مدارس الأندلس الأهلية<br>${esc(rangeLabel)}</div>
+  /* ---- 5) الابتكار والمسابقات ---- */
+  pg++;
+  const competitions = `
+    <div class="rpt-page">
+      <div class="rpt-watermark">٠٤</div>
+      <div class="rpt-eyebrow">المجال الثاني</div>
+      <div class="rpt-h1">الابتكار والمسابقات</div>
+      <div class="rpt-lead">متابعة المسابقات والأولمبيادات والمراكز التنافسية</div>
+      <div class="rpt-domain" style="background:var(--purple);">
+        <div><div class="n">${comps.length}</div><div class="l">مسابقة وبرنامج تنافسي</div></div>
+        <div class="pill">تنمية المهارات والاكتشاف</div>
       </div>
-    </div>
-  `;
+      ${comps.length ? `<div class="rpt-cards two">
+        ${comps.map(c=>{
+          const st = COMP_STATUS_COLOR[c.status];
+          const n = (c.students||[]).length;
+          return `<div class="rpt-cardx" style="border-inline-end-color:${st};">
+            <div class="t">${esc(c.name)}<span class="rpt-datepill" style="background:${st};">${esc(c.status)}</span></div>
+            <div class="d">${esc(c.organizer)} · ${esc(c.level)}${c.deadline?` · الموعد ${esc(c.deadline)}`:""}${n?` · ${n} طالبًا مسجلًا`:""}${c.result?`<br><b style="color:${st};">🏆 ${esc(c.result)}</b>`:""}</div>
+          </div>`;}).join("")}
+      </div>` : `<div class="rpt-empty2">لا توجد مسابقات نشطة ضمن هذه الفترة</div>`}
+      ${students ? `
+        <div class="rpt-domain" style="background:var(--blue); margin-top:30px;">
+          <div><div class="n">${students}</div><div class="l">طالبًا مسجلًا في المسابقات</div></div>
+          <div class="pill">مشاركة طلابية</div>
+        </div>
+        <div class="rpt-cards">
+          ${DATA.competitions.filter(c=>(c.students||[]).length).flatMap(c=>
+            c.students.map(s=>`<div class="rpt-cardx" style="border-inline-end-color:var(--blue);">
+              <div class="t">${esc(s.name)}</div>
+              <div class="d">${esc(s.grade||"—")} · ${esc(c.name)}</div></div>`)).join("")}
+        </div>` : ""}
+      ${rptFoot(pg)}
+    </div>`;
+
+  /* ---- 6) معرض الشواهد ---- */
+  pg++;
+  const gallery = `
+    <div class="rpt-page">
+      <div class="rpt-watermark">٠٥</div>
+      <div class="rpt-eyebrow">لقطات من الميدان</div>
+      <div class="rpt-h1">معرض الأنشطة</div>
+      <div class="rpt-lead">مشاهد توثّق تفاعل طلابنا في مختلف برامج الفترة</div>
+      ${evidence.length ? `
+        <div class="rpt-gal wide">
+          <figure>${evidence[0].type==="video"?`<video src="${evidence[0].dataUrl}" controls></video>`:`<img src="${evidence[0].dataUrl}" alt="">`}
+            <figcaption>${esc(evidence[0].cap)}</figcaption></figure>
+        </div>
+        ${evidence.length>1 ? `<div class="rpt-gal">
+          ${evidence.slice(1).map(e=>`<figure>
+            ${e.type==="video"?`<video src="${e.dataUrl}" controls></video>`:`<img src="${e.dataUrl}" alt="">`}
+            <figcaption>${esc(e.cap)}</figcaption></figure>`).join("")}
+        </div>` : ""}
+      ` : `<div class="rpt-empty2">لا توجد شواهد مصوّرة مرفوعة بعد — أضِفها من تبويب «المهام» أو «المسابقات» لتظهر هنا تلقائيًا</div>`}
+      ${rptFoot(pg)}
+    </div>`;
+
+  /* ---- 6.5) التوافق مع الإطار الوزاري ---- */
+  pg++;
+  const covR = MOE_DOMAINS.map(dm => {
+    const n = data.tasksInRange.filter(t=>t.domain===dm.key).length
+            + data.plansInRange.filter(pl=>pl.domain===dm.key).length;
+    return {...dm, n};
+  });
+  const covRMax = Math.max(1, ...covR.map(c=>c.n));
+  const covRDone = covR.filter(c=>c.n>0).length;
+  const alignment = `
+    <div class="rpt-page">
+      <div class="rpt-watermark">٠٦</div>
+      <div class="rpt-eyebrow">المرجعية النظامية</div>
+      <div class="rpt-h1">التوافق مع إطار وزارة التعليم</div>
+      <div class="rpt-lead">دليل الخطط الدراسية · المركز الوطني للمناهج</div>
+
+      <div class="rpt-domain" style="background:var(--navy);">
+        <div><div class="n">${covRDone}/${MOE_DOMAINS.length}</div><div class="l">مجالات نشاط مُفعّلة في الخطة</div></div>
+        <div class="pill">تنوّع وشمول</div>
+      </div>
+
+      <div style="margin:16px 0 26px;">
+        ${covR.map(c=>`
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:11px;">
+            <div style="width:150px; font-size:12.5px; font-weight:800; color:${c.color}; text-align:end;">${c.key}</div>
+            <div style="flex:1; height:11px; background:#EEF1F6; border-radius:6px; overflow:hidden;">
+              <div style="height:100%; width:${Math.round(c.n/covRMax*100)}%; min-width:3px; background:${c.color}; border-radius:6px;"></div>
+            </div>
+            <div style="width:26px; text-align:center; font-weight:800; font-size:12.5px; color:${c.n?c.color:'#9AA4B8'};">${c.n}</div>
+          </div>`).join("")}
+      </div>
+
+      <div class="rpt-domain" style="background:var(--cyan);">
+        <div><div class="n">٠٩</div><div class="l">مستهدفات النشاط الطلابي المعتمدة</div></div>
+        <div class="pill">مرجع القياس</div>
+      </div>
+      <div class="rpt-cards two" style="margin-bottom:24px;">
+        ${MOE_TARGETS.map((t,i)=>`<div class="rpt-cardx" style="border-inline-end-color:var(--cyan);">
+          <div class="t">${String(i+1).padStart(2,"0")} · ${esc(t)}</div></div>`).join("")}
+      </div>
+
+      <div class="rpt-domain" style="background:var(--purple);">
+        <div><div class="n">٠٢</div><div class="l">مسارا تنفيذ النشاط الطلابي</div></div>
+        <div class="pill">صفي ولاصفي</div>
+      </div>
+      <div class="rpt-cards two">
+        <div class="rpt-cardx" style="border-inline-end-color:var(--purple);">
+          <div class="t">النشاط الصفي</div>
+          <div class="d">حصة النشاط الأسبوعية — تبدأ من الأسبوع الثاني وتتوقف قبل الاختبارات النهائية بأسبوعين.</div></div>
+        <div class="rpt-cardx" style="border-inline-end-color:var(--purple);">
+          <div class="t">النشاط اللاصفي</div>
+          <div class="d">ساعة يوميًا وفق خطة زمنية معتمدة من مدير المدرسة دون الإخلال بالحصص الدراسية.</div></div>
+      </div>
+      ${rptFoot(pg)}
+    </div>`;
+
+  /* ---- 7) الأثر التربوي ---- */
+  pg++;
+  const impact = `
+    <div class="rpt-page">
+      <div class="rpt-watermark">٠٧</div>
+      <div class="rpt-eyebrow">النتائج والأثر</div>
+      <div class="rpt-h1">الأثر التربوي للنشاط الطلابي</div>
+      <div class="rpt-lead">انعكاسات ملموسة على شخصية الطالب وقيمه ومهاراته</div>
+      <div class="rpt-impact">
+        <div class="rpt-impactx" style="border-top-color:var(--navy);">
+          <div class="t">التحفيز والتميّز</div>
+          <div class="d">حفّزت برامج التكريم والمسابقات الطلاب على التفوق والانضباط، وأبرزت نماذج ملهمة بين أقرانهم.</div></div>
+        <div class="rpt-impactx" style="border-top-color:var(--purple);">
+          <div class="t">تنمية المهارات</div>
+          <div class="d">طوّرت المسابقات العلمية واللغوية مهارات التفكير والبحث والاكتشاف العلمي لدى الطلاب.</div></div>
+        <div class="rpt-impactx" style="border-top-color:var(--cyan);">
+          <div class="t">الانتماء والمواطنة</div>
+          <div class="d">رسّخت الفعاليات الوطنية والاجتماعية قيم الانتماء للوطن والمدرسة في نفوس الطلاب.</div></div>
+        <div class="rpt-impactx" style="border-top-color:var(--magenta);">
+          <div class="t">المشاركة الطلابية</div>
+          <div class="d">وسّعت الأندية واللجان دائرة المشاركة، ومنحت الطلاب مساحة حقيقية للقيادة والمبادرة.</div></div>
+        <div class="rpt-impactx" style="border-top-color:var(--blue);">
+          <div class="t">التوثيق والشفافية</div>
+          <div class="d">أتاح توثيق الشواهد المصوّرة متابعة دقيقة للأثر، ورفع تقارير موثّقة للإدارة أولًا بأول.</div></div>
+        <div class="rpt-impactx" style="border-top-color:var(--coral);">
+          <div class="t">بيئة عمل محفّزة</div>
+          <div class="d">رفعت البرامج المشتركة مع المعلمين من جودة الأداء وروح الفريق الواحد داخل المدرسة.</div></div>
+      </div>
+      <div class="rpt-quote">
+        ❞ ${data.weeklyEvents.length} فعالية وبرنامجًا لم تكن مجرد أنشطة، بل تجارب صنعت في الطالب ثقةً وانتماءً ومهارةً وقيمة.
+      </div>
+      ${rptFoot(pg)}
+    </div>`;
+
+  /* ---- 8) الخاتمة ---- */
+  const closing = `
+    <div class="rpt-page dark">
+      <div class="rpt-eyebrow">خاتمة التقرير</div>
+      <div class="rpt-end-title">شكرًا<br>وتقديرًا</div>
+      <div class="rpt-end-body">
+        <p>نتقدّم بخالص الشكر والتقدير لقيادة <b>مدارس الأندلس الأهلية</b> على دعمهم المتواصل،
+        ولجميع المعلمين والإداريين الكرام، وأولياء الأمور على تعاونهم، ولطلابنا الأعزاء الذين كانوا محور كل نجاح.</p>
+        <p>نسأل الله أن يجعل هذا العمل خالصًا لوجهه الكريم، وأن يوفقنا في الفترة القادمة لتحقيق المزيد من الإنجازات.</p>
+      </div>
+      <div class="rpt-end-sign">
+        <img src="${LOGO.whiteMark}" alt="">
+        <div class="who">
+          <div style="text-align:end;">
+            <div class="n">عبدالله محمد القرني</div>
+            <div class="r">رائد النشاط الطلابي — القسم الثانوي</div>
+          </div>
+          <div class="bar"></div>
+        </div>
+      </div>
+    </div>`;
+
+  return `<div class="rpt-doc">${cover}${intro}${numbers}${events}${competitions}${gallery}${alignment}${impact}${closing}</div>`;
 }
+
 
 function viewReports(){
   const todayIso = isoDate(_now.getFullYear(), _now.getMonth(), _now.getDate());
@@ -1753,7 +2300,11 @@ document.addEventListener("click", async (e) => {
 
   if (action === "toggleTask") {
     const id = btn.dataset.id;
-    await mutate(d => { const t = d.tasks.find(x=>x.id===id); if (t) t.done = !t.done; });
+    const todayStr = isoDate(_now.getFullYear(), _now.getMonth(), _now.getDate());
+    await mutate(d => {
+      const t = d.tasks.find(x=>x.id===id);
+      if (t) { t.done = !t.done; t.doneDate = t.done ? todayStr : ""; }
+    });
     return;
   }
 
@@ -1809,12 +2360,13 @@ document.addEventListener("click", async (e) => {
     const title = document.getElementById("t-title").value.trim();
     const type = document.getElementById("t-type").value;
     const priority = document.getElementById("t-priority").value;
+    const domain = document.getElementById("t-domain").value;
     const day = document.getElementById("t-day").value;
     const dueDateInput = document.getElementById("t-dueDate");
     const dueDate = dueDateInput.value;
     if (!title) return;
     if ((type==="شهري"||type==="لمرة واحدة") && !dueDate) { dueDateInput.reportValidity(); return; }
-    await mutate(d => { d.tasks.push({id:uid(), title, type, priority, day: type==="أسبوعي"?day:"", dueDate: (type==="شهري"||type==="لمرة واحدة")?dueDate:"", done:false}); });
+    await mutate(d => { d.tasks.push({id:uid(), title, type, priority, domain, day: type==="أسبوعي"?day:"", dueDate: (type==="شهري"||type==="لمرة واحدة")?dueDate:"", done:false, doneDate:""}); });
     SHOW_TASK_FORM = false; render();
     return;
   }
@@ -1833,7 +2385,9 @@ document.addEventListener("click", async (e) => {
     const endDate = document.getElementById("p-end").value;
     const focus = document.getElementById("p-focus").value.trim();
     if (!startDate || !endDate || !focus) return;
-    await mutate(d => { d.weeklyPlan.push({id:uid(), startDate, endDate, focus}); });
+    const domain = (document.getElementById('p-domain')||{value:''}).value;
+    const program = (document.getElementById('p-program')||{value:''}).value;
+    await mutate(d => { d.weeklyPlan.push({id:uid(), startDate, endDate, domain, program, focus}); });
     SHOW_PLAN_FORM = false; render();
     return;
   }
@@ -1845,7 +2399,12 @@ document.addEventListener("click", async (e) => {
 
   if (action === "calPrevMonth") { CAL_MONTH--; if (CAL_MONTH<0){CAL_MONTH=11; CAL_YEAR--;} render(); return; }
   if (action === "calNextMonth") { CAL_MONTH++; if (CAL_MONTH>11){CAL_MONTH=0; CAL_YEAR++;} render(); return; }
-  if (action === "calToday") { CAL_YEAR=_now.getFullYear(); CAL_MONTH=_now.getMonth(); CAL_SELECTED=isoDate(_now.getFullYear(),_now.getMonth(),_now.getDate()); render(); return; }
+  if (action === "calToday") {
+    const t = _inSY ? isoDate(_now.getFullYear(),_now.getMonth(),_now.getDate()) : SY_START;
+    const td = new Date(t+"T00:00:00");
+    CAL_YEAR=td.getFullYear(); CAL_MONTH=td.getMonth(); CAL_SELECTED=t; render(); return;
+  }
+  if (action === "calStart") { CAL_YEAR=_syS.getFullYear(); CAL_MONTH=_syS.getMonth(); CAL_SELECTED=SY_START; render(); return; }
   if (action === "calSelectDay") { CAL_SELECTED = btn.dataset.date; render(); return; }
   if (action === "calSetView") { CAL_VIEW = btn.dataset.view; render(); return; }
 
@@ -1922,10 +2481,49 @@ document.addEventListener("click", async (e) => {
     return;
   }
 
+  if (action === "toggleEventDone") {
+    const id = btn.dataset.id, dt = btn.dataset.date, k = id + "@" + dt;
+    await mutate(d => {
+      if (!d.eventLog) d.eventLog = {};
+      const cur = d.eventLog[k] || {done:false, doneDate:"", evidence:[]};
+      cur.done = !cur.done;
+      cur.doneDate = cur.done ? dt : "";
+      d.eventLog[k] = cur;
+    });
+    return;
+  }
+
+  if (action === "addProgram") {
+    const dom = btn.dataset.domain, hex = btn.dataset.hex;
+    const el = document.getElementById("np-"+hex);
+    const name = el ? el.value.trim() : "";
+    if (!name) return;
+    await mutate(d => {
+      if (!d.programs) d.programs = JSON.parse(JSON.stringify(MOE_PROGRAMS));
+      if (!d.programs[dom]) d.programs[dom] = [];
+      if (!d.programs[dom].includes(name)) d.programs[dom].push(name);
+    });
+    return;
+  }
+  if (action === "removeProgram") {
+    const dom = btn.dataset.domain, name = btn.dataset.name;
+    await mutate(d => {
+      if (!d.programs) d.programs = JSON.parse(JSON.stringify(MOE_PROGRAMS));
+      if (d.programs[dom]) d.programs[dom] = d.programs[dom].filter(x=>x!==name);
+    });
+    return;
+  }
+
   if (action === "toggleEvidence") { EVIDENCE_OPEN_ID = (EVIDENCE_OPEN_ID === btn.dataset.id ? null : btn.dataset.id); render(); return; }
   if (action === "removeEvidence") {
     const id = btn.dataset.id, eid = btn.dataset.eid, kind = btn.dataset.kind || "task";
     await mutate(d => {
+      if (kind === "eventlog") {
+        if (!d.eventLog) d.eventLog = {};
+        const cur = d.eventLog[id];
+        if (cur && cur.evidence) cur.evidence = cur.evidence.filter(e=>e.id!==eid);
+        return;
+      }
       const arr = kind === "competition" ? d.competitions : d.tasks;
       const item = arr.find(x=>x.id===id);
       if (item && item.evidence) item.evidence = item.evidence.filter(e=>e.id!==eid);
@@ -1953,18 +2551,32 @@ document.addEventListener("change", async (e) => {
     if (tooLarge) {
       alert(`تم تجاوز ${tooLarge} ${tooLarge===1?"ملف":"ملفات"} لأن حجمه أكبر من 6 ميجابايت. صغّر حجم الصورة/الفيديو وحاول مرة أخرى.`);
     }
+    const applyAdd = (d) => {
+      if (kind === "eventlog") {
+        if (!d.eventLog) d.eventLog = {};
+        const cur = d.eventLog[id] || {done:false, doneDate:"", evidence:[]};
+        cur.evidence = (cur.evidence||[]).concat(newItems);
+        d.eventLog[id] = cur;
+        return;
+      }
+      const arr = kind === "competition" ? d.competitions : d.tasks;
+      const item = arr.find(x=>x.id===id);
+      if (item) { if (!item.evidence) item.evidence = []; item.evidence.push(...newItems); }
+    };
+    const applyRollback = (d) => {
+      if (kind === "eventlog") {
+        const cur = d.eventLog && d.eventLog[id];
+        if (cur && cur.evidence) cur.evidence = cur.evidence.filter(x => !newItems.some(n=>n.id===x.id));
+        return;
+      }
+      const arr = kind === "competition" ? d.competitions : d.tasks;
+      const item = arr.find(x=>x.id===id);
+      if (item && item.evidence) item.evidence = item.evidence.filter(x => !newItems.some(n=>n.id===x.id));
+    };
     if (newItems.length) {
-      const ok = await mutate(d => {
-        const arr = kind === "competition" ? d.competitions : d.tasks;
-        const item = arr.find(x=>x.id===id);
-        if (item) { if (!item.evidence) item.evidence = []; item.evidence.push(...newItems); }
-      });
+      const ok = await mutate(applyAdd);
       if (!ok) {
-        await mutate(d => {
-          const arr = kind === "competition" ? d.competitions : d.tasks;
-          const item = arr.find(x=>x.id===id);
-          if (item && item.evidence) item.evidence = item.evidence.filter(x => !newItems.some(n=>n.id===x.id));
-        });
+        await mutate(applyRollback);
         alert("تعذّر حفظ الشاهد — مساحة التخزين في متصفحك ممتلئة أو الملف كبير جدًا. جرّب صورة أصغر، أو احذف شواهد قديمة لا تحتاجها ثم أعد المحاولة.");
       }
     }
