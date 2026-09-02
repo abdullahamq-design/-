@@ -125,9 +125,9 @@ async function storageGet(key){
 }
 async function storageSet(key, value){
   if (window.storage && typeof window.storage.set === "function") {
-    try { await window.storage.set(key, value); return; } catch(e){}
+    try { await window.storage.set(key, value); return true; } catch(e){}
   }
-  try { localStorage.setItem(key, value); } catch(e){}
+  try { localStorage.setItem(key, value); return true; } catch(e){ return false; }
 }
 
 /* ============================================================ */
@@ -164,7 +164,7 @@ function readFileAsDataURL(file){
     r.readAsDataURL(file);
   });
 }
-function compressImageDataUrl(dataUrl, maxDim=1100, quality=0.72){
+function compressImageDataUrl(dataUrl, maxDim=900, quality=0.6){
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
@@ -212,8 +212,8 @@ let EVIDENCE_OPEN_ID = null;
 let STUDENTS_OPEN_ID = null;
 let EDIT_COMP_ID = null;
 
-async function persist(){ await storageSet(STORAGE_KEY, JSON.stringify(DATA)); }
-async function mutate(fn){ fn(DATA); render(); await persist(); }
+async function persist(){ return await storageSet(STORAGE_KEY, JSON.stringify(DATA)); }
+async function mutate(fn){ fn(DATA); render(); return await persist(); }
 
 /* ============================================================ */
 /* عناصر واجهة مشتركة */
@@ -1454,22 +1454,34 @@ document.addEventListener("change", async (e) => {
     const id = e.target.dataset.id;
     const kind = e.target.dataset.kind || "task";
     const files = Array.from(e.target.files || []);
-    const MAX_BYTES = 15 * 1024 * 1024;
+    const MAX_BYTES = 6 * 1024 * 1024;
     const newItems = [];
+    let tooLarge = 0;
     for (const file of files) {
-      if (file.size > MAX_BYTES) continue;
+      if (file.size > MAX_BYTES) { tooLarge++; continue; }
       const isVideo = file.type.startsWith("video/");
       let dataUrl;
       try { dataUrl = await readFileAsDataURL(file); } catch(err) { continue; }
       if (!isVideo) { try { dataUrl = await compressImageDataUrl(dataUrl); } catch(err){} }
       newItems.push({id: uid(), type: isVideo ? "video" : "image", dataUrl, name: file.name});
     }
+    if (tooLarge) {
+      alert(`تم تجاوز ${tooLarge} ${tooLarge===1?"ملف":"ملفات"} لأن حجمه أكبر من 6 ميجابايت. صغّر حجم الصورة/الفيديو وحاول مرة أخرى.`);
+    }
     if (newItems.length) {
-      await mutate(d => {
+      const ok = await mutate(d => {
         const arr = kind === "competition" ? d.competitions : d.tasks;
         const item = arr.find(x=>x.id===id);
         if (item) { if (!item.evidence) item.evidence = []; item.evidence.push(...newItems); }
       });
+      if (!ok) {
+        await mutate(d => {
+          const arr = kind === "competition" ? d.competitions : d.tasks;
+          const item = arr.find(x=>x.id===id);
+          if (item && item.evidence) item.evidence = item.evidence.filter(x => !newItems.some(n=>n.id===x.id));
+        });
+        alert("تعذّر حفظ الشاهد — مساحة التخزين في متصفحك ممتلئة أو الملف كبير جدًا. جرّب صورة أصغر، أو احذف شواهد قديمة لا تحتاجها ثم أعد المحاولة.");
+      }
     }
     e.target.value = "";
     return;
