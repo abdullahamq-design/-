@@ -11,10 +11,10 @@
    محلياً في كل جهاز فقط، بسبب حجمها الكبير. باقي البيانات (المهام، حالة
    الإنجاز، المسابقات، الطلاب، الخطة، الجدول) تتزامن تلقائياً وفورياً. */
 window.FIREBASE_CONFIG = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+  apiKey: "AIzaSyCTyZKuJlN9OPgRCxkhGRx-of9xfUX-hEE",
+  authDomain: "andalus-activity-leader.firebaseapp.com",
+  projectId: "andalus-activity-leader",
+  storageBucket: "andalus-activity-leader.firebasestorage.app",
+  messagingSenderId: "416715458646",
+  appId: "1:416715458646:web:6da24d5600bcaff38213f7"
 };
