@@ -28,6 +28,7 @@ const ICONS = {
   trophy: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 01-10 0V4z"/><path d="M7 5H4a3 3 0 003 3M17 5h3a3 3 0 01-3 3"/></svg>`,
   report: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6a1 1 0 011 1v1h1a2 2 0 012 2v13a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h1V4a1 1 0 011-1z"/><path d="M8 12h8M8 16h8M8 8h3"/></svg>`,
   pencil: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>`,
+  target: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg>`,
 };
 
 /* ============================================================ */
@@ -90,6 +91,103 @@ const COMP_STATUSES = ["تسجيل مفتوح","قيد التحضير","جاري
 const COMP_STATUS_COLOR = {
   "تسجيل مفتوح":"var(--coral)", "قيد التحضير":"var(--cyan)", "جارية":"var(--blue)", "منتهية":"var(--muted)"
 };
+
+/* ===== خطة رائد النشاط — مستهدفات ومؤشرات العام السابق (مؤقتًا لحين نزول الخطة الجديدة) ===== */
+const ACTIVITY_PLAN_CATEGORIES = [
+  { key:"plc1", name:"التخلق بأخلاق القرآن الكريم", weight:5, target:158, planned:162, actual:158, programs:[
+    {id:"plg1", semester:1, week:5, date:"2026-09-27", name:"وقفات مع آية (والذين هم على صلاتهم يحافظون)", desc:"شرح صفات المؤمنين في الآية وبيان أهمية المحافظة على الصلاة", targetCount:80, actualCount:80, location:"المصلى", students:[], evidence:[]},
+    {id:"plg2", semester:2, week:2, date:"2027-01-24", name:"وقفة مع آية (فاعف واصفح إن الله يحب المحسنين)", desc:"شرح فضل العفو والصفح من خلال الآية الكريمة وبيان فضله", targetCount:82, actualCount:82, location:"الملعب", students:[], evidence:[]},
+  ]},
+  { key:"plc2", name:"الحديث الشريف", weight:5, target:163, planned:163, actual:158, programs:[
+    {id:"plg3", semester:1, week:3, date:"2026-09-13", name:"حديث الأسبوع", desc:"برنامج أسبوعي يُشرح فيه حديث من متن الأربعين النووية بدلًا من الطابور", targetCount:83, actualCount:83, location:"المصلى", students:[], evidence:[]},
+    {id:"plg4", semester:2, week:3, date:"2027-01-31", name:"وقفات مع حديث «لا تحاسدوا»", desc:"فوائد مستنبطة من الحديث يقدّمها أحد الطلاب المتميزين بالتنسيق مع مدرّس التربية الإسلامية", targetCount:80, actualCount:80, location:"المصلى", students:[], evidence:[]},
+  ]},
+  { key:"plc3", name:"البرامج التربوية النوعية", weight:13, target:411, planned:411, actual:411, programs:[
+    {id:"plg5", semester:1, week:6, date:"2026-10-04", name:"برًّا بأبي وأمي", desc:"برنامج تربوي يبحث الأمر بالبر بالوالدين ويذكر نماذج رائدة من السلف", targetCount:200, actualCount:200, location:"الملعب", students:[], evidence:[]},
+    {id:"plg6", semester:2, week:3, date:"2027-01-31", name:"من هم قدواتنا؟", desc:"برنامج تربوي يعرّف الطلاب بالقدوات الحقيقية، نُفّذ عدة مرات", targetCount:110, actualCount:110, location:"مصادر التعلم", students:[], evidence:[]},
+    {id:"plg7", semester:2, week:6, date:"2027-02-21", name:"العفة", desc:"برنامج تربوي عن العفة وأثرها على الفرد والمجتمع، نُفّذ على عدة فصول", targetCount:111, actualCount:110, location:"الفصل", students:[], evidence:[]},
+  ]},
+  { key:"plc4", name:"المشروعات أو الأنشطة الإثرائية", weight:5, target:158, planned:162, actual:158, programs:[
+    {id:"plg8", semester:1, week:12, date:"2026-11-15", name:"بحوث متنوعة من الطلاب في اللغة العربية", desc:"بحوث متنوعة مقدمة من الطلاب في اللغة العربية", targetCount:26, actualCount:26, location:"الفصل", students:[], evidence:[]},
+    {id:"plg9", semester:2, week:12, date:"2027-04-04", name:"بحوث مقدمة من الطلاب في الرياضيات", desc:"بحوث متنوعة مقدمة من الطلاب في الرياضيات", targetCount:31, actualCount:31, location:"مصادر التعلم", students:[], evidence:[]},
+    {id:"plg10", semester:2, week:12, date:"2027-04-04", name:"بحوث مقدمة من الطلاب في اللغة العربية", desc:"بحوث متنوعة مقدمة من الطلاب في اللغة العربية", targetCount:35, actualCount:35, location:"مصادر التعلم", students:[], evidence:[]},
+    {id:"plg11", semester:2, week:12, date:"2027-04-04", name:"مشروعات مقدمة من الطلاب في الحاسب", desc:"مشروعات متنوعة مقدمة من الطلاب في الحاسب", targetCount:70, actualCount:70, location:"المعمل", students:[], evidence:[]},
+  ]},
+  { key:"plc5", name:"البرامج التعليمية", weight:8, target:253, planned:253, actual:253, programs:[
+    {id:"plg12", semester:1, week:9, date:"2026-10-25", name:"تجارب كيميائية", desc:"تجارب كيميائية من تقديم الطلاب أمام زملائهم يتم فيها شرح المواد وعمل تجربة حية", targetCount:60, actualCount:60, location:"المعمل", students:[], evidence:[]},
+    {id:"plg13", semester:1, week:11, date:"2026-11-08", name:"الفضاء الواسع", desc:"التعرف على التلسكوب وكيفية عمله، وتعريف بالمجرات والفضاء برؤية الطلاب عبر تلسكوب المدرسة", targetCount:64, actualCount:64, location:"مصادر التعلم", students:[], evidence:[]},
+    {id:"plg14", semester:2, week:5, date:"2027-02-14", name:"فيزياء ولا أبسط", desc:"تجارب فيزيائية لتقريب فكرة أنها ليست بالصعوبة المتصورة، نُفّذ على عدة حصص بالمعمل", targetCount:64, actualCount:64, location:"المعمل", students:[], evidence:[]},
+  ]},
+  { key:"plc6", name:"البرامج المهارية", weight:5, target:162, planned:162, actual:158, programs:[
+    {id:"plg15", semester:1, week:10, date:"2026-11-01", name:"إنترنت الأشياء", desc:"برنامج تدريبي عن مفاهيم إنترنت الأشياء وكيفية استخدامها، في أكثر من لقاء", targetCount:60, actualCount:60, location:"مصادر التعلم", students:[], evidence:[]},
+    {id:"plg16", semester:2, week:7, date:"2027-02-28", name:"قبعات التفكير الست", desc:"دورة عن قبعات التفكير الست لإكساب الطلاب مهارات كاتخاذ القرار والقيادة", targetCount:42, actualCount:42, location:"المعمل", students:[], evidence:[]},
+    {id:"plg17", semester:2, week:9, date:"2027-03-14", name:"قواعد النجاح", desc:"ندوة يتحدث فيها أحد المعلمين عن أمور تساعد الطلاب على النجاح في الحياة", targetCount:60, actualCount:60, location:"مصادر التعلم", students:[], evidence:[]},
+  ]},
+  { key:"plc7", name:"البرامج الاجتماعية", weight:5, target:222, planned:222, actual:158, programs:[
+    {id:"plg18", semester:1, week:11, date:"2026-11-08", name:"فطور جماعي لجميع فصول أول ثانوي", desc:"فطور جماعي بمناسبة اجتماعية لطلاب الصف الأول ثانوي", targetCount:82, actualCount:82, location:"الفصل", students:[], evidence:[]},
+    {id:"plg19", semester:2, week:11, date:"2027-03-28", name:"فطور جماعي لجميع فصول ثاني ثانوي", desc:"فطور جماعي بمناسبة اجتماعية لطلاب الصف الثاني ثانوي", targetCount:80, actualCount:80, location:"الساحة", students:[], evidence:[]},
+    {id:"plg20", semester:2, week:14, date:"2027-04-18", name:"فطور جماعي لجميع فصول ثالث ثانوي", desc:"فطور جماعي بمناسبة اجتماعية لطلاب الصف الثالث ثانوي", targetCount:60, actualCount:60, location:"مصادر التعلم", students:[], evidence:[]},
+  ]},
+  { key:"plc8", name:"الرحلات التعليمية", weight:null, target:162, planned:162, actual:158, programs:[
+    {id:"plg21", semester:1, week:14, date:"2026-11-29", name:"زيارة معرض الرحيق", desc:"زيارة تعليمية لمعرض عن السيرة النبوية ونزول الوحي، تعرّف الطلاب على الرسل وقصصهم", targetCount:42, actualCount:42, location:"خارج مرافق المدرسة", students:[], evidence:[]},
+    {id:"plg22", semester:2, week:4, date:"2027-02-07", name:"زيارة كلية الطب", desc:"زيارة علمية لكلية الطب لمن أراد التخصص فيها مستقبلًا", targetCount:60, actualCount:60, location:"خارج مرافق المدرسة", students:[], evidence:[]},
+    {id:"plg23", semester:2, week:10, date:"2027-03-21", name:"زيارة متحف الحرمين", desc:"زيارة لبناء علاقة ثقافية بتاريخ الحرمين وآثاره الإسلامية، نُفّذت على عدة أيام", targetCount:60, actualCount:60, location:"خارج مرافق المدرسة", students:[], evidence:[]},
+  ]},
+  { key:"plc9", name:"الرحلات الترفيهية", weight:null, target:163, planned:163, actual:158, programs:[
+    {id:"plg24", semester:1, week:3, date:"2026-09-13", name:"رحلة ترفيهية إلى سيدان واتر بارك", desc:"رحلة ترفيهية إلى سيدان واتر بارك", targetCount:80, actualCount:40, location:"خارج مرافق المدرسة", students:[], evidence:[]},
+    {id:"plg25", semester:1, week:12, date:"2026-11-15", name:"رحلة شاطئ لايالا", desc:"التعرف على البيئة البحرية والكائنات الحية فيها وممارسة السباحة تحت إشراف مدربين", targetCount:83, actualCount:83, location:"خارج مرافق المدرسة", students:[], evidence:[]},
+    {id:"plg26", semester:2, week:3, date:"2027-01-31", name:"رحلة جزيرة بياضة", desc:"رحلة ترفيهية وتعليمية لجزيرة بياضة", targetCount:26, actualCount:26, location:"خارج مرافق المدرسة", students:[], evidence:[]},
+    {id:"plg27", semester:2, week:9, date:"2027-03-14", name:"رحلة الشلال", desc:"رحلة ترفيهية لحديقة الشلال لتوفير أجواء مسلية وتعزيز التفاعل الإيجابي بإشراف دقيق", targetCount:47, actualCount:47, location:"خارج مرافق المدرسة", students:[], evidence:[]},
+  ]},
+  { key:"plc10", name:"الأيام المفتوحة", weight:null, target:126, planned:126, actual:126, programs:[
+    {id:"plg28", semester:1, week:1, date:"2026-08-30", name:"عدنا", desc:"برنامج يوم مفتوح للطلاب المستجدين بالصف الأول ثانوي", targetCount:50, actualCount:50, location:"الملعب", students:[], evidence:[]},
+    {id:"plg29", semester:1, week:13, date:"2026-11-22", name:"يوم مفتوح", desc:"برنامج يوم مفتوح بالتنسيق مع بناء الإنسان، تضمّن تقديم برنامج ترفيهي ومهاري", targetCount:40, actualCount:40, location:"الساحة", students:[], evidence:[]},
+    {id:"plg30", semester:1, week:1, date:"2026-08-30", name:"تكريم الفصل المتميز", desc:"تكريم الفصل المتميز خلال الفترة الماضية ضمن تعزيز التنافسية الإيجابية بين الطلاب", targetCount:25, actualCount:25, location:"الساحة", students:[], evidence:[]},
+    {id:"plg31", semester:2, week:13, date:"2027-04-11", name:"يوم مفتوح", desc:"برنامج يوم مفتوح تضمّن فقرة إفطار وسباحة وكرة قدم", targetCount:20, actualCount:20, location:"الفصل", students:[], evidence:[]},
+  ]},
+  { key:"plc11", name:"الفنون الأدائية", weight:5, target:160, planned:160, actual:158, programs:[
+    {id:"plg32", semester:1, week:6, date:"2026-10-04", name:"شاعر الأندلس", desc:"الحوار والإلقاء باللغة الإنجليزية، وتدريب الطلاب على مهارات الإلقاء، برنامج مكرر", targetCount:35, actualCount:35, location:"مصادر التعلم", students:[], evidence:[]},
+    {id:"plg33", semester:1, week:10, date:"2026-11-01", name:"خطيب الأندلس", desc:"برنامج خطابة يشارك فيه طالب من كل فصل بعد إعداده لإلقاء كلمة أمام زملائه بعد صلاة الظهر", targetCount:35, actualCount:35, location:"المصلى", students:[], evidence:[]},
+    {id:"plg34", semester:2, week:5, date:"2027-02-14", name:"خطيب الأندلس — يوم التأسيس", desc:"ضمن فعاليات يوم التأسيس، مسابقة لأفضل مشاركة لجميع طلاب الثانوي", targetCount:45, actualCount:45, location:"الملعب", students:[], evidence:[]},
+    {id:"plg35", semester:2, week:9, date:"2027-03-14", name:"المعرض الفني", desc:"إقامة معرض فني للأشكال الفنية بإشراف معلم الفني", targetCount:45, actualCount:45, location:"المعمل", students:[], evidence:[]},
+  ]},
+  { key:"plc12", name:"التوجيه المهني", weight:null, target:190, planned:190, actual:190, programs:[
+    {id:"plg36", semester:1, week:8, date:"2026-10-18", name:"ورشة اختيار التخصص لطلاب أول ثانوي", desc:"ورشة خاصة لطلاب أول ثانوي لاختيار التخصص المناسب وتحديد الميول لكل فصل", targetCount:55, actualCount:55, location:"مصادر التعلم", students:[], evidence:[]},
+    {id:"plg37", semester:2, week:11, date:"2027-03-28", name:"كيف تختار تخصصك بعناية", desc:"ورشة تعليمية لجميع الطلاب لاختيار التخصص المناسب وتحديد الميول", targetCount:70, actualCount:70, location:"مصادر التعلم", students:[], evidence:[]},
+    {id:"plg38", semester:2, week:8, date:"2027-03-07", name:"تخصصك من أجلك", desc:"برنامج توجيه وإرشاد لاختيار التخصصات المناسبة والمطلوبة لسوق العمل لطلاب الصف الثالث ثانوي", targetCount:65, actualCount:65, location:"مصادر التعلم", students:[], evidence:[]},
+  ]},
+  { key:"plc13", name:"البرامج التطوعية", weight:null, target:162, planned:162, actual:158, programs:[
+    {id:"plg39", semester:1, week:8, date:"2026-10-18", name:"تنظيف مسجد", desc:"تنظيف مسجد من قبل الطلاب، نُفّذ على عدة مرات", targetCount:60, actualCount:60, location:"خارج مرافق المدرسة", students:[], evidence:[]},
+    {id:"plg40", semester:1, week:12, date:"2026-11-15", name:"أكرمهم", desc:"إكرام زوار مكة المكرمة بتوزيع مياه ووجبات خفيفة", targetCount:52, actualCount:52, location:"خارج مرافق المدرسة", students:[], evidence:[]},
+    {id:"plg41", semester:2, week:5, date:"2027-02-14", name:"قادة ضيوف الرحمن", desc:"توزيع وجبات وضيافة على ضيوف الرحمن، نُفّذ على عدة فصول", targetCount:50, actualCount:50, location:"خارج مرافق المدرسة", students:[], evidence:[]},
+  ]},
+  { key:"plc14", name:"الأندية النوعية والبرامج المسائية", weight:null, target:93, planned:93, actual:63, programs:[
+    {id:"plg42", semester:1, week:1, date:"2026-08-30", name:"سواعد الوطن", desc:"برنامج مسائي لطلاب مختارين بعناية، وتقديم برنامج ترفيهي وتربوي ثقافي", targetCount:35, actualCount:40, location:"الساحة", students:[], evidence:[]},
+    {id:"plg43", semester:1, week:1, date:"2026-08-30", name:"نادي صناع التميز", desc:"برنامج مسائي لطلاب مختارين بعناية، وتقديم برنامج ترفيهي وتربوي ثقافي", targetCount:30, actualCount:30, location:"الملعب", students:[], evidence:[]},
+    {id:"plg44", semester:2, week:10, date:"2027-03-21", name:"الخميسية", desc:"تزويد الطلبة بأنشطة إضافية لتحسين ارتباطهم بالمدرسة واكتشاف المواهب", targetCount:28, actualCount:28, location:"الساحة", students:[], evidence:[]},
+  ]},
+  { key:"plc15", name:"القراءة", weight:null, target:194, planned:194, actual:194, programs:[
+    {id:"plg45", semester:1, week:12, date:"2026-11-15", name:"استعارات الفصل الأول", desc:"مجموعة من استعارات الكتب الطلابية خلال الفصل الأول", targetCount:100, actualCount:100, location:"مصادر التعلم", students:[], evidence:[]},
+    {id:"plg46", semester:2, week:12, date:"2027-04-04", name:"استعارات الفصل الثاني", desc:"مجموعة من استعارات الكتب الطلابية خلال الفصل الثاني", targetCount:94, actualCount:94, location:"مصادر التعلم", students:[], evidence:[]},
+  ]},
+  { key:"plc16", name:"الملتقيات", weight:null, target:184, planned:184, actual:158, programs:[
+    {id:"plg47", semester:1, week:10, date:"2026-11-01", name:"عيش التجربة", desc:"برنامج مسائي يتضمن برنامجًا ترفيهيًا وتناول وجبة العشاء سويًا", targetCount:40, actualCount:40, location:"الملعب", students:[], evidence:[]},
+    {id:"plg48", semester:2, week:4, date:"2027-02-07", name:"مخيم بري", desc:"ملتقى خارجي في إحدى المخيمات البرية، تضمّن برامج ترفيهية للطلاب", targetCount:66, actualCount:66, location:"خارج مرافق المدرسة", students:[], evidence:[]},
+    {id:"plg49", semester:2, week:11, date:"2027-03-28", name:"الكشتة الأندلسية", desc:"مخيم بري تم فيه تقديم العديد من البرامج التربوية", targetCount:52, actualCount:52, location:"خارج مرافق المدرسة", students:[], evidence:[]},
+    {id:"plg50", semester:2, week:13, date:"2027-04-11", name:"هلا بالخميس", desc:"برنامج ترفيهي وتربوي يُنفّذ يوم الخميس بهدف كسر الروتين وتعزيز الانضباط ونشر أجواء إيجابية", targetCount:26, actualCount:26, location:"الملعب", students:[], evidence:[]},
+  ]},
+  { key:"plc17", name:"ريادة الأعمال", weight:4, target:160, planned:160, actual:126, programs:[
+    {id:"plg51", semester:1, week:15, date:"2026-12-06", name:"مشروعي القادم", desc:"بازار طلابي لعرض المشروعات التجارية الصغيرة", targetCount:60, actualCount:60, location:"الملعب", students:[], evidence:[]},
+    {id:"plg52", semester:2, week:3, date:"2027-01-31", name:"كيف تخطط", desc:"معرض يهدف إلى تعزيز مهارات ريادة الأعمال", targetCount:60, actualCount:60, location:"الساحة", students:[], evidence:[]},
+    {id:"plg53", semester:2, week:12, date:"2027-04-04", name:"التاجر", desc:"تنفيذ برنامج «التاجر» داخل المدرسة لتعزيز مهارات إدارة العمل التجاري", targetCount:40, actualCount:40, location:"الملعب", students:[], evidence:[]},
+  ]},
+  { key:"plc18", name:"الأوقات الفاضلة", weight:null, target:228, planned:228, actual:221, programs:[
+    {id:"plg54", semester:1, week:2, date:"2026-09-06", name:"الجمعة الأبية", desc:"كلمة عن الحرص على صلاة الجمعة", targetCount:65, actualCount:65, location:"المصلى", students:[], evidence:[]},
+    {id:"plg55", semester:1, week:5, date:"2026-09-27", name:"فضل صيام ثلاثة أيام", desc:"الحث على صيام ثلاثة أيام من كل شهر", targetCount:75, actualCount:75, location:"المصلى", students:[], evidence:[]},
+    {id:"plg56", semester:2, week:5, date:"2027-02-14", name:"غدًا الاثنين", desc:"برنامج يركز على اغتنام فضل الصيام", targetCount:88, actualCount:88, location:"المصلى", students:[], evidence:[]},
+  ]},
+];
+
 
 const DEFAULT_DATA = {
   vision: {
@@ -155,7 +253,8 @@ const DEFAULT_DATA = {
   ],
   evidence: {},
   programs: JSON.parse(JSON.stringify(MOE_PROGRAMS)),
-  eventLog: {}
+  eventLog: {},
+  activityPlan: { categories: JSON.parse(JSON.stringify(ACTIVITY_PLAN_CATEGORIES)) }
 };
 
 /* ============================================================ */
@@ -322,6 +421,20 @@ const _now = new Date();
 /* ===== العام الدراسي: يبدأ الأحد 30 أغسطس 2026 ===== */
 const SY_START = "2026-08-30";
 const SY_END   = "2027-06-17";
+/* بداية الفصل الدراسي الثاني — تُستخدم لحساب تواريخ برامج خطة رائد النشاط */
+const PLAN_S2_START = "2027-01-17";
+function planWeekDate(semester, week){
+  const base = new Date((semester===2 ? PLAN_S2_START : SY_START)+"T00:00:00");
+  base.setDate(base.getDate() + (Math.max(1, week)-1)*7);
+  return isoDate(base.getFullYear(), base.getMonth(), base.getDate());
+}
+function findPlanProgram(id){
+  for (const cat of DATA.activityPlan.categories){
+    const p = cat.programs.find(x=>x.id===id);
+    if (p) return p;
+  }
+  return null;
+}
 function syWeekNo(iso){
   const a = new Date(SY_START+"T00:00:00"), b = new Date(iso+"T00:00:00");
   if (b < a) return 0;
@@ -343,6 +456,7 @@ let REPORT_COPIED = false;
 let EVIDENCE_OPEN_ID = null;
 let STUDENTS_OPEN_ID = null;
 let EDIT_COMP_ID = null;
+let SHOW_PLAN_PROGRAM_FORM = null;
 
 async function persist(){ return await storageSet(STORAGE_KEY, JSON.stringify(DATA)); }
 async function mutate(fn){ fn(DATA); render(); pushToCloud(); return await persist(); }
@@ -453,6 +567,105 @@ function viewDashboard(){
         </div>
       </div>
     </div>
+  `;
+}
+
+/* ============================================================ */
+/* خطة رائد النشاط */
+/* ============================================================ */
+function planStudentsPanel(p){
+  const students = p.students || [];
+  return `
+    <div class="evidence-panel">
+      <div style="font-weight:800;color:var(--navy);font-size:12.5px;margin-bottom:10px;">عدد الطلاب المنفذين: ${students.length ? students.length : p.actualCount}</div>
+      ${students.length ? `<div class="list" style="margin-bottom:12px;">${students.map(s=>`
+        <div class="item">
+          <div class="flex1"><div class="title">${esc(s.name)}</div>${s.grade?`<div class="meta">الصف: ${esc(s.grade)}</div>`:""}</div>
+          <button class="trash-btn" data-action="removePlanStudent" data-id="${p.id}" data-sid="${s.id}">${ICONS.trash}</button>
+        </div>`).join("")}</div>` : `<div style="color:var(--muted); font-size:12.5px; margin-bottom:12px;">العدد المعتمد من الخطة: ${p.actualCount} طالب — لم تُضف أسماء بعد</div>`}
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <input id="ps-name-${p.id}" type="text" placeholder="اسم الطالب" style="flex:1; min-width:140px; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-family:'Cairo'; font-size:12.5px;">
+        <input id="ps-grade-${p.id}" type="text" placeholder="الصف (اختياري)" style="width:110px; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-family:'Cairo'; font-size:12.5px;">
+        <button class="btn small" data-action="addPlanStudent" data-id="${p.id}">إضافة طالب</button>
+      </div>
+    </div>`;
+}
+
+function planProgramFormPanel(cat){
+  return `
+    <div class="panel">
+      <div class="field full"><label>اسم البرنامج</label><input id="pl-name" type="text" placeholder="مثال: مسابقة الخط العربي"></div>
+      <div class="field"><label>الفصل الدراسي</label>
+        <select id="pl-semester"><option value="1">الفصل الأول</option><option value="2">الفصل الثاني</option></select>
+      </div>
+      <div class="field"><label>رقم الأسبوع</label><input id="pl-week" type="number" min="1" max="20" placeholder="مثال: 5"></div>
+      <div class="field"><label>عدد الطلاب المستهدف</label><input id="pl-target" type="number" min="0" placeholder="مثال: 50"></div>
+      <div class="field"><label>مكان الفعالية</label><input id="pl-location" type="text" placeholder="مثال: الملعب"></div>
+      <div class="field full"><label>وصف مختصر</label><textarea id="pl-desc" rows="2" placeholder="وصف مختصر للبرنامج"></textarea></div>
+      <div class="actions">
+        <button class="btn ghost" data-action="closePlanProgramForm">إلغاء</button>
+        <button class="btn" data-action="addPlanProgram" data-cat="${cat.key}">إضافة البرنامج</button>
+      </div>
+    </div>`;
+}
+
+function viewActivityPlan(){
+  const cats = DATA.activityPlan.categories;
+  const totalTarget = cats.reduce((n,c)=>n+(c.target||0),0);
+  const totalActual = cats.reduce((n,c)=>n+(c.actual||0),0);
+  const totalPrograms = cats.reduce((n,c)=>n+c.programs.length,0);
+
+  const catCards = cats.map(cat => {
+    const rows = [...cat.programs].sort((a,b)=>a.date.localeCompare(b.date)).map(p => {
+      const studentCount = (p.students && p.students.length) ? p.students.length : p.actualCount;
+      const evidenceCount = (p.evidence||[]).length;
+      const semLabel = `فصل ${p.semester} · الأسبوع ${p.week}`;
+      const panelRows = [];
+      if (STUDENTS_OPEN_ID === p.id) panelRows.push(`<tr class="evidence-row"><td colspan="4">${planStudentsPanel(p)}</td></tr>`);
+      if (EVIDENCE_OPEN_ID === p.id) panelRows.push(`<tr class="evidence-row"><td colspan="4">${evidencePanel(p, "planprogram")}</td></tr>`);
+      return `
+      <tr>
+        <td style="width:150px; font-size:12px; color:var(--muted);">${esc(formatLongAr(p.date))}<div style="font-size:10.5px; margin-top:2px;">${semLabel}</div></td>
+        <td>
+          <div class="tt">${esc(p.name)}</div>
+          <div class="meta">${esc(p.desc)}${p.location?` · ${esc(p.location)}`:""}</div>
+        </td>
+        <td style="width:90px; text-align:center; font-size:12px; font-weight:700; color:var(--navy);">${p.targetCount}</td>
+        <td style="width:260px;">
+          <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+            <button class="evidence-btn has" data-action="togglePlanStudents" data-id="${p.id}">👥 الطلاب المنفذون (${studentCount})</button>
+            <button class="evidence-btn ${evidenceCount?'has':''}" data-action="toggleEvidence" data-id="${p.id}">📎 الشواهد${evidenceCount?` (${evidenceCount})`:""}</button>
+            <button class="icon-btn" data-action="removePlanProgram" data-id="${p.id}" title="حذف البرنامج">${ICONS.trash}</button>
+          </div>
+        </td>
+      </tr>` + panelRows.join("");
+    }).join("");
+
+    return `
+      <div class="card" style="margin-bottom:20px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; flex-wrap:wrap;">
+          <div>
+            <div style="font-weight:800; color:var(--navy); font-size:15px;">${esc(cat.name)}</div>
+            <div style="font-size:11.5px; color:var(--muted); margin-top:2px;">${cat.weight?`الوزن النسبي ${cat.weight}% · `:""}المستهدف ${cat.target} · المخطط له ${cat.planned} · الفعلي ${cat.actual}</div>
+          </div>
+          <button class="btn small ghost" data-action="togglePlanProgramForm" data-cat="${cat.key}">${SHOW_PLAN_PROGRAM_FORM===cat.key ? ICONS.x : ICONS.plus}<span>برنامج جديد</span></button>
+        </div>
+        ${SHOW_PLAN_PROGRAM_FORM === cat.key ? planProgramFormPanel(cat) : ""}
+        ${rows ? `<table class="tasks-table"><tbody>${rows}</tbody></table>` : emptyState("لا توجد برامج مضافة بعد لهذه الفئة")}
+      </div>`;
+  }).join("");
+
+  return `
+    <div class="topbar">
+      ${sectionTitle("مستهدفات ومؤشرات العام السابق — مؤقتًا لحين نزول الخطة الجديدة", "خطة رائد النشاط", "target")}
+    </div>
+    <div class="stat-row">
+      <div class="stat-card"><div class="num">${cats.length}</div><div class="lbl">فئة نشاط</div></div>
+      <div class="stat-card"><div class="num">${totalPrograms}</div><div class="lbl">برنامج تنفيذ</div></div>
+      <div class="stat-card"><div class="num">${totalTarget}</div><div class="lbl">إجمالي المشاركات المستهدفة</div></div>
+      <div class="stat-card"><div class="num">${totalActual}</div><div class="lbl">إجمالي المشاركات الفعلية</div></div>
+    </div>
+    ${catCards}
   `;
 }
 
@@ -1631,6 +1844,7 @@ function onTaskTypeChange(){
 /* ============================================================ */
 const TABS = [
   {key:"dashboard", label:"اليوم", icon:"home"},
+  {key:"plan", label:"خطة رائد النشاط", icon:"target"},
   {key:"vision", label:"الرؤية", icon:"compass"},
   {key:"weekly", label:"الجدول", icon:"calendar"},
   {key:"calendar", label:"التقويم", icon:"year"},
@@ -1641,6 +1855,7 @@ const TABS = [
 ];
 const TAB_TITLES = {
   dashboard:["نظرة عامة","لوحة اليوم"],
+  plan:["مستهدفات ومؤشرات العام السابق","خطة رائد النشاط"],
   vision:["الإطار العام","الخطة والرؤية"],
   weekly:["الجدولة","الجدول الأسبوعي"],
   calendar:["العام الدراسي","التقويم السنوي"],
@@ -1682,6 +1897,7 @@ function render(){
   const [eyebrow, title] = TAB_TITLES[TAB];
   const body =
     TAB === "dashboard" ? viewDashboard() :
+    TAB === "plan" ? viewActivityPlan() :
     TAB === "vision" ? viewVision() :
     TAB === "weekly" ? viewWeekly() :
     TAB === "calendar" ? viewCalendar() :
@@ -1690,7 +1906,7 @@ function render(){
     TAB === "tasks" ? viewTasks() :
     viewAlerts();
 
-  const showTopbarDefault = TAB !== "weekly" && TAB !== "tasks" && TAB !== "calendar" && TAB !== "vision" && TAB !== "competitions" && TAB !== "reports";
+  const showTopbarDefault = TAB !== "weekly" && TAB !== "tasks" && TAB !== "calendar" && TAB !== "vision" && TAB !== "competitions" && TAB !== "reports" && TAB !== "plan";
 
   document.getElementById("app").innerHTML = `
     <div class="app">
@@ -1944,6 +2160,53 @@ document.addEventListener("click", async (e) => {
     return;
   }
 
+  if (action === "togglePlanProgramForm") { SHOW_PLAN_PROGRAM_FORM = (SHOW_PLAN_PROGRAM_FORM === btn.dataset.cat ? null : btn.dataset.cat); render(); return; }
+  if (action === "closePlanProgramForm") { SHOW_PLAN_PROGRAM_FORM = null; render(); return; }
+  if (action === "addPlanProgram") {
+    const catKey = btn.dataset.cat;
+    const name = document.getElementById("pl-name").value.trim();
+    const semester = parseInt(document.getElementById("pl-semester").value, 10);
+    const week = parseInt(document.getElementById("pl-week").value, 10) || 1;
+    const targetCount = parseInt(document.getElementById("pl-target").value, 10) || 0;
+    const location = document.getElementById("pl-location").value.trim();
+    const desc = document.getElementById("pl-desc").value.trim();
+    if (!name) return;
+    const date = planWeekDate(semester, week);
+    await mutate(d => {
+      const cat = d.activityPlan.categories.find(x=>x.key===catKey);
+      if (cat) cat.programs.push({id:uid(), semester, week, date, name, desc, targetCount, actualCount:0, location, students:[], evidence:[]});
+    });
+    SHOW_PLAN_PROGRAM_FORM = null; render();
+    return;
+  }
+  if (action === "removePlanProgram") {
+    const id = btn.dataset.id;
+    await mutate(d => { d.activityPlan.categories.forEach(cat => { cat.programs = cat.programs.filter(p=>p.id!==id); }); });
+    return;
+  }
+  if (action === "togglePlanStudents") { STUDENTS_OPEN_ID = (STUDENTS_OPEN_ID === btn.dataset.id ? null : btn.dataset.id); render(); return; }
+  if (action === "addPlanStudent") {
+    const id = btn.dataset.id;
+    const nameInput = document.getElementById(`ps-name-${id}`);
+    const gradeInput = document.getElementById(`ps-grade-${id}`);
+    const name = nameInput.value.trim();
+    const grade = gradeInput.value.trim();
+    if (!name) return;
+    await mutate(() => {
+      const p = findPlanProgram(id);
+      if (p) { if (!p.students) p.students = []; p.students.push({id:uid(), name, grade}); }
+    });
+    return;
+  }
+  if (action === "removePlanStudent") {
+    const id = btn.dataset.id, sid = btn.dataset.sid;
+    await mutate(() => {
+      const p = findPlanProgram(id);
+      if (p && p.students) p.students = p.students.filter(s=>s.id!==sid);
+    });
+    return;
+  }
+
   if (action === "toggleEventDone") {
     const id = btn.dataset.id, dt = btn.dataset.date, k = id + "@" + dt;
     await mutate(d => {
@@ -1987,6 +2250,11 @@ document.addEventListener("click", async (e) => {
         if (cur && cur.evidence) cur.evidence = cur.evidence.filter(e=>e.id!==eid);
         return;
       }
+      if (kind === "planprogram") {
+        const p = findPlanProgram(id);
+        if (p && p.evidence) p.evidence = p.evidence.filter(e=>e.id!==eid);
+        return;
+      }
       const arr = kind === "competition" ? d.competitions : d.tasks;
       const item = arr.find(x=>x.id===id);
       if (item && item.evidence) item.evidence = item.evidence.filter(e=>e.id!==eid);
@@ -2022,6 +2290,11 @@ document.addEventListener("change", async (e) => {
         d.eventLog[id] = cur;
         return;
       }
+      if (kind === "planprogram") {
+        const p = findPlanProgram(id);
+        if (p) { if (!p.evidence) p.evidence = []; p.evidence.push(...newItems); }
+        return;
+      }
       const arr = kind === "competition" ? d.competitions : d.tasks;
       const item = arr.find(x=>x.id===id);
       if (item) { if (!item.evidence) item.evidence = []; item.evidence.push(...newItems); }
@@ -2030,6 +2303,11 @@ document.addEventListener("change", async (e) => {
       if (kind === "eventlog") {
         const cur = d.eventLog && d.eventLog[id];
         if (cur && cur.evidence) cur.evidence = cur.evidence.filter(x => !newItems.some(n=>n.id===x.id));
+        return;
+      }
+      if (kind === "planprogram") {
+        const p = findPlanProgram(id);
+        if (p && p.evidence) p.evidence = p.evidence.filter(x => !newItems.some(n=>n.id===x.id));
         return;
       }
       const arr = kind === "competition" ? d.competitions : d.tasks;
