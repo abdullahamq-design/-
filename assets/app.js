@@ -294,6 +294,17 @@ function stripEvidenceForSync(data){
   return copy;
 }
 
+/* يُستدعى بعد أي استبدال كامل لـ DATA (تحميل محلي أو مزامنة سحابية)
+   ليضمن وجود الحقول التي أُضيفت لاحقًا للمنصة حتى مع بيانات محفوظة قديمة */
+function ensureDataShape(){
+  if (!DATA.activityPlan || !DATA.activityPlan.categories) {
+    DATA.activityPlan = JSON.parse(JSON.stringify(DEFAULT_DATA.activityPlan));
+  }
+  if (!DATA.programs) DATA.programs = JSON.parse(JSON.stringify(MOE_PROGRAMS));
+  if (!DATA.eventLog) DATA.eventLog = {};
+  if (!DATA.evidence) DATA.evidence = {};
+}
+
 function mergeRemoteData(remote){
   const evidenceByTask = {};
   DATA.tasks.forEach(t => { if (t.evidence && t.evidence.length) evidenceByTask[t.id] = t.evidence; });
@@ -309,6 +320,7 @@ function mergeRemoteData(remote){
     if (!DATA.eventLog[k]) DATA.eventLog[k] = {done:false, doneDate:"", evidence:[]};
     DATA.eventLog[k].evidence = evidenceByLog[k];
   });
+  ensureDataShape();
 }
 
 function initSync(){
@@ -2346,6 +2358,7 @@ document.addEventListener("change", async (e) => {
   if (saved) {
     try { DATA = JSON.parse(saved); } catch(e) { DATA = JSON.parse(JSON.stringify(DEFAULT_DATA)); }
   }
+  ensureDataShape();
   render();
   initSync();
 })();
