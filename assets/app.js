@@ -86,11 +86,13 @@ const MOE_PROGRAMS = {
   "الفترات اللاصفية": ["رحلة نجاح","صحتي مسؤوليتي","سفراء الاستدامة والوعي البيئي","مهارات المستقبل","كن واعيًا","النادي الثقافي","الإرث والأمجاد","صانع الأثر","القيم","النسك"],
 };
 
-const COMP_LEVELS = ["مدرسي","تعليم المدينة","منطقة","وطني","دولي"];
+const COMP_LEVELS = ["مدرسي","تعليم المدينة","منطقة","مركز تنافسي","وطني","دولي","عالمي"];
 const COMP_STATUSES = ["تسجيل مفتوح","قيد التحضير","جارية","منتهية"];
 const COMP_STATUS_COLOR = {
   "تسجيل مفتوح":"var(--coral)", "قيد التحضير":"var(--cyan)", "جارية":"var(--blue)", "منتهية":"var(--muted)"
 };
+/* مستويات المسابقات التي تستحق تمييزًا خاصًا في التنبيهات (مراكز تنافسية ومسابقات دولية/عالمية) */
+const HIGH_COMP_LEVELS = new Set(["مركز تنافسي","دولي","عالمي"]);
 
 /* ===== خطة رائد النشاط — مستهدفات ومؤشرات العام السابق (مؤقتًا لحين نزول الخطة الجديدة) ===== */
 const ACTIVITY_PLAN_CATEGORIES = [
@@ -492,6 +494,41 @@ function gradientDivider(){
   return `<div class="divider"><div class="line l"></div><img src="${LOGO.colorMark}" alt=""><div class="line r"></div></div>`;
 }
 
+/* أقرب الأحداث القادمة — يجمع المهام، مواعيد المسابقات، برامج خطة رائد النشاط، والفعاليات الأسبوعية المتكررة في قائمة واحدة مرتبة حسب القرب */
+function getUpcomingEvents(){
+  const events = [];
+  DATA.tasks.forEach(t => {
+    if (!t.done && t.dueDate) {
+      const d = daysUntil(t.dueDate);
+      if (d !== null && d >= 0) events.push({date:t.dueDate, diff:d, icon:"list", color:"var(--cyan)", title:t.title, sub:"مهمة"});
+    }
+  });
+  DATA.competitions.forEach(c => {
+    if (c.deadline) {
+      const d = daysUntil(c.deadline);
+      if (d !== null && d >= 0) events.push({date:c.deadline, diff:d, icon:"trophy", color:"var(--magenta)", title:c.name, sub:`مسابقة${c.level?` · ${c.level}`:""}`, important: HIGH_COMP_LEVELS.has(c.level)});
+    }
+  });
+  (DATA.activityPlan && DATA.activityPlan.categories || []).forEach(cat => {
+    (cat.programs||[]).forEach(p => {
+      if (!p.date) return;
+      const d = daysUntil(p.date);
+      if (d !== null && d >= 0) events.push({date:p.date, diff:d, icon:"target", color:"var(--navy)", title:p.name, sub:`برنامج خطة رائد النشاط · ${cat.name}`});
+    });
+  });
+  DATA.weekly.forEach(w => {
+    for (let i=0;i<8;i++){
+      const d2 = new Date(_now); d2.setDate(_now.getDate()+i);
+      if (DAY_INDEX[d2.getDay()] === w.day) {
+        const iso = isoDate(d2.getFullYear(), d2.getMonth(), d2.getDate());
+        events.push({date: iso, diff:i, icon:"calendar", color:"var(--blue)", title:w.title, sub:`فعالية متكررة${w.location?` · ${w.location}`:""}`});
+        break;
+      }
+    }
+  });
+  return events.sort((a,b) => a.diff - b.diff || a.date.localeCompare(b.date));
+}
+
 /* ============================================================ */
 /* لوحة اليوم */
 /* ============================================================ */
@@ -506,10 +543,9 @@ function viewDashboard(){
     (t.dueDate === todayStr || t.doneDate === todayStr) &&
     t.type !== "يومي" && !(t.type === "أسبوعي" && t.day === today.dayName));
   const openDaily = dailyTasks.filter(t=>!t.done);
-  const dueSoon = DATA.tasks.filter(t => !t.done && t.dueDate)
-    .map(t => ({...t, diff: daysUntil(t.dueDate)}))
-    .filter(t => t.diff !== null && t.diff <= 3)
-    .sort((a,b) => a.diff - b.diff);
+  const upcomingEvents = getUpcomingEvents();
+  const dueSoonCount = upcomingEvents.filter(e => e.diff <= 3).length;
+  const nearestEvent = upcomingEvents[0] || null;
   const compsOpen = DATA.competitions.filter(c => c.status === "تسجيل مفتوح");
 
   const scheduleItems = [
@@ -537,13 +573,14 @@ function viewDashboard(){
         <div class="when">${esc(today.dayName)} · ${esc(today.formatted)}</div>
         <h2>مساء الخير، عبدالله</h2>
         <div class="sub">لديك ${todaysWeekly.length + weeklyTasksToday.length + datedToday.length} عملًا مجدولًا اليوم، منها ${openDaily.length} مهمة يومية بانتظارك.</div>
+        ${nearestEvent ? `<div class="sub" style="margin-top:8px; font-weight:800;">${ICONS.alert.replace('viewBox="0 0 24 24"','viewBox="0 0 24 24" width="14" height="14"')} أقرب حدث قادم: ${esc(nearestEvent.title)} — ${nearestEvent.diff===0?"اليوم":nearestEvent.diff===1?"غدًا":`بعد ${nearestEvent.diff} يوم`}${nearestEvent.important?" ⭐":""}</div>` : ""}
       </div>
     </div>
 
     <div class="stat-row">
       <div class="stat-card"><div class="num">${todaysWeekly.length + weeklyTasksToday.length + datedToday.length}</div><div class="lbl">أعمال اليوم</div></div>
       <div class="stat-card"><div class="num">${openDaily.length}</div><div class="lbl">مهام يومية متبقية</div></div>
-      <div class="stat-card"><div class="num">${dueSoon.length}</div><div class="lbl">مواعيد قريبة</div></div>
+      <div class="stat-card"><div class="num">${dueSoonCount}</div><div class="lbl">مواعيد قريبة</div></div>
       <div class="stat-card"><div class="num">${compsOpen.length}</div><div class="lbl">مسابقات تسجيلها مفتوح</div></div>
     </div>
 
@@ -569,12 +606,15 @@ function viewDashboard(){
 
       <div class="side-panel">
         <div>
-          ${sectionTitle("تنبيه", "مواعيد قريبة", "alert")}
-          ${dueSoon.length ? dueSoon.map(t => `
-            <div class="alert-row ${t.diff < 0 ? "late" : "soon"}">
-              ${ICONS.alert}
-              <span class="t">${esc(t.title)}</span>
-              <b>${t.diff < 0 ? `متأخر ${Math.abs(t.diff)}ي` : t.diff === 0 ? "اليوم" : `بعد ${t.diff}ي`}</b>
+          ${sectionTitle("تنبيه", "أقرب الأحداث القادمة", "alert")}
+          ${upcomingEvents.length ? upcomingEvents.slice(0, 8).map(e => `
+            <div class="item" style="padding:8px 10px; margin-bottom:6px; ${e.important?'border:1px solid var(--magenta);':''}">
+              <span style="color:${e.color}">${ICONS[e.icon].replace('viewBox="0 0 24 24"','viewBox="0 0 24 24" width="15" height="15"')}</span>
+              <div class="flex1">
+                <div class="title" style="font-size:12.5px;">${esc(e.title)}${e.important?" ⭐":""}</div>
+                <div class="meta">${esc(e.sub)}</div>
+              </div>
+              <b style="color:${e.color}; font-size:11.5px; flex-shrink:0;">${e.diff===0?"اليوم":e.diff===1?"غدًا":`بعد ${e.diff}ي`}</b>
             </div>`).join("") : emptyState("لا مواعيد قريبة")}
         </div>
       </div>
@@ -653,12 +693,22 @@ function viewActivityPlan(){
       </tr>` + panelRows.join("");
     }).join("");
 
+    /* تصنيف برامج المؤشر حسب طبيعة الحدث — رحلة / مسابقة / مشروع — لإظهار عدد كل نوع أمام كل مؤشر */
+    const tripCount = cat.programs.filter(p=>/رحل/.test(p.name+" "+p.desc)).length;
+    const compCount = cat.programs.filter(p=>/مسابق|أولمبياد|تحدي/.test(p.name+" "+p.desc)).length;
+    const projCount = cat.programs.filter(p=>/مشروع|ريادة/.test(p.name+" "+p.desc)).length;
+
     return `
       <div class="card" style="margin-bottom:20px;">
         <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; flex-wrap:wrap;">
           <div>
             <div style="font-weight:800; color:var(--navy); font-size:15px;">${esc(cat.name)}</div>
             <div style="font-size:11.5px; color:var(--muted); margin-top:2px;">${cat.weight?`الوزن النسبي ${cat.weight}% · `:""}المستهدف ${cat.target} · المخطط له ${cat.planned} · الفعلي ${cat.actual}</div>
+            <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;">
+              ${chip(`🚌 رحلات ${tripCount}`, "var(--cyan)")}
+              ${chip(`🏆 مسابقات ${compCount}`, "var(--magenta)")}
+              ${chip(`💡 مشاريع ${projCount}`, "var(--navy)")}
+            </div>
           </div>
           <button class="btn small ghost" data-action="togglePlanProgramForm" data-cat="${cat.key}">${SHOW_PLAN_PROGRAM_FORM===cat.key ? ICONS.x : ICONS.plus}<span>برنامج جديد</span></button>
         </div>
@@ -1014,6 +1064,13 @@ function viewAlerts(){
   const weeklyReminders = DATA.tasks.filter(t => !t.done && t.type === "أسبوعي");
   const compDeadlines = DATA.competitions.filter(c => c.deadline && daysUntil(c.deadline) >= 0 && daysUntil(c.deadline) <= 14)
     .sort((a,b)=>daysUntil(a.deadline)-daysUntil(b.deadline));
+  const planDeadlines = (DATA.activityPlan && DATA.activityPlan.categories || [])
+    .flatMap(cat => (cat.programs||[]).map(p => ({...p, catName: cat.name})))
+    .filter(p => p.date && daysUntil(p.date) >= 0 && daysUntil(p.date) <= 14)
+    .sort((a,b)=>daysUntil(a.date)-daysUntil(b.date));
+  /* المسابقات ذات الأهمية الخاصة: مراكز تنافسية أو مستوى دولي/عالمي — تُراجع دائمًا بغض النظر عن قرب الموعد */
+  const importantComps = DATA.competitions.filter(c => HIGH_COMP_LEVELS.has(c.level));
+  const nearestEvent = getUpcomingEvents()[0] || null;
 
   const todayIdx = DAYS.indexOf(today.dayName);
   const weeklyOrdered = todayIdx === -1 ? [] :
@@ -1021,6 +1078,12 @@ function viewAlerts(){
 
   return `
     ${sectionTitle("لا تفوّت شيئاً", "التنبيهات", "bell")}
+    ${nearestEvent ? `
+      <div class="alert-row soon" style="margin-bottom:18px;">
+        ${ICONS.alert}
+        <span class="t"><b>أقرب حدث قادم:</b> ${esc(nearestEvent.title)} <span style="color:var(--muted); font-weight:600;">(${esc(nearestEvent.sub)})</span>${nearestEvent.important?" ⭐":""}</span>
+        <b>${nearestEvent.diff===0?"اليوم":nearestEvent.diff===1?"غدًا":`بعد ${nearestEvent.diff} يوم`}</b>
+      </div>` : ""}
     <div class="dash-grid">
       <div>
         ${overdue.length ? `
@@ -1051,11 +1114,31 @@ function viewAlerts(){
 
         ${compDeadlines.length ? `
           <div style="font-weight:800;color:var(--magenta);margin-bottom:10px;font-size:14px;">مواعيد مسابقات قريبة</div>
-          <div class="list">
+          <div class="list" style="margin-bottom:24px;">
             ${compDeadlines.map(c=>`
-              <div class="item">${ICONS.trophy.replace('viewBox="0 0 24 24"','viewBox="0 0 24 24" width="15" height="15" style="color:var(--magenta)"')}
-                <div class="flex1 title">${esc(c.name)}</div>
+              <div class="item" style="${HIGH_COMP_LEVELS.has(c.level)?'border:1px solid var(--magenta);':''}">${ICONS.trophy.replace('viewBox="0 0 24 24"','viewBox="0 0 24 24" width="15" height="15" style="color:var(--magenta)"')}
+                <div class="flex1 title">${esc(c.name)}${HIGH_COMP_LEVELS.has(c.level)?" ⭐":""} <span style="font-weight:600; color:var(--muted); font-size:11.5px;">${esc(c.level)}</span></div>
                 <b style="color:var(--magenta); font-size:12px;">${daysUntil(c.deadline)===0?"اليوم":`بعد ${daysUntil(c.deadline)} يوم`}</b>
+              </div>`).join("")}
+          </div>` : ""}
+
+        ${planDeadlines.length ? `
+          <div style="font-weight:800;color:var(--navy);margin-bottom:10px;font-size:14px;">برامج خطة رائد النشاط القادمة</div>
+          <div class="list" style="margin-bottom:24px;">
+            ${planDeadlines.map(p=>`
+              <div class="item">${ICONS.target.replace('viewBox="0 0 24 24"','viewBox="0 0 24 24" width="15" height="15" style="color:var(--navy)"')}
+                <div class="flex1"><div class="title">${esc(p.name)}</div><div class="meta">${esc(p.catName)}</div></div>
+                <b style="color:var(--navy); font-size:12px;">${daysUntil(p.date)===0?"اليوم":`بعد ${daysUntil(p.date)} يوم`}</b>
+              </div>`).join("")}
+          </div>` : ""}
+
+        ${importantComps.length ? `
+          <div style="font-weight:800;color:var(--magenta);margin-bottom:10px;font-size:14px;">مسابقات المراكز التنافسية والمسابقات الدولية/العالمية</div>
+          <div class="list">
+            ${importantComps.map(c=>`
+              <div class="item">${ICONS.trophy.replace('viewBox="0 0 24 24"','viewBox="0 0 24 24" width="15" height="15" style="color:var(--magenta)"')}
+                <div class="flex1"><div class="title">${esc(c.name)} ⭐</div><div class="meta">${esc(c.level)}${c.deadline?` · الموعد: ${formatLongAr(c.deadline)}`:" · بلا موعد محدد بعد"}</div></div>
+                ${chip(c.status, COMP_STATUS_COLOR[c.status])}
               </div>`).join("")}
           </div>` : ""}
       </div>
@@ -1148,7 +1231,7 @@ function viewCompetitions(){
         <div class="tt">${esc(c.name)}</div>
         <div class="meta">${esc(c.organizer)}${c.result ? ` · 🏆 ${esc(c.result)}` : ""}${studentCount ? ` · 👥 ${studentCount} طالب` : ""}</div>
       </td>
-      <td style="width:110px">${chip(c.level, "var(--blue)")}</td>
+      <td style="width:110px">${chip(c.level + (HIGH_COMP_LEVELS.has(c.level) ? " ⭐" : ""), HIGH_COMP_LEVELS.has(c.level) ? "var(--magenta)" : "var(--blue)")}</td>
       <td style="width:130px">
         <select class="comp-status-select" data-id="${c.id}" style="border:1px solid var(--line); border-radius:8px; padding:5px 8px; font-size:12px; font-weight:700; color:${COMP_STATUS_COLOR[c.status]};">
           ${COMP_STATUSES.map(s=>`<option value="${s}" ${s===c.status?"selected":""}>${s}</option>`).join("")}
