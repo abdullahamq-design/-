@@ -469,8 +469,10 @@ function captureVideoFramesAttempt(srcUrl, maxDim, quality, timeoutMs){
   return new Promise((resolve) => {
     const video = document.createElement("video");
     video.muted = true; video.playsInline = true; video.setAttribute("playsinline", ""); video.preload = "auto";
-    /* بعض متصفحات الجوال (خصوصًا Safari) لا تفكّ ترميز إطارات الفيديو لعنصر video غير مضاف إلى الصفحة — لذلك نضيفه مخفيًا */
-    video.style.cssText = "position:fixed; top:-9999px; left:-9999px; width:2px; height:2px; opacity:0; pointer-events:none;";
+    /* بعض متصفحات الجوال (خصوصًا Safari) لا تفكّ ترميز إطارات الفيديو لعنصر video غير مضاف إلى الصفحة، وأيضًا
+       تتجاهل تحميل عناصر الفيديو الموضوعة خارج حدود الشاشة تمامًا (مثل top:-9999px) كتحسين لاستهلاك البطارية/الذاكرة —
+       لذلك نبقيه ضمن حدود الشاشة الظاهرة لكن خلف كل شيء وشفاف تمامًا وبحجم ضئيل */
+    video.style.cssText = "position:fixed; top:0; left:0; width:2px; height:2px; opacity:0; pointer-events:none; z-index:-1;";
     document.body.appendChild(video);
 
     const frames = [];
