@@ -980,9 +980,9 @@ function compressImageDataUrl(dataUrl, maxDim=700, quality=0.5){
   });
 }
 /* بدل حفظ ملف الفيديو كاملاً (يستهلك مساحة تخزين ضخمة)، نأخذ منه عدة لقطات مضغوطة ونحفظها كصور فقط */
-function captureVideoFrames(file, maxDim=700, quality=0.5){
+/* محاولة واحدة لأخذ لقطات من فيديو انطلاقًا من مصدر (رابط blob أو data) معيّن */
+function captureVideoFramesAttempt(srcUrl, maxDim, quality, timeoutMs){
   return new Promise((resolve) => {
-    const url = URL.createObjectURL(file);
     const video = document.createElement("video");
     video.muted = true; video.playsInline = true; video.setAttribute("playsinline", ""); video.preload = "auto";
     /* بعض متصفحات الجوال (خصوصًا Safari) لا تفكّ ترميز إطارات الفيديو لعنصر video غير مضاف إلى الصفحة — لذلك نضيفه مخفيًا */
@@ -994,13 +994,12 @@ function captureVideoFrames(file, maxDim=700, quality=0.5){
     const frames = [];
     let settled = false;
     let perFrameTimer = null;
-    const overallSafety = setTimeout(() => finish(), 20000);
+    const overallSafety = setTimeout(() => finish(), timeoutMs);
 
     function finish(){
       if (settled) return; settled = true;
       clearTimeout(perFrameTimer);
       clearTimeout(overallSafety);
-      URL.revokeObjectURL(url);
       video.remove();
       resolve(frames);
     }
@@ -1037,7 +1036,25 @@ function captureVideoFrames(file, maxDim=700, quality=0.5){
       if (!isFinite(video.duration) || video.duration <= 0) { fractions = [0]; captureAt(0); return; }
       captureAt(video.duration * fractions[0]);
     });
-    video.src = url;
+    video.src = srcUrl;
+  });
+}
+/* بدل حفظ ملف الفيديو كاملاً (يستهلك مساحة تخزين ضخمة)، نأخذ منه عدة لقطات مضغوطة ونحفظها كصور فقط.
+   نجرّب أولاً برابط blob (أخف على الذاكرة)، وإن فشل (بعض إصدارات Safari على الجوال لا تُحمّل blob: كمصدر فيديو)
+   نعيد المحاولة برابط data: عبر قراءة الملف كاملاً — أبطأ لكنه أكثر توافقًا. */
+function captureVideoFrames(file, maxDim=700, quality=0.5){
+  return new Promise(async (resolve) => {
+    const objUrl = URL.createObjectURL(file);
+    let frames = [];
+    try { frames = await captureVideoFramesAttempt(objUrl, maxDim, quality, 8000); }
+    catch(err){}
+    URL.revokeObjectURL(objUrl);
+    if (frames.length) { resolve(frames); return; }
+    try {
+      const dataUrl = await readFileAsDataURL(file);
+      frames = await captureVideoFramesAttempt(dataUrl, maxDim, quality, 20000);
+    } catch(err){}
+    resolve(frames);
   });
 }
 
