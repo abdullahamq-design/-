@@ -408,11 +408,16 @@
   .rpt-end-sign .r{font-size:12px; opacity:.7; margin-top:3px;}
   .rpt-end-sign img{height:42px; opacity:.9;}
 
+  /* مستند طباعة الخطة — يبقى مخفيًا في الشاشة العادية ولا يظهر إلا عند الطباعة */
+  .plan-print-only{display:none;}
+
   @media print {
     @page { size:A4 portrait; margin:0; }
     body{background:#fff;}
     .sidebar, .topbar, .report-toolbar, .nav-item { display:none !important; }
     .app, .main { display:block !important; padding:0 !important; margin:0 !important; }
+    .plan-screen-only{display:none !important;}
+    .plan-print-only{display:block !important;}
     .rpt-doc{background:#fff !important; padding:0 !important; border-radius:0 !important;}
     .rpt-page{
       max-width:none !important; width:210mm !important; min-height:297mm !important;

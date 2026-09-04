@@ -418,11 +418,16 @@
   .rpt-end-sign .r{font-size:12px; opacity:.7; margin-top:3px;}
   .rpt-end-sign img{height:42px; opacity:.9;}
 
+  /* مستند طباعة الخطة — يبقى مخفيًا في الشاشة العادية ولا يظهر إلا عند الطباعة */
+  .plan-print-only{display:none;}
+
   @media print {
     @page { size:A4 portrait; margin:0; }
     body{background:#fff;}
     .sidebar, .topbar, .report-toolbar, .nav-item { display:none !important; }
     .app, .main { display:block !important; padding:0 !important; margin:0 !important; }
+    .plan-screen-only{display:none !important;}
+    .plan-print-only{display:block !important;}
     .rpt-doc{background:#fff !important; padding:0 !important; border-radius:0 !important;}
     .rpt-page{
       max-width:none !important; width:210mm !important; min-height:297mm !important;
@@ -1258,15 +1263,81 @@ function viewActivityPlan(){
   return `
     <div class="topbar">
       ${sectionTitle("مستهدفات ومؤشرات العام السابق — مؤقتًا لحين نزول الخطة الجديدة", "خطة رائد النشاط", "target")}
+      <button class="btn ghost" data-action="printPlan">🖨️ طباعة الخطة</button>
     </div>
-    <div class="stat-row">
-      <div class="stat-card"><div class="num">${cats.length}</div><div class="lbl">فئة نشاط</div></div>
-      <div class="stat-card"><div class="num">${totalPrograms}</div><div class="lbl">برنامج تنفيذ</div></div>
-      <div class="stat-card"><div class="num">${totalTarget}</div><div class="lbl">إجمالي المشاركات المستهدفة</div></div>
-      <div class="stat-card"><div class="num">${totalActual}</div><div class="lbl">إجمالي المشاركات الفعلية</div></div>
+    <div class="plan-screen-only">
+      <div class="stat-row">
+        <div class="stat-card"><div class="num">${cats.length}</div><div class="lbl">فئة نشاط</div></div>
+        <div class="stat-card"><div class="num">${totalPrograms}</div><div class="lbl">برنامج تنفيذ</div></div>
+        <div class="stat-card"><div class="num">${totalTarget}</div><div class="lbl">إجمالي المشاركات المستهدفة</div></div>
+        <div class="stat-card"><div class="num">${totalActual}</div><div class="lbl">إجمالي المشاركات الفعلية</div></div>
+      </div>
+      ${catCards}
     </div>
-    ${catCards}
+    <div class="report-card plan-print-only" id="plan-print-card">${planPrintHtml(cats, totalTarget, totalActual, totalPrograms)}</div>
   `;
+}
+
+/* مستند طباعة منظّم لخطة رائد النشاط — بأسلوب التقرير الرسمي — لعرضه على الإدارة */
+function planPrintHtml(cats, totalTarget, totalActual, totalPrograms){
+  let pg = 0;
+
+  const cover = `
+    <div class="rpt-page dark">
+      <div class="rpt-cover-head">
+        <img src="${LOGO.whiteLockup}" alt="">
+        <div class="rpt-cover-org">
+          <div class="a">مدارس الأندلس الأهلية</div>
+          <div class="b">القسم الثانوي — بنين</div>
+        </div>
+      </div>
+      <div class="rpt-eyebrow-w">مستهدفات ومؤشرات العام السابق — مؤقتًا لحين نزول الخطة الجديدة</div>
+      <div class="rpt-cover-title">خطة رائد النشاط<br>الطلابي</div>
+      <div class="rpt-cover-sub">للعام الدراسي 1448هـ<small>خطة تنفيذية وفق المؤشرات المعتمدة</small></div>
+      <div class="rpt-chips">
+        <div class="rpt-chip">${cats.length} فئة نشاط</div>
+        <div class="rpt-chip">${totalPrograms} برنامج تنفيذ</div>
+        <div class="rpt-chip">${totalTarget} مشاركة مستهدفة</div>
+      </div>
+      <div class="rpt-signbox">
+        <div class="bar"></div>
+        <div>
+          <div class="r">رائد النشاط الطلابي</div>
+          <div class="n">عبدالله محمد القرني</div>
+        </div>
+      </div>
+    </div>`;
+
+  const catPages = cats.map((cat, idx) => {
+    pg++;
+    const tripCount = cat.programs.filter(p=>/رحل/.test(p.name+" "+p.desc)).length;
+    const compCount = cat.programs.filter(p=>/مسابق|أولمبياد|تحدي/.test(p.name+" "+p.desc)).length;
+    const projCount = cat.programs.filter(p=>/مشروع|ريادة/.test(p.name+" "+p.desc)).length;
+    const sortedPrograms = [...cat.programs].sort((a,b)=>a.date.localeCompare(b.date));
+    return `
+    <div class="rpt-page">
+      <div class="rpt-watermark">${String(idx+1).padStart(2,"0")}</div>
+      <div class="rpt-eyebrow">فئة ${idx+1} من ${cats.length}</div>
+      <div class="rpt-h1">${esc(cat.name)}</div>
+      <div class="rpt-lead">${cat.weight?`الوزن النسبي ${cat.weight}% · `:""}🚌 رحلات ${tripCount} · 🏆 مسابقات ${compCount} · 💡 مشاريع ${projCount}</div>
+      <div class="rpt-domain" style="background:var(--navy);">
+        <div><div class="n">${cat.actual}</div><div class="l">من إجمالي مستهدف ${cat.target} مشاركة (مخطط له ${cat.planned})</div></div>
+        <div class="pill">${cat.programs.length} برنامج تنفيذ</div>
+      </div>
+      <div class="rpt-cards two" style="margin-top:24px;">
+        ${sortedPrograms.map(p=>{
+          const studentCount = (p.students && p.students.length) ? p.students.length : p.actualCount;
+          return `<div class="rpt-cardx">
+            <div class="t">${esc(p.name)}<span class="rpt-datepill">${esc(formatLongAr(p.date))}</span></div>
+            <div class="d">${esc(p.desc)}${p.location?` · ${esc(p.location)}`:""}<br>عدد الطلاب المنفذين: ${studentCount} · فصل ${p.semester} · الأسبوع ${p.week}</div>
+          </div>`;
+        }).join("")}
+      </div>
+      ${rptFoot(pg, "خطة رائد النشاط · مدارس الأندلس الأهلية")}
+    </div>`;
+  }).join("");
+
+  return `<div class="rpt-doc">${cover}${catPages}</div>`;
 }
 
 /* ============================================================ */
@@ -2071,8 +2142,8 @@ function reportPlainText(title, rangeLabel, data){
   return lines.join("\n");
 }
 
-function rptFoot(n){
-  return `<div class="rpt-foot"><span>${n}</span><span>تقرير النشاط الطلابي · مدارس الأندلس الأهلية</span></div>`;
+function rptFoot(n, label="تقرير النشاط الطلابي · مدارس الأندلس الأهلية"){
+  return `<div class="rpt-foot"><span>${n}</span><span>${esc(label)}</span></div>`;
 }
 
 function reportHtml(title, rangeLabel, data){
@@ -2724,6 +2795,7 @@ document.addEventListener("click", async (e) => {
   if (action === "reportPrevMonth") { REPORT_MONTH--; if (REPORT_MONTH<0){REPORT_MONTH=11; REPORT_YEAR--;} REPORT_COPIED=false; render(); return; }
   if (action === "reportNextMonth") { REPORT_MONTH++; if (REPORT_MONTH>11){REPORT_MONTH=0; REPORT_YEAR++;} REPORT_COPIED=false; render(); return; }
   if (action === "reportPrint") { window.print(); return; }
+  if (action === "printPlan") { window.print(); return; }
   if (action === "reportCopy") {
     const card = document.getElementById("report-card");
     const text = card ? card.innerText : "";
