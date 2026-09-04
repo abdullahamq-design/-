@@ -421,43 +421,60 @@ function captureVideoFrames(file, maxDim=700, quality=0.5){
   return new Promise((resolve) => {
     const url = URL.createObjectURL(file);
     const video = document.createElement("video");
-    video.preload = "auto"; video.muted = true; video.playsInline = true; video.src = url;
+    video.muted = true; video.playsInline = true; video.setAttribute("playsinline", ""); video.preload = "auto";
+    /* بعض متصفحات الجوال (خصوصًا Safari) لا تفكّ ترميز إطارات الفيديو لعنصر video غير مضاف إلى الصفحة — لذلك نضيفه مخفيًا */
+    video.style.cssText = "position:fixed; top:-9999px; left:-9999px; width:2px; height:2px; opacity:0; pointer-events:none;";
+    document.body.appendChild(video);
+
     let fractions = [0.1, 0.5, 0.9];
     let idx = 0;
     const frames = [];
     let settled = false;
-    const finish = () => {
+    let perFrameTimer = null;
+    const overallSafety = setTimeout(() => finish(), 20000);
+
+    function finish(){
       if (settled) return; settled = true;
-      clearTimeout(safety);
+      clearTimeout(perFrameTimer);
+      clearTimeout(overallSafety);
       URL.revokeObjectURL(url);
+      video.remove();
       resolve(frames);
-    };
-    const safety = setTimeout(finish, 15000);
-    const captureAt = (t) => {
-      try { video.currentTime = Math.min(Math.max(t, 0), Math.max(video.duration - 0.05, 0)); }
-      catch(err) { finish(); }
-    };
-    video.addEventListener("seeked", () => {
+    }
+    function grabFrame(){
       try {
         let width = video.videoWidth, height = video.videoHeight;
-        if (width > maxDim || height > maxDim) {
-          const scale = maxDim / Math.max(width, height);
-          width = Math.round(width*scale); height = Math.round(height*scale);
+        if (width && height) {
+          if (width > maxDim || height > maxDim) {
+            const scale = maxDim / Math.max(width, height);
+            width = Math.round(width*scale); height = Math.round(height*scale);
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width; canvas.height = height;
+          canvas.getContext("2d").drawImage(video, 0, 0, width, height);
+          frames.push(canvas.toDataURL("image/jpeg", quality));
         }
-        const canvas = document.createElement("canvas");
-        canvas.width = width; canvas.height = height;
-        canvas.getContext("2d").drawImage(video, 0, 0, width, height);
-        frames.push(canvas.toDataURL("image/jpeg", quality));
       } catch(err){}
+    }
+    function nextFrame(){
       idx++;
       if (idx < fractions.length) captureAt(video.duration * fractions[idx]);
       else finish();
-    });
+    }
+    function captureAt(t){
+      clearTimeout(perFrameTimer);
+      /* في حال لم يُطلق الحدث seeked لأي سبب، نأخذ أي إطار معروض حاليًا بدل الانتظار بلا نهاية */
+      perFrameTimer = setTimeout(() => { grabFrame(); nextFrame(); }, 4000);
+      try { video.currentTime = Math.min(Math.max(t, 0), Math.max(video.duration - 0.05, 0)); }
+      catch(err) { clearTimeout(perFrameTimer); grabFrame(); nextFrame(); }
+    }
+    video.addEventListener("seeked", () => { clearTimeout(perFrameTimer); grabFrame(); nextFrame(); });
     video.addEventListener("error", finish);
-    video.addEventListener("loadedmetadata", () => {
+    video.addEventListener("loadeddata", () => {
       if (!isFinite(video.duration) || video.duration <= 0) { fractions = [0]; captureAt(0); return; }
       captureAt(video.duration * fractions[0]);
     });
+    video.src = url;
   });
 }
 
