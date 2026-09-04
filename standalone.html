@@ -446,6 +446,9 @@
   .plan-print-only{display:none;}
 
   @media print {
+    /* التصميم (غلاف + صفحات موضوعية بعناوين كبيرة ومساحات رأسية) مبني عمدًا لصفحة طولية —
+       نقفله على portrait عمدًا لأن وضع landscape يكسر التقسيم بين الصفحات (المحتوى يفيض لصفحة إضافية
+       فارغة تقريبًا بسبب انخفاض الارتفاع المتاح) بدل ما يعيد ترتيب نفسه تلقائيًا. */
     @page { size:A4 portrait; margin:0; }
     body{background:#fff;}
     .sidebar, .topbar, .report-toolbar, .nav-item, .storage-overlay { display:none !important; }
