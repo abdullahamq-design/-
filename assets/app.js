@@ -2571,6 +2571,7 @@ document.addEventListener("change", async (e) => {
     const files = Array.from(e.target.files || []);
     const MAX_IMAGE_BYTES = 6 * 1024 * 1024;
     const MAX_VIDEO_BYTES = 150 * 1024 * 1024;
+    const MAX_RAW_VIDEO_FALLBACK_BYTES = 20 * 1024 * 1024;
     const newItems = [];
     let tooLargeImg = 0, tooLargeVideo = 0, videoFailed = 0;
     for (const file of files) {
@@ -2582,6 +2583,12 @@ document.addEventListener("change", async (e) => {
         try { frames = await captureVideoFrames(file); } catch(err){}
         if (frames.length) {
           frames.forEach((dataUrl, i) => newItems.push({id: uid(), type: "image", dataUrl, name: `${file.name} — لقطة ${i+1}`}));
+        } else if (file.size <= MAX_RAW_VIDEO_FALLBACK_BYTES) {
+          /* تعذّر استخراج لقطات على هذا الجهاز — نحفظ الفيديو نفسه بدل ما نفشل بالكامل، طالما حجمه معقول */
+          try {
+            const dataUrl = await readFileAsDataURL(file);
+            newItems.push({id: uid(), type: "video", dataUrl, name: file.name});
+          } catch(err) { videoFailed++; }
         } else {
           videoFailed++;
         }
@@ -2596,7 +2603,7 @@ document.addEventListener("change", async (e) => {
     const warnings = [];
     if (tooLargeImg) warnings.push(`تم تجاوز ${tooLargeImg} ${tooLargeImg===1?"صورة":"صور"} لأن حجمها أكبر من 6 ميجابايت.`);
     if (tooLargeVideo) warnings.push(`تم تجاوز ${tooLargeVideo} ${tooLargeVideo===1?"فيديو":"فيديوهات"} لأن حجمه أكبر من 150 ميجابايت.`);
-    if (videoFailed) warnings.push(`تعذّر استخراج لقطات من ${videoFailed} ${videoFailed===1?"فيديو":"فيديوهات"} — جرّب فيديو آخر.`);
+    if (videoFailed) warnings.push(`تعذّر حفظ ${videoFailed} ${videoFailed===1?"فيديو":"فيديوهات"} — الفيديو كبير جدًا ولم نستطع استخراج لقطات منه على هذا الجهاز. جرّب فيديو أقصر (أقل من 20 ميجابايت).`);
     if (warnings.length) alert(warnings.join("\n"));
     const applyAdd = (d) => {
       if (kind === "eventlog") {
