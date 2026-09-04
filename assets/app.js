@@ -398,7 +398,7 @@ function readFileAsDataURL(file){
     r.readAsDataURL(file);
   });
 }
-function compressImageDataUrl(dataUrl, maxDim=900, quality=0.6){
+function compressImageDataUrl(dataUrl, maxDim=700, quality=0.5){
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
@@ -471,9 +471,65 @@ let EVIDENCE_OPEN_ID = null;
 let STUDENTS_OPEN_ID = null;
 let EDIT_COMP_ID = null;
 let SHOW_PLAN_PROGRAM_FORM = null;
+let SHOW_STORAGE_PANEL = false;
 
 async function persist(){ return await storageSet(STORAGE_KEY, JSON.stringify(DATA)); }
 async function mutate(fn){ fn(DATA); render(); pushToCloud(); return await persist(); }
+
+/* ============================================================ */
+/* إدارة مساحة التخزين */
+/* ============================================================ */
+function formatBytes(bytes){
+  if (bytes < 1024) return bytes + " بايت";
+  if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + " كيلوبايت";
+  return (bytes/1024/1024).toFixed(2) + " ميجابايت";
+}
+/* يجمع كل الشواهد (صور/فيديوهات) من كل مكان في البيانات — المهام، المسابقات، برامج الخطة، وسجل الفعاليات المتكررة */
+function collectAllEvidence(){
+  const items = [];
+  DATA.tasks.forEach(t => (t.evidence||[]).forEach(e => items.push({...e, kind:"task", ownerId:t.id, ownerTitle:t.title})));
+  DATA.competitions.forEach(c => (c.evidence||[]).forEach(e => items.push({...e, kind:"competition", ownerId:c.id, ownerTitle:c.name})));
+  (DATA.activityPlan && DATA.activityPlan.categories || []).forEach(cat => (cat.programs||[]).forEach(p =>
+    (p.evidence||[]).forEach(e => items.push({...e, kind:"planprogram", ownerId:p.id, ownerTitle:p.name}))));
+  Object.keys(DATA.eventLog||{}).forEach(k => {
+    const lg = DATA.eventLog[k];
+    (lg.evidence||[]).forEach(e => {
+      const ev = DATA.weekly.find(w => w.id === k.split("@")[0]);
+      items.push({...e, kind:"eventlog", ownerId:k, ownerTitle:(ev?ev.title:"فعالية") + " · " + (k.split("@")[1]||"")});
+    });
+  });
+  items.forEach(e => { e.sizeBytes = e.dataUrl ? Math.round(e.dataUrl.length*0.75) : 0; });
+  return items.sort((a,b)=>b.sizeBytes-a.sizeBytes);
+}
+function viewStorageManager(){
+  const items = collectAllEvidence();
+  const totalBytes = items.reduce((n,e)=>n+e.sizeBytes,0);
+  const rawSize = new Blob([JSON.stringify(DATA)]).size;
+  return `
+    <div class="storage-overlay">
+      <div class="storage-panel">
+        <div class="storage-head">
+          <div>
+            <div style="font-weight:800;color:var(--navy);font-size:16px;">إدارة مساحة التخزين</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px;">حجم الشواهد: ${formatBytes(totalBytes)} · إجمالي حجم بيانات المنصة على هذا الجهاز: ${formatBytes(rawSize)}</div>
+          </div>
+          <button class="icon-btn" data-action="closeStoragePanel">${ICONS.x}</button>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin:12px 0 14px;">الشواهد (الصور والفيديوهات) تُحفظ داخل متصفح هذا الجهاز فقط، ومساحته محدودة. إذا ظهرت رسالة "تعذّر حفظ الشاهد"، احذف بعض الشواهد القديمة غير الضرورية من هنا (مرتّبة من الأكبر حجمًا) لتحرير مساحة ثم أعد المحاولة.</div>
+        ${items.length ? `<div class="storage-list">
+          ${items.map(e => `
+            <div class="storage-item">
+              ${e.type==="image" ? `<img src="${e.dataUrl}" class="storage-thumb">` : `<div class="storage-thumb storage-video">🎞️</div>`}
+              <div class="flex1">
+                <div class="title" style="font-size:12.5px;">${esc(e.ownerTitle)}</div>
+                <div class="meta">${esc(e.name||"")}${e.name?" · ":""}${formatBytes(e.sizeBytes)}</div>
+              </div>
+              <button class="trash-btn" data-action="removeEvidence" data-id="${e.ownerId}" data-eid="${e.id}" data-kind="${e.kind}">${ICONS.trash}</button>
+            </div>`).join("")}
+        </div>` : emptyState("لا توجد شواهد محفوظة بعد")}
+      </div>
+    </div>`;
+}
 
 /* ============================================================ */
 /* عناصر واجهة مشتركة */
@@ -2082,6 +2138,7 @@ function render(){
         </nav>
         <div class="sidebar-footer">
           ${SYNC_ENABLED ? `<div class="sync-badge sync-${SYNC_STATUS}">${SYNC_STATUS==="synced"?"🔄 متزامن مع كل الأجهزة":SYNC_STATUS==="error"?"⚠️ خطأ في المزامنة":"⏳ جاري الاتصال بالمزامنة"}</div>` : ""}
+          <button class="storage-btn" data-action="openStoragePanel">🗄️ إدارة التخزين</button>
           <button class="logout-btn" data-action="logout">تسجيل الخروج</button>
           <div>مدارس الأندلس الأهلية · 1984</div>
         </div>
@@ -2098,6 +2155,7 @@ function render(){
         </div>
       </main>
     </div>
+    ${SHOW_STORAGE_PANEL ? viewStorageManager() : ""}
   `;
 
   if (TAB === "tasks") onTaskTypeChange();
@@ -2402,6 +2460,8 @@ document.addEventListener("click", async (e) => {
     return;
   }
 
+  if (action === "openStoragePanel") { SHOW_STORAGE_PANEL = true; render(); return; }
+  if (action === "closeStoragePanel") { SHOW_STORAGE_PANEL = false; render(); return; }
   if (action === "toggleEvidence") { EVIDENCE_OPEN_ID = (EVIDENCE_OPEN_ID === btn.dataset.id ? null : btn.dataset.id); render(); return; }
   if (action === "removeEvidence") {
     const id = btn.dataset.id, eid = btn.dataset.eid, kind = btn.dataset.kind || "task";
