@@ -261,18 +261,63 @@ const DEFAULT_DATA = {
 
 /* ============================================================ */
 /* التخزين (يعمل داخل Claude وأيضاً كملف مستقل على الجهاز) */
+/* نستخدم IndexedDB كمخزن أساسي لأن مساحته أكبر بكثير من localStorage */
+/* (الذي يمتلئ بسرعة مع تراكم صور وشواهد النشاط) — مع الإبقاء على   */
+/* localStorage كخطة بديلة والقراءة منه للتوافق مع البيانات القديمة */
 /* ============================================================ */
+const IDB_NAME = "andalus-activity-platform-db";
+const IDB_STORE = "kv";
+let _idbPromise = null;
+function openIDB(){
+  if (_idbPromise) return _idbPromise;
+  _idbPromise = new Promise((resolve, reject) => {
+    if (!window.indexedDB) { reject(new Error("no-indexeddb")); return; }
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = () => { req.result.createObjectStore(IDB_STORE); };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+  return _idbPromise;
+}
+function idbGet(key){
+  return openIDB().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, "readonly");
+    const req = tx.objectStore(IDB_STORE).get(key);
+    req.onsuccess = () => resolve(req.result == null ? null : req.result);
+    req.onerror = () => reject(req.error);
+  }));
+}
+function idbSet(key, value){
+  return openIDB().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, "readwrite");
+    tx.objectStore(IDB_STORE).put(value, key);
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject(tx.error);
+  }));
+}
 async function storageGet(key){
   if (window.storage && typeof window.storage.get === "function") {
     try { const r = await window.storage.get(key); return r ? r.value : null; } catch(e){ return null; }
   }
+  try {
+    const idbVal = await idbGet(key);
+    if (idbVal != null) return idbVal;
+  } catch(e){}
+  /* لا شيء في IndexedDB بعد — إمّا أول تشغيل، أو جهاز حفظ بياناته سابقًا في localStorage قبل هذا التحديث */
   try { return localStorage.getItem(key); } catch(e){ return null; }
 }
 async function storageSet(key, value){
   if (window.storage && typeof window.storage.set === "function") {
     try { await window.storage.set(key, value); return true; } catch(e){}
   }
-  try { localStorage.setItem(key, value); return true; } catch(e){ return false; }
+  try {
+    await idbSet(key, value);
+    /* بعد أول نجاح للحفظ في IndexedDB، نحذف النسخة القديمة من localStorage لتحرير مساحتها الصغيرة */
+    try { localStorage.removeItem(key); } catch(e){}
+    return true;
+  } catch(e){
+    try { localStorage.setItem(key, value); return true; } catch(e2){ return false; }
+  }
 }
 
 /* ============================================================ */
