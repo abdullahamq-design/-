@@ -467,17 +467,19 @@ function compressImageDataUrl(dataUrl, maxDim=700, quality=0.5){
    لأن حدث seeked غير موثوق على بعض متصفحات الجوال وبعض ترميزات الفيديو */
 function captureVideoFramesAttempt(srcUrl, maxDim, quality, timeoutMs){
   return new Promise((resolve) => {
-    const video = document.createElement("video");
-    video.muted = true; video.playsInline = true; video.setAttribute("playsinline", ""); video.preload = "auto";
-    /* بعض متصفحات الجوال (خصوصًا Safari) لا تفكّ ترميز إطارات الفيديو لعنصر video غير مضاف إلى الصفحة، وأيضًا
-       تتجاهل تحميل عناصر الفيديو الموضوعة خارج حدود الشاشة تمامًا (مثل top:-9999px) كتحسين لاستهلاك البطارية/الذاكرة —
-       لذلك نبقيه ضمن حدود الشاشة الظاهرة لكن خلف كل شيء وشفاف تمامًا وبحجم ضئيل */
-    video.style.cssText = "position:fixed; top:0; left:0; width:2px; height:2px; opacity:0; pointer-events:none; z-index:-1;";
-    document.body.appendChild(video);
+    /* ننشئ عنصر الفيديو عبر innerHTML (يمرّ من محلّل HTML) لا عبر document.createElement —
+       بعض متصفحات الجوال تتعامل مع عناصر الوسائط المُنشأة بالسكربت المباشر بشكل مختلف عن العناصر المحلَّلة من HTML.
+       كما نضع سمات muted/playsinline كسمات HTML فعلية (لا كخصائص JS فقط) لأن سياسات التشغيل التلقائي تفحص السمة نفسها أحيانًا. */
+    const wrap = document.createElement("div");
+    wrap.style.cssText = "position:fixed; top:0; left:0; width:1px; height:1px; opacity:0; pointer-events:none; overflow:hidden;";
+    wrap.innerHTML = `<video muted playsinline webkit-playsinline preload="auto" style="width:1px;height:1px;"></video>`;
+    const video = wrap.querySelector("video");
+    video.muted = true;
+    document.body.appendChild(wrap);
 
     const frames = [];
     /* معلومات تشخيصية — تُعرض للمستخدم فقط عند فشل الاستخراج، لتشخيص السبب الحقيقي على جهازه بدل التخمين */
-    const debug = { loadeddata:false, playOk:null, playErr:null, mediaErr:null, drawErr:null, dims:null };
+    const debug = { loadstart:false, loadeddata:false, playOk:null, playErr:null, mediaErr:null, drawErr:null, dims:null, readyState:null };
     let settled = false;
     let grabTimer = null;
     let grabCount = 0;
@@ -489,8 +491,9 @@ function captureVideoFramesAttempt(srcUrl, maxDim, quality, timeoutMs){
       if (settled) return; settled = true;
       clearTimeout(grabTimer);
       clearTimeout(overallSafety);
+      debug.readyState = video.readyState;
       try { video.pause(); } catch(err){}
-      video.remove();
+      wrap.remove();
       resolve({frames, debug});
     }
     function grabFrame(){
@@ -520,6 +523,7 @@ function captureVideoFramesAttempt(srcUrl, maxDim, quality, timeoutMs){
         if (grabCount >= MAX_GRABS || video.ended) { clearInterval(grabTimer); finish(); }
       }, GRAB_INTERVAL_MS);
     }
+    video.addEventListener("loadstart", () => { debug.loadstart = true; });
     video.addEventListener("error", () => {
       if (video.error) debug.mediaErr = `code ${video.error.code}`;
       finish();
@@ -531,6 +535,7 @@ function captureVideoFramesAttempt(srcUrl, maxDim, quality, timeoutMs){
       startGrabbing();
     });
     video.src = srcUrl;
+    try { video.load(); } catch(err){}
   });
 }
 /* بدل حفظ ملف الفيديو كاملاً (يستهلك مساحة تخزين ضخمة)، نأخذ منه عدة لقطات مضغوطة ونحفظها كصور فقط.
