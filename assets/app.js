@@ -463,6 +463,8 @@ function compressImageDataUrl(dataUrl, maxDim=700, quality=0.5){
 }
 /* بدل حفظ ملف الفيديو كاملاً (يستهلك مساحة تخزين ضخمة)، نأخذ منه عدة لقطات مضغوطة ونحفظها كصور فقط */
 /* محاولة واحدة لأخذ لقطات من فيديو انطلاقًا من مصدر (رابط blob أو data) معيّن */
+/* نلتقط اللقطات أثناء تشغيل فعلي قصير للفيديو (بدل القفز المباشر عبر currentTime)
+   لأن حدث seeked غير موثوق على بعض متصفحات الجوال وبعض ترميزات الفيديو */
 function captureVideoFramesAttempt(srcUrl, maxDim, quality, timeoutMs){
   return new Promise((resolve) => {
     const video = document.createElement("video");
@@ -471,17 +473,19 @@ function captureVideoFramesAttempt(srcUrl, maxDim, quality, timeoutMs){
     video.style.cssText = "position:fixed; top:-9999px; left:-9999px; width:2px; height:2px; opacity:0; pointer-events:none;";
     document.body.appendChild(video);
 
-    let fractions = [0.1, 0.5, 0.9];
-    let idx = 0;
     const frames = [];
     let settled = false;
-    let perFrameTimer = null;
+    let grabTimer = null;
+    let grabCount = 0;
+    const MAX_GRABS = 3;
+    const GRAB_INTERVAL_MS = 450;
     const overallSafety = setTimeout(() => finish(), timeoutMs);
 
     function finish(){
       if (settled) return; settled = true;
-      clearTimeout(perFrameTimer);
+      clearTimeout(grabTimer);
       clearTimeout(overallSafety);
+      try { video.pause(); } catch(err){}
       video.remove();
       resolve(frames);
     }
@@ -496,27 +500,25 @@ function captureVideoFramesAttempt(srcUrl, maxDim, quality, timeoutMs){
           const canvas = document.createElement("canvas");
           canvas.width = width; canvas.height = height;
           canvas.getContext("2d").drawImage(video, 0, 0, width, height);
-          frames.push(canvas.toDataURL("image/jpeg", quality));
+          const dataUrl = canvas.toDataURL("image/jpeg", quality);
+          /* تفادي تكرار نفس اللقطة (فيديو قصير جدًا أو انتهى مبكرًا) */
+          if (!frames.length || frames[frames.length-1] !== dataUrl) frames.push(dataUrl);
         }
       } catch(err){}
     }
-    function nextFrame(){
-      idx++;
-      if (idx < fractions.length) captureAt(video.duration * fractions[idx]);
-      else finish();
+    function startGrabbing(){
+      grabFrame();
+      grabCount++;
+      grabTimer = setInterval(() => {
+        grabFrame();
+        grabCount++;
+        if (grabCount >= MAX_GRABS || video.ended) { clearInterval(grabTimer); finish(); }
+      }, GRAB_INTERVAL_MS);
     }
-    function captureAt(t){
-      clearTimeout(perFrameTimer);
-      /* في حال لم يُطلق الحدث seeked لأي سبب، نأخذ أي إطار معروض حاليًا بدل الانتظار بلا نهاية */
-      perFrameTimer = setTimeout(() => { grabFrame(); nextFrame(); }, 4000);
-      try { video.currentTime = Math.min(Math.max(t, 0), Math.max(video.duration - 0.05, 0)); }
-      catch(err) { clearTimeout(perFrameTimer); grabFrame(); nextFrame(); }
-    }
-    video.addEventListener("seeked", () => { clearTimeout(perFrameTimer); grabFrame(); nextFrame(); });
     video.addEventListener("error", finish);
-    video.addEventListener("loadeddata", () => {
-      if (!isFinite(video.duration) || video.duration <= 0) { fractions = [0]; captureAt(0); return; }
-      captureAt(video.duration * fractions[0]);
+    video.addEventListener("loadeddata", async () => {
+      try { await video.play(); } catch(err){ /* حتى لو رفض التشغيل، نحاول أخذ لقطة من أول إطار محمّل */ }
+      startGrabbing();
     });
     video.src = srcUrl;
   });
@@ -1782,6 +1784,13 @@ function reportPlainText(title, rangeLabel, data){
 function rptFoot(n, label="تقرير النشاط الطلابي · مدارس الأندلس الأهلية"){
   return `<div class="rpt-foot"><span>${n}</span><span>${esc(label)}</span></div>`;
 }
+/* عنصر <video> لا يظهر شيئًا عند الطباعة أو تصديره PDF — لذلك نستبدله ببطاقة نائبة واضحة بدل شاشة فارغة */
+function reportEvidenceMedia(e){
+  if (e.type === "video") {
+    return `<div class="rpt-video-placeholder">🎞️<span>شاهد فيديو</span></div>`;
+  }
+  return `<img src="${e.dataUrl}" alt="">`;
+}
 
 function reportHtml(title, rangeLabel, data){
   const done = data.tasksInRange.filter(t=>t.done);
@@ -1989,12 +1998,12 @@ function reportHtml(title, rangeLabel, data){
       <div class="rpt-lead">مشاهد توثّق تفاعل طلابنا في مختلف برامج الفترة</div>
       ${evidence.length ? `
         <div class="rpt-gal wide">
-          <figure>${evidence[0].type==="video"?`<video src="${evidence[0].dataUrl}" controls></video>`:`<img src="${evidence[0].dataUrl}" alt="">`}
+          <figure>${reportEvidenceMedia(evidence[0])}
             <figcaption>${esc(evidence[0].cap)}</figcaption></figure>
         </div>
         ${evidence.length>1 ? `<div class="rpt-gal">
           ${evidence.slice(1).map(e=>`<figure>
-            ${e.type==="video"?`<video src="${e.dataUrl}" controls></video>`:`<img src="${e.dataUrl}" alt="">`}
+            ${reportEvidenceMedia(e)}
             <figcaption>${esc(e.cap)}</figcaption></figure>`).join("")}
         </div>` : ""}
       ` : `<div class="rpt-empty2">لا توجد شواهد مصوّرة مرفوعة بعد — أضِفها من تبويب «المهام» أو «المسابقات» لتظهر هنا تلقائيًا</div>`}

@@ -400,6 +400,10 @@
   .rpt-gal figure{margin:0; position:relative; border-radius:12px; overflow:hidden; background:#0F2771;}
   .rpt-gal img, .rpt-gal video{width:100%; height:150px; object-fit:cover; display:block;}
   .rpt-gal.wide img, .rpt-gal.wide video{height:250px;}
+  .rpt-video-placeholder{width:100%; height:150px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:6px; font-size:32px; background:linear-gradient(160deg,#12306F,#0F2771); color:#fff;}
+  .rpt-video-placeholder span{font-family:'Cairo'; font-weight:700; font-size:12px; opacity:.85;}
+  .rpt-gal.wide .rpt-video-placeholder{height:250px;}
   .rpt-gal figcaption{position:absolute; inset-inline:0; bottom:0; padding:26px 14px 12px; color:#fff;
     font-family:'Cairo'; font-weight:800; font-size:13px; text-align:end;
     background:linear-gradient(to top, rgba(10,25,64,.88), rgba(10,25,64,0));}
