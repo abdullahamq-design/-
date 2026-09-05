@@ -2416,7 +2416,14 @@ function reportHtml(title, rangeLabel, data){
     const ev = DATA.weekly.find(w => w.id === k.split("@")[0]);
     (lg.evidence||[]).forEach(e => evidence.push({...e, cap:(ev?ev.title:"فعالية مجدولة")+" · "+iso}));
   });
-  const pct = data.tasksInRange.length ? Math.round(done.length/data.tasksInRange.length*100) : 0;
+  /* نسبة الإنجاز العامة (تظهر في الغلاف) يجب أن تعكس العمل الفعلي كله في الفترة — لا المهام فقط،
+     بل الفعاليات المتكررة المنفَّذة أيضًا (زي الطابور واستقبال الطلاب)، وإلا تظهر 0% في الغلاف رغم
+     تنفيذ عدة فعاليات فعليًا بشواهد. نبقي أيضًا نسبة إنجاز المهام وحدها منفصلة لعرضها في سياقها الخاص. */
+  const taskPct = data.tasksInRange.length ? Math.round(done.length/data.tasksInRange.length*100) : 0;
+  const doneEvents = data.weeklyEvents.filter(w => { const lg = getLog(w.id, w.date); return lg && lg.done; }).length;
+  const totalForPct = data.tasksInRange.length + data.weeklyEvents.length;
+  const doneForPct = done.length + doneEvents;
+  const pct = totalForPct ? Math.round(doneForPct/totalForPct*100) : 0;
   const comps = data.compsInRange;
   const wins = DATA.competitions.filter(c=>c.result && c.result.trim());
   const students = DATA.competitions.reduce((n,c)=> n + ((c.students||[]).length), 0);
@@ -2542,7 +2549,7 @@ function reportHtml(title, rangeLabel, data){
 
       <div class="rpt-domain" style="background:var(--cyan); margin-top:30px;">
         <div><div class="n">${done.length}</div><div class="l">مهمة منجزة من ${data.tasksInRange.length}</div></div>
-        <div class="pill">نسبة الإنجاز ${pct}%</div>
+        <div class="pill">نسبة إنجاز المهام ${taskPct}%</div>
       </div>
       ${done.length ? `<div class="rpt-cards two">
         ${done.map(t=>`<div class="rpt-cardx" style="border-inline-end-color:var(--cyan);">
