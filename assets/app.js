@@ -369,31 +369,70 @@ function ensureDataShape(){
   if (!DATA.evidence) DATA.evidence = {};
 }
 
+/* دمج إضافي آمن لمصفوفة عناصر مُعرَّفة بـ id: أي عنصر محلي غير موجود في remote (لم يصل للسحابة بعد
+   من هذا الجهاز أو جهاز آخر) يبقى كما هو ولا يُحذف أبدًا بسبب المزامنة. عنصر موجود في remote يُحدَّث
+   بحقوله فوق النسخة المحلية مع الإبقاء على حقل الشواهد المحلي (الشواهد لا تُزامن أصلاً). عنصر جديد
+   بالكامل من remote (أضافه جهاز آخر) يُضاف محليًا. */
+function mergeArrayById(localArr, remoteArr){
+  const map = new Map((localArr||[]).map(x => [x.id, x]));
+  (remoteArr||[]).forEach(r => {
+    const local = map.get(r.id);
+    if (local) {
+      const merged = {...local, ...r};
+      if (local.evidence && local.evidence.length) merged.evidence = local.evidence;
+      map.set(r.id, merged);
+    } else {
+      map.set(r.id, r);
+    }
+  });
+  return Array.from(map.values());
+}
+/* نفس فكرة mergeArrayById لكن لكائن eventLog (مفاتيحه "معرّف@تاريخ" وليس مصفوفة) */
+function mergeEventLog(localLog, remoteLog){
+  const merged = {...(localLog||{})};
+  Object.keys(remoteLog||{}).forEach(k => {
+    const localEntry = merged[k];
+    const remoteEntry = remoteLog[k];
+    if (localEntry) {
+      const combined = {...localEntry, ...remoteEntry};
+      if (localEntry.evidence && localEntry.evidence.length) combined.evidence = localEntry.evidence;
+      merged[k] = combined;
+    } else {
+      merged[k] = remoteEntry;
+    }
+  });
+  return merged;
+}
+/* دمج خاص بخطة رائد النشاط: الفئات نفسها ثابتة (18 فئة معرَّفة بـ key)، وما يُضاف فعليًا هو برامجها */
+function mergePlanCategories(localCats, remoteCats){
+  const byKey = new Map((localCats||[]).map(c => [c.key, c]));
+  (remoteCats||[]).forEach(rc => {
+    const lc = byKey.get(rc.key);
+    if (lc) {
+      lc.programs = mergeArrayById(lc.programs, rc.programs);
+      Object.assign(lc, {...rc, programs: lc.programs});
+    } else {
+      byKey.set(rc.key, rc);
+    }
+  });
+  return Array.from(byKey.values());
+}
+/* دمج البيانات الواردة من جهاز آخر — إضافي دائمًا وليس استبدالًا كاملًا، حتى لا يتسبب وصول لقطة
+   قديمة أو غير مكتملة من السحابة (بسبب تأخر شبكة، أو جهاز ثانٍ لم يستلم آخر تحديث بعد) في اختفاء
+   أي عنصر أُضيف محليًا (مهمة، مسابقة، برنامج خطة، شاهد) — وهذا بالضبط ما كان يحدث سابقًا عندما كانت
+   DATA = remote تستبدل البيانات المحلية بالكامل. */
 function mergeRemoteData(remote){
-  const evidenceByTask = {};
-  DATA.tasks.forEach(t => { if (t.evidence && t.evidence.length) evidenceByTask[t.id] = t.evidence; });
-  const evidenceByComp = {};
-  DATA.competitions.forEach(c => { if (c.evidence && c.evidence.length) evidenceByComp[c.id] = c.evidence; });
-  const evidenceByLog = {};
-  Object.keys(DATA.eventLog||{}).forEach(k => { const lg = DATA.eventLog[k]; if (lg && lg.evidence && lg.evidence.length) evidenceByLog[k] = lg.evidence; });
-  /* شواهد برامج خطة رائد النشاط لم تكن تُحفظ عبر عمليات الدمج — كانت تُفقد لو وصل تحديث من جهاز آخر
-     قبل أن تصل شواهدها إليه، لأن الاستبدال الكامل لـ DATA يمحوها بلا استرجاع */
-  const evidenceByPlanProgram = {};
-  (DATA.activityPlan && DATA.activityPlan.categories || []).forEach(cat =>
-    (cat.programs||[]).forEach(p => { if (p.evidence && p.evidence.length) evidenceByPlanProgram[p.id] = p.evidence; }));
-  DATA = remote;
-  (DATA.tasks||[]).forEach(t => { if (evidenceByTask[t.id]) t.evidence = evidenceByTask[t.id]; });
-  (DATA.competitions||[]).forEach(c => { if (evidenceByComp[c.id]) c.evidence = evidenceByComp[c.id]; });
-  if (!DATA.eventLog) DATA.eventLog = {};
-  Object.keys(evidenceByLog).forEach(k => {
-    if (!DATA.eventLog[k]) DATA.eventLog[k] = {done:false, doneDate:"", evidence:[]};
-    DATA.eventLog[k].evidence = evidenceByLog[k];
-  });
+  DATA.tasks = mergeArrayById(DATA.tasks, remote.tasks);
+  DATA.competitions = mergeArrayById(DATA.competitions, remote.competitions);
+  DATA.weekly = mergeArrayById(DATA.weekly, remote.weekly);
+  DATA.weeklyPlan = mergeArrayById(DATA.weeklyPlan, remote.weeklyPlan);
+  DATA.eventLog = mergeEventLog(DATA.eventLog, remote.eventLog);
+  if (remote.activityPlan && remote.activityPlan.categories) {
+    if (!DATA.activityPlan) DATA.activityPlan = {categories: []};
+    DATA.activityPlan.categories = mergePlanCategories(DATA.activityPlan.categories, remote.activityPlan.categories);
+  }
+  if (remote.vision) DATA.vision = {...DATA.vision, ...remote.vision};
   ensureDataShape();
-  Object.keys(evidenceByPlanProgram).forEach(id => {
-    const p = findPlanProgram(id);
-    if (p) p.evidence = evidenceByPlanProgram[id];
-  });
 }
 
 function initSync(){
