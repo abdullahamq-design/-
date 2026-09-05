@@ -937,6 +937,10 @@ function ensureDataShape(){
   if (!DATA.programs) DATA.programs = JSON.parse(JSON.stringify(MOE_PROGRAMS));
   if (!DATA.eventLog) DATA.eventLog = {};
   if (!DATA.evidence) DATA.evidence = {};
+  /* الفعاليات المضافة سابقًا (قبل إضافة خيار "مرة واحدة") كانت جميعها متكررة أسبوعيًا بلا استثناء —
+     نُبقيها متكررة صراحة حتى لا تختفي فجأة، بينما أي فعالية جديدة تُضاف من الآن تكون لمرة واحدة
+     افتراضيًا ما لم يُفعَّل خيار التكرار صراحة */
+  (DATA.weekly||[]).forEach(w => { if (w.recurring === undefined) w.recurring = true; });
 }
 
 /* دمج إضافي آمن لمصفوفة عناصر مُعرَّفة بـ id: أي عنصر محلي غير موجود في remote (لم يصل للسحابة بعد
@@ -1270,8 +1274,8 @@ function getUpcomingEvents(){
 /* ============================================================ */
 function viewDashboard(){
   const today = todayInfo();
-  const todaysWeekly = DATA.weekly.filter(w => w.day === today.dayName);
   const todayStr = isoDate(_now.getFullYear(), _now.getMonth(), _now.getDate());
+  const todaysWeekly = DATA.weekly.filter(w => w.recurring ? w.day === today.dayName : w.date === todayStr);
   const dailyTasks = DATA.tasks.filter(t => t.type === "يومي");
   const weeklyTasksToday = DATA.tasks.filter(t => t.type === "أسبوعي" && t.day === today.dayName);
   /* كل مهمة مؤرّخة اليوم أو أُنجزت اليوم — مهما كان نوعها */
@@ -1696,12 +1700,20 @@ function viewVision(){
 /* ============================================================ */
 function weeklyFormPanel(){
   const editing = EDIT_WEEKLY_ID ? DATA.weekly.find(w => w.id === EDIT_WEEKLY_ID) : null;
-  const defaultDay = editing ? editing.day : (NEW_WEEKLY_DAY || DAYS[0]);
+  /* الفعالية الجديدة تكون لمرة واحدة افتراضيًا (بتاريخ محدد) ولا تتكرر أسبوعيًا إلا إذا فُعِّل الخيار صراحة */
+  const isRecurring = editing ? !!editing.recurring : false;
+  const defaultDay = (editing && editing.day) || NEW_WEEKLY_DAY || DAYS[0];
+  const defaultDate = (editing && editing.date) || "";
   return `
     <div class="panel">
-      <div class="field"><label>اليوم</label>
+      <div class="field full" style="display:flex; align-items:center; gap:8px;">
+        <input id="w-recurring" type="checkbox" ${isRecurring?"checked":""} onchange="onWeeklyRecurringChange()" style="width:auto;">
+        <label style="margin:0;">تكرار أسبوعيًا (بدل مرة واحدة بتاريخ محدد)</label>
+      </div>
+      <div class="field ${isRecurring?"":"hidden"}" id="w-day-wrap"><label>اليوم</label>
         <select id="w-day">${DAYS.map(d=>`<option value="${d}" ${defaultDay===d ? "selected":""}>${d}</option>`).join("")}</select>
       </div>
+      <div class="field ${isRecurring?"hidden":""}" id="w-date-wrap"><label>التاريخ</label><input id="w-date" type="date" value="${esc(defaultDate)}"></div>
       <div class="field"><label>الوقت</label><input id="w-time" type="time" value="${editing ? esc(editing.time) : ""}"></div>
       <div class="field full"><label>عنوان الفعالية</label><input id="w-title" type="text" placeholder="مثال: اجتماع لجنة النشاط" value="${editing ? esc(editing.title) : ""}"></div>
       <div class="field full"><label>المكان (اختياري)</label><input id="w-location" type="text" placeholder="مثال: غرفة النشاط" value="${editing ? esc(editing.location||"") : ""}"></div>
@@ -1713,11 +1725,17 @@ function weeklyFormPanel(){
 }
 
 function inlineWeeklyEditForm(w){
+  const isRecurring = !!w.recurring;
   return `
     <div class="inline-edit">
-      <div class="field"><label>اليوم</label>
+      <div class="field full" style="display:flex; align-items:center; gap:8px;">
+        <input id="w-recurring" type="checkbox" ${isRecurring?"checked":""} onchange="onWeeklyRecurringChange()" style="width:auto;">
+        <label style="margin:0;">تكرار أسبوعيًا (بدل مرة واحدة بتاريخ محدد)</label>
+      </div>
+      <div class="field ${isRecurring?"":"hidden"}" id="w-day-wrap"><label>اليوم</label>
         <select id="w-day">${DAYS.map(d=>`<option value="${d}" ${w.day===d ? "selected":""}>${d}</option>`).join("")}</select>
       </div>
+      <div class="field ${isRecurring?"hidden":""}" id="w-date-wrap"><label>التاريخ</label><input id="w-date" type="date" value="${esc(w.date||"")}"></div>
       <div class="field"><label>الوقت</label><input id="w-time" type="time" value="${esc(w.time)}"></div>
       <div class="field full"><label>العنوان</label><input id="w-title" type="text" value="${esc(w.title)}"></div>
       <div class="field full"><label>المكان</label><input id="w-location" type="text" value="${esc(w.location||"")}"></div>
@@ -1731,8 +1749,17 @@ function inlineWeeklyEditForm(w){
 function viewWeekly(){
   const formPanel = (SHOW_WEEKLY_FORM && !EDIT_WEEKLY_ID) ? weeklyFormPanel() : "";
 
+  /* نطاق الأسبوع الحالي (الأحد إلى السبت) — الفعاليات المتكررة تظهر دائمًا حسب يومها، والفعاليات
+     لمرة واحدة تظهر فقط إن وقع تاريخها ضمن هذا الأسبوع بالذات */
+  const weekStart = new Date(_now); weekStart.setDate(_now.getDate() - _now.getDay());
+  const weekDateByDay = {};
+  for (let i=0;i<7;i++){
+    const d2 = new Date(weekStart); d2.setDate(weekStart.getDate()+i);
+    weekDateByDay[DAY_INDEX[d2.getDay()]] = isoDate(d2.getFullYear(), d2.getMonth(), d2.getDate());
+  }
+
   const cols = DAYS.map(day => {
-    const items = DATA.weekly.filter(w => w.day === day).sort((a,b)=>a.time.localeCompare(b.time));
+    const items = DATA.weekly.filter(w => w.recurring ? w.day === day : w.date === weekDateByDay[day]).sort((a,b)=>a.time.localeCompare(b.time));
     return `
       <div class="day-col">
         <div class="day-col-head"><span>${day}</span><span class="count">${items.length}</span></div>
@@ -2080,10 +2107,16 @@ const FULL_DAYS = ["الأحد","الاثنين","الثلاثاء","الأرب�
 const MONTH_NAME_FMT = new Intl.DateTimeFormat("ar-SA-u-ca-gregory", {month:"long", year:"numeric"});
 
 function getDayItems(iso, weekdayName){
-  const weeklyEvents = DATA.weekly.filter(w => w.day === weekdayName).sort((a,b)=>a.time.localeCompare(b.time));
+  /* الفعاليات المتكررة لا تظهر إلا بدءًا من بداية العام الدراسي — قبل ذلك لا توجد دراسة أصلًا.
+     الفعاليات لمرة واحدة تظهر فقط في تاريخها المحدد بالضبط. */
+  const weeklyEvents = DATA.weekly.filter(w =>
+    w.recurring ? (w.day === weekdayName && iso >= SY_START) : (w.date === iso)
+  ).sort((a,b)=>a.time.localeCompare(b.time));
   const tasksDue = DATA.tasks.filter(t => t.dueDate === iso);
+  const programsDue = (DATA.activityPlan && DATA.activityPlan.categories || []).flatMap(cat =>
+    (cat.programs||[]).filter(p => p.date === iso).map(p => ({...p, catName: cat.name})));
   const planEntry = DATA.weeklyPlan.find(p => p.startDate && p.endDate && iso >= p.startDate && iso <= p.endDate);
-  return {weeklyEvents, tasksDue, planEntry};
+  return {weeklyEvents, tasksDue, programsDue, planEntry};
 }
 
 function buildTableRows(){
@@ -2093,10 +2126,11 @@ function buildTableRows(){
   for (let d=1; d<=daysInMonth; d++){
     const iso = isoDate(CAL_YEAR, CAL_MONTH, d);
     const weekdayName = DAY_INDEX[new Date(CAL_YEAR, CAL_MONTH, d).getDay()];
-    const {weeklyEvents, tasksDue, planEntry} = getDayItems(iso, weekdayName);
+    const {weeklyEvents, tasksDue, programsDue, planEntry} = getDayItems(iso, weekdayName);
     const items = [];
     weeklyEvents.forEach(w => items.push(`<div style="display:flex; align-items:center; gap:6px;">🕐 <b>${esc(w.time)}</b> — ${esc(w.title)}${w.location?` <span style="color:var(--muted)">(${esc(w.location)})</span>`:""}<button class="icon-btn" data-action="editWeekly" data-id="${w.id}" style="margin-inline-start:auto;">${ICONS.pencil}</button><button class="trash-btn" data-action="removeWeekly" data-id="${w.id}">${ICONS.trash}</button></div>`));
     tasksDue.forEach(t => items.push(`<div style="color:${t.done?'var(--muted)':'var(--coral)'}">${t.done?"✔":"◻"} ${esc(t.title)}</div>`));
+    programsDue.forEach(p => items.push(`<div style="color:var(--navy)">🎯 ${esc(p.name)} <span style="color:var(--muted)">(${esc(p.catName)})</span></div>`));
     if (planEntry) items.push(`<div style="color:var(--magenta)">📌 ${esc(planEntry.focus)}</div>`);
     const rowClasses = ["cal-row"];
     if (iso === todayIso) rowClasses.push("cal-row-today");
@@ -2123,7 +2157,7 @@ function viewCalendar(){
   for (let d=1; d<=daysInMonth; d++){
     const iso = isoDate(CAL_YEAR, CAL_MONTH, d);
     const weekdayName = DAY_INDEX[new Date(CAL_YEAR, CAL_MONTH, d).getDay()];
-    const {weeklyEvents, tasksDue, planEntry} = getDayItems(iso, weekdayName);
+    const {weeklyEvents, tasksDue, programsDue, planEntry} = getDayItems(iso, weekdayName);
 
     const labels = [];
     weeklyEvents.forEach(w => labels.push(`<div class="cal-label" style="background:#EAF1FC; color:var(--navy);">${esc(w.title)}</div>`));
@@ -2132,6 +2166,7 @@ function viewCalendar(){
       const bg = (!t.done && t.priority==="عالية") ? "#FCEBEA" : "#E7F6FA";
       labels.push(`<div class="cal-label" style="background:${bg}; color:${col};">${esc(t.title)}</div>`);
     });
+    programsDue.forEach(p => labels.push(`<div class="cal-label" style="background:#EAF1FC; color:var(--navy);">🎯 ${esc(p.name)}</div>`));
     if (planEntry) labels.push(`<div class="cal-label" style="background:#F6EAF5; color:var(--magenta);">📌 ${esc(planEntry.focus)}</div>`);
 
     const maxShown = 3;
@@ -2203,6 +2238,22 @@ function viewCalendar(){
             ${chip(t.priority, PRIORITY_COLOR[t.priority])}
             <button class="evidence-btn ${evN?'has':''}" data-action="toggleEvidence" data-id="${t.id}" title="الشواهد">📎${evN?` ${evN}`:""}</button>
             <button class="trash-btn" data-action="removeTask" data-id="${t.id}">${ICONS.trash}</button>
+          </div>${panel}`;
+        }).join("")}
+      </div>` : ""}
+    ${sel.programsDue.length ? `
+      <div style="font-weight:800;color:var(--navy);margin-bottom:8px;font-size:13px; margin-top:16px;">برامج خطة رائد النشاط</div>
+      <div class="list">
+        ${sel.programsDue.map(p=>{
+          const evN=(p.evidence||[]).length;
+          const panel = EVIDENCE_OPEN_ID === p.id ? `<div class="item" style="display:block;">${evidencePanel(p,"planprogram")}</div>` : "";
+          return `
+          <div class="item">
+            <div class="flex1">
+              <div class="title">🎯 ${esc(p.name)}</div>
+              <div class="meta">${esc(p.catName)}${evN?` · 📎 ${evN} شاهد`:""}</div>
+            </div>
+            <button class="evidence-btn ${evN?'has':''}" data-action="toggleEvidence" data-id="${p.id}" title="الشواهد">📎${evN?` ${evN}`:""}</button>
           </div>${panel}`;
         }).join("")}
       </div>` : ""}
@@ -2279,7 +2330,10 @@ function buildReportData(startDate, endDate){
   while (d <= end){
     const iso = isoDate(d.getFullYear(), d.getMonth(), d.getDate());
     const wd = DAY_INDEX[d.getDay()];
-    DATA.weekly.filter(w=>w.day===wd).forEach(w => weeklyEvents.push({date: iso, ...w}));
+    DATA.weekly.forEach(w => {
+      const matches = w.recurring ? (w.day===wd && iso >= SY_START) : (w.date === iso);
+      if (matches) weeklyEvents.push({date: iso, ...w});
+    });
     d.setDate(d.getDate()+1);
   }
   weeklyEvents.sort((a,b)=> a.date===b.date ? a.time.localeCompare(b.time) : a.date.localeCompare(b.date));
@@ -2742,6 +2796,14 @@ function onTaskTypeChange(){
   dayWrap.classList.toggle("hidden", type !== "أسبوعي");
   dateWrap.classList.toggle("hidden", !(type === "شهري" || type === "لمرة واحدة"));
 }
+function onWeeklyRecurringChange(){
+  const cb = document.getElementById("w-recurring");
+  const dayWrap = document.getElementById("w-day-wrap");
+  const dateWrap = document.getElementById("w-date-wrap");
+  if (!cb || !dayWrap || !dateWrap) return;
+  dayWrap.classList.toggle("hidden", !cb.checked);
+  dateWrap.classList.toggle("hidden", cb.checked);
+}
 
 /* ============================================================ */
 /* التصيير الرئيسي */
@@ -2910,25 +2972,33 @@ document.addEventListener("click", async (e) => {
   if (action === "calAddWeekly") { SHOW_WEEKLY_FORM = true; EDIT_WEEKLY_ID = null; NEW_WEEKLY_DAY = btn.dataset.day; render(); return; }
   if (action === "editWeekly") { EDIT_WEEKLY_ID = btn.dataset.id; SHOW_WEEKLY_FORM = true; render(); return; }
   if (action === "addWeekly") {
-    const day = document.getElementById("w-day").value;
+    const recurring = document.getElementById("w-recurring").checked;
+    const day = recurring ? document.getElementById("w-day").value : "";
+    const date = recurring ? "" : document.getElementById("w-date").value;
     const time = document.getElementById("w-time").value;
     const title = document.getElementById("w-title").value.trim();
     const location = document.getElementById("w-location").value.trim();
     if (!title || !time) return;
-    await mutate(d => { d.weekly.push({id:uid(), day, time, title, location}); });
+    if (recurring && !day) return;
+    if (!recurring && !date) return;
+    await mutate(d => { d.weekly.push({id:uid(), recurring, day, date, time, title, location}); });
     SHOW_WEEKLY_FORM = false; NEW_WEEKLY_DAY = null; render();
     return;
   }
   if (action === "saveWeekly") {
     const id = btn.dataset.id;
-    const day = document.getElementById("w-day").value;
+    const recurring = document.getElementById("w-recurring").checked;
+    const day = recurring ? document.getElementById("w-day").value : "";
+    const date = recurring ? "" : document.getElementById("w-date").value;
     const time = document.getElementById("w-time").value;
     const title = document.getElementById("w-title").value.trim();
     const location = document.getElementById("w-location").value.trim();
     if (!title || !time) return;
+    if (recurring && !day) return;
+    if (!recurring && !date) return;
     await mutate(d => {
       const w = d.weekly.find(x=>x.id===id);
-      if (w) { w.day=day; w.time=time; w.title=title; w.location=location; }
+      if (w) { w.recurring=recurring; w.day=day; w.date=date; w.time=time; w.title=title; w.location=location; }
     });
     SHOW_WEEKLY_FORM = false; EDIT_WEEKLY_ID = null; render();
     return;
@@ -3270,6 +3340,14 @@ document.addEventListener("change", async (e) => {
     try { DATA = JSON.parse(saved); } catch(e) { DATA = JSON.parse(JSON.stringify(DEFAULT_DATA)); }
   }
   ensureDataShape();
+  /* تنظيف لمرة واحدة (بناءً على طلب صريح): حذف فعاليات الجدول/التقويم "لمرة واحدة" المؤرَّخة قبل
+     بداية العام الدراسي (لا توجد دراسة قبل هذا التاريخ أصلًا). محمي بعلامة تمنعه من التكرار مستقبلاً
+     — هذا تنظيف واحد منفَّذ الآن فقط، وليس قاعدة حذف تلقائي دائمة. */
+  if (!DATA.__prunedWeeklyBeforeSY) {
+    DATA.weekly = DATA.weekly.filter(w => !(!w.recurring && w.date && w.date < SY_START));
+    DATA.__prunedWeeklyBeforeSY = true;
+    await persist();
+  }
   render();
   initSync();
 })();
