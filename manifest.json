@@ -1,0 +1,13 @@
+{
+  "name": "منصة رائد النشاط - مدارس الأندلس الأهلية",
+  "short_name": "رائد النشاط",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0b1e4d",
+  "theme_color": "#0b1e4d",
+  "dir": "rtl",
+  "lang": "ar",
+  "icons": [
+    { "src": "assets/logo-color-mark.png", "sizes": "240x232", "type": "image/png" }
+  ]
+}
