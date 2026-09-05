@@ -2057,9 +2057,13 @@ function reportHtml(title, rangeLabel, data){
 
   /* ---- 6.5) التوافق مع الإطار الوزاري ---- */
   pg++;
+  /* التوافق مع إطار الوزارة مفهوم يخص الخطة السنوية كاملة (تنوّع وشمول عبر العام الدراسي)،
+     وليس فترة التقرير الضيقة (أسبوع أو شهر واحد) — نحسبه من كل المهام وكل أسابيع الخطة بلا تقييد
+     بنطاق تاريخ التقرير المعروض، وإلا يظهر تقرير أسبوع واحد وكأن الخطة السنوية لا تغطي إلا مجالاً
+     واحدًا من أصل سبعة رغم أن التوزيع الفعلي عبر العام يغطيها جميعًا */
   const covR = MOE_DOMAINS.map(dm => {
-    const n = data.tasksInRange.filter(t=>t.domain===dm.key).length
-            + data.plansInRange.filter(pl=>pl.domain===dm.key).length;
+    const n = DATA.tasks.filter(t=>t.domain===dm.key).length
+            + DATA.weeklyPlan.filter(pl=>pl.domain===dm.key).length;
     return {...dm, n};
   });
   const covRMax = Math.max(1, ...covR.map(c=>c.n));
