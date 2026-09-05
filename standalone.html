@@ -869,6 +869,15 @@ async function storageGet(key){
   if (window.storage && typeof window.storage.get === "function") {
     try { const r = await window.storage.get(key); return r ? r.value : null; } catch(e){ return null; }
   }
+  /* علامة صغيرة تقول أين هبط آخر حفظ ناجح فعليًا — تحسّم أي التباس بين IndexedDB وlocalStorage
+     في حال فشل الحفظ في IndexedDB لمرة عابرة وسقط تلقائيًا إلى localStorage: بدونها كنا سنقرأ
+     دائمًا من IndexedDB أولاً حتى لو كانت نسخته أقدم من التي وصلت فعلاً إلى localStorage، فتبدو
+     الشواهد الأحدث وكأنها اختفت رغم أنها محفوظة فعلاً. */
+  let backend = null;
+  try { backend = localStorage.getItem(key + "__backend"); } catch(e){}
+  if (backend === "ls") {
+    try { const v = localStorage.getItem(key); if (v != null) return v; } catch(e){}
+  }
   try {
     const idbVal = await idbGet(key);
     if (idbVal != null) return idbVal;
@@ -882,11 +891,16 @@ async function storageSet(key, value){
   }
   try {
     await idbSet(key, value);
-    /* بعد أول نجاح للحفظ في IndexedDB، نحذف النسخة القديمة من localStorage لتحرير مساحتها الصغيرة */
-    try { localStorage.removeItem(key); } catch(e){}
+    /* بعد أول نجاح للحفظ في IndexedDB، نحذف النسخة القديمة من localStorage لتحرير مساحتها الصغيرة،
+       ونثبّت العلامة على "idb" ليعرف storageGet أين المصدر الصحيح */
+    try { localStorage.setItem(key + "__backend", "idb"); localStorage.removeItem(key); } catch(e){}
     return true;
   } catch(e){
-    try { localStorage.setItem(key, value); return true; } catch(e2){ return false; }
+    try {
+      localStorage.setItem(key, value);
+      try { localStorage.setItem(key + "__backend", "ls"); } catch(e2){}
+      return true;
+    } catch(e3){ return false; }
   }
 }
 
@@ -907,6 +921,9 @@ function stripEvidenceForSync(data){
   (copy.competitions||[]).forEach(c => { delete c.evidence; });
   if (copy.eventLog) {
     Object.keys(copy.eventLog).forEach(k => { if (copy.eventLog[k]) delete copy.eventLog[k].evidence; });
+  }
+  if (copy.activityPlan && copy.activityPlan.categories) {
+    copy.activityPlan.categories.forEach(cat => (cat.programs||[]).forEach(p => { delete p.evidence; }));
   }
   return copy;
 }
@@ -929,6 +946,11 @@ function mergeRemoteData(remote){
   DATA.competitions.forEach(c => { if (c.evidence && c.evidence.length) evidenceByComp[c.id] = c.evidence; });
   const evidenceByLog = {};
   Object.keys(DATA.eventLog||{}).forEach(k => { const lg = DATA.eventLog[k]; if (lg && lg.evidence && lg.evidence.length) evidenceByLog[k] = lg.evidence; });
+  /* شواهد برامج خطة رائد النشاط لم تكن تُحفظ عبر عمليات الدمج — كانت تُفقد لو وصل تحديث من جهاز آخر
+     قبل أن تصل شواهدها إليه، لأن الاستبدال الكامل لـ DATA يمحوها بلا استرجاع */
+  const evidenceByPlanProgram = {};
+  (DATA.activityPlan && DATA.activityPlan.categories || []).forEach(cat =>
+    (cat.programs||[]).forEach(p => { if (p.evidence && p.evidence.length) evidenceByPlanProgram[p.id] = p.evidence; }));
   DATA = remote;
   (DATA.tasks||[]).forEach(t => { if (evidenceByTask[t.id]) t.evidence = evidenceByTask[t.id]; });
   (DATA.competitions||[]).forEach(c => { if (evidenceByComp[c.id]) c.evidence = evidenceByComp[c.id]; });
@@ -938,6 +960,10 @@ function mergeRemoteData(remote){
     DATA.eventLog[k].evidence = evidenceByLog[k];
   });
   ensureDataShape();
+  Object.keys(evidenceByPlanProgram).forEach(id => {
+    const p = findPlanProgram(id);
+    if (p) p.evidence = evidenceByPlanProgram[id];
+  });
 }
 
 function initSync(){
