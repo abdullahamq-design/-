@@ -3139,15 +3139,16 @@ document.addEventListener("change", async (e) => {
     const kind = e.target.dataset.kind || "task";
     const files = Array.from(e.target.files || []);
     const MAX_IMAGE_BYTES = 6 * 1024 * 1024;
-    const MAX_VIDEO_BYTES = 150 * 1024 * 1024;
+    /* حد الفيديو الخام منخفض عمدًا: قراءة ملف كبير كامل كنص base64 واحد في الذاكرة (ثم حفظه وعرضه)
+       هي بالضبط ما كان يُسقط الصفحة ويعيد تحميلها على بعض الأجهزة — حتى بعد إلغاء استخراج اللقطات.
+       هذا الحد يمنع محاولة تحميل ملف كبير بما يكفي لتجاوز الذاكرة المتاحة للمتصفح من الأساس. */
+    const MAX_VIDEO_BYTES = 15 * 1024 * 1024;
     const newItems = [];
     let tooLargeImg = 0, tooLargeVideo = 0, videoFailed = 0;
     for (const file of files) {
       const isVideo = file.type.startsWith("video/");
       if (isVideo) {
         if (file.size > MAX_VIDEO_BYTES) { tooLargeVideo++; continue; }
-        /* حفظ مباشر بدون أي معالجة إضافية (كان هناك استخراج لقطات تلقائي، لكنه تسبب بعدم استقرار
-           على بعض الأجهزة أثناء الرفع — فأُلغي لصالح رفع بسيط وموثوق دائمًا) */
         try {
           const dataUrl = await readFileAsDataURL(file);
           newItems.push({id: uid(), type: "video", dataUrl, name: file.name});
@@ -3162,7 +3163,7 @@ document.addEventListener("change", async (e) => {
     }
     const warnings = [];
     if (tooLargeImg) warnings.push(`تم تجاوز ${tooLargeImg} ${tooLargeImg===1?"صورة":"صور"} لأن حجمها أكبر من 6 ميجابايت.`);
-    if (tooLargeVideo) warnings.push(`تم تجاوز ${tooLargeVideo} ${tooLargeVideo===1?"فيديو":"فيديوهات"} لأن حجمه أكبر من 150 ميجابايت.`);
+    if (tooLargeVideo) warnings.push(`تم تجاوز ${tooLargeVideo} ${tooLargeVideo===1?"فيديو":"فيديوهات"} لأن حجمه أكبر من 15 ميجابايت — فيديو بهذا الحجم قد يتسبب في تعليق الصفحة أو إعادة تحميلها على بعض الأجهزة. صغّر الفيديو أولاً (مثلاً أرسله لنفسك عبر واتساب ثم ارفع النسخة المضغوطة التي يرسلها، أو استخدم خاصية اقتصاص/ضغط الفيديو في تطبيق الصور) ثم أعد المحاولة.`);
     if (videoFailed) warnings.push(`تعذّر حفظ ${videoFailed} ${videoFailed===1?"فيديو":"فيديوهات"} — حاول مرة أخرى.`);
     if (warnings.length) alert(warnings.join("\n"));
     const applyAdd = (d) => {
