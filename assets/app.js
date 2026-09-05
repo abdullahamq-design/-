@@ -479,7 +479,7 @@ function captureVideoFramesAttempt(srcUrl, maxDim, quality, timeoutMs){
 
     const frames = [];
     /* معلومات تشخيصية — تُعرض للمستخدم فقط عند فشل الاستخراج، لتشخيص السبب الحقيقي على جهازه بدل التخمين */
-    const debug = { loadstart:false, loadeddata:false, playOk:null, playErr:null, mediaErr:null, drawErr:null, dims:null, readyState:null };
+    const debug = { loadstart:false, loadeddata:false, playOk:null, playErr:null, mediaErr:null, drawErr:null, dims:null, readyState:null, method:null };
     let settled = false;
     let grabTimer = null;
     let grabCount = 0;
@@ -515,6 +515,21 @@ function captureVideoFramesAttempt(srcUrl, maxDim, quality, timeoutMs){
       } catch(err){ debug.drawErr = (err && err.name ? err.name + ": " : "") + (err && err.message ? err.message : String(err)); }
     }
     function startGrabbing(){
+      /* requestVideoFrameCallback يُطلق بالضبط عند جهوزية إطار مفكوك الترميز فعليًا للرسم —
+         أدق وأضمن من مؤقّت زمني عشوائي قد يلتقط الرسمة قبل اكتمال فك الإطار (يسبب صورًا تالفة/مشوّهة) */
+      if (typeof video.requestVideoFrameCallback === "function") {
+        debug.method = "rvfc";
+        const onFrame = () => {
+          if (settled) return;
+          grabFrame();
+          grabCount++;
+          if (grabCount >= MAX_GRABS || video.ended) { finish(); return; }
+          video.requestVideoFrameCallback(onFrame);
+        };
+        video.requestVideoFrameCallback(onFrame);
+        return;
+      }
+      debug.method = "interval";
       grabFrame();
       grabCount++;
       grabTimer = setInterval(() => {
@@ -1249,7 +1264,7 @@ function evidencePanel(t, kind="task"){
       <label class="upload-btn">📎 إضافة صورة أو فيديو كشاهد
         <input type="file" accept="image/*,video/*" multiple class="evidence-input" data-kind="${kind}" data-id="${t.id}">
       </label>
-      <div style="color:var(--muted); font-size:11px; margin-top:6px;">عند رفع فيديو، يتم استخراج عدة لقطات منه تلقائيًا وحفظها بدل الفيديو كاملاً لتوفير مساحة التخزين.</div>
+      <div style="color:var(--muted); font-size:11px; margin-top:6px;">عند رفع فيديو، يُحفظ الفيديو نفسه بالكامل، مع استخراج عدة لقطات صور منه تلقائيًا لاستخدامها في التقرير المطبوع.</div>
       ${items.length ? `<div class="evidence-grid">${items.map(e=>evidenceThumb(e, kind)).join("")}</div>` : `<div style="color:var(--muted); font-size:12.5px; margin-top:8px;">لا توجد شواهد مرفوعة بعد</div>`}
     </div>`;
 }
@@ -2642,7 +2657,6 @@ document.addEventListener("change", async (e) => {
     const files = Array.from(e.target.files || []);
     const MAX_IMAGE_BYTES = 6 * 1024 * 1024;
     const MAX_VIDEO_BYTES = 150 * 1024 * 1024;
-    const MAX_RAW_VIDEO_FALLBACK_BYTES = 20 * 1024 * 1024;
     const newItems = [];
     let tooLargeImg = 0, tooLargeVideo = 0, videoFailed = 0;
     const extractFailNotices = [];
@@ -2650,20 +2664,18 @@ document.addEventListener("change", async (e) => {
       const isVideo = file.type.startsWith("video/");
       if (isVideo) {
         if (file.size > MAX_VIDEO_BYTES) { tooLargeVideo++; continue; }
-        /* نأخذ عدة لقطات من الفيديو ونحفظها كصور بدل حفظ الفيديو كاملاً — لتوفير مساحة التخزين */
+        /* الفيديو نفسه يُحفظ دائمًا كشاهد كامل (تخزين IndexedDB يتحمّله بلا مشكلة) — ونضيف له أيضًا
+           لقطات صور مستخرجة تلقائيًا كبونص، لتُستخدم في التقرير المطبوع الذي لا يعرض الفيديو */
+        try {
+          const dataUrl = await readFileAsDataURL(file);
+          newItems.push({id: uid(), type: "video", dataUrl, name: file.name});
+        } catch(err) { videoFailed++; continue; }
         let frames = [], debug = "";
         try { const r = await captureVideoFrames(file); frames = r.frames; debug = r.debug; } catch(err){}
         if (frames.length) {
           frames.forEach((dataUrl, i) => newItems.push({id: uid(), type: "image", dataUrl, name: `${file.name} — لقطة ${i+1}`}));
-        } else if (file.size <= MAX_RAW_VIDEO_FALLBACK_BYTES) {
-          /* تعذّر استخراج لقطات على هذا الجهاز — نحفظ الفيديو نفسه بدل ما نفشل بالكامل، طالما حجمه معقول */
-          try {
-            const dataUrl = await readFileAsDataURL(file);
-            newItems.push({id: uid(), type: "video", dataUrl, name: file.name});
-            extractFailNotices.push(debug);
-          } catch(err) { videoFailed++; }
         } else {
-          videoFailed++;
+          extractFailNotices.push(debug);
         }
         continue;
       }
@@ -2676,8 +2688,8 @@ document.addEventListener("change", async (e) => {
     const warnings = [];
     if (tooLargeImg) warnings.push(`تم تجاوز ${tooLargeImg} ${tooLargeImg===1?"صورة":"صور"} لأن حجمها أكبر من 6 ميجابايت.`);
     if (tooLargeVideo) warnings.push(`تم تجاوز ${tooLargeVideo} ${tooLargeVideo===1?"فيديو":"فيديوهات"} لأن حجمه أكبر من 150 ميجابايت.`);
-    if (videoFailed) warnings.push(`تعذّر حفظ ${videoFailed} ${videoFailed===1?"فيديو":"فيديوهات"} — الفيديو كبير جدًا ولم نستطع استخراج لقطات منه على هذا الجهاز. جرّب فيديو أقصر (أقل من 20 ميجابايت).`);
-    if (extractFailNotices.length) warnings.push(`تم حفظ الفيديو، لكن تعذّر استخراج لقطات صور منه على هذا الجهاز (سيظهر كفيديو وليس كصورة في التقرير المطبوع).\nمعلومات تقنية للمطوّر: ${extractFailNotices.join(" || ")}`);
+    if (videoFailed) warnings.push(`تعذّر حفظ ${videoFailed} ${videoFailed===1?"فيديو":"فيديوهات"} — حاول مرة أخرى.`);
+    if (extractFailNotices.length) warnings.push(`تم حفظ الفيديو، لكن تعذّر استخراج لقطات صور منه إضافيًا على هذا الجهاز (في التقرير المطبوع سيظهر كبطاقة "شاهد فيديو" بدل صورة).\nمعلومات تقنية للمطوّر: ${extractFailNotices.join(" || ")}`);
     if (warnings.length) alert(warnings.join("\n"));
     const applyAdd = (d) => {
       if (kind === "eventlog") {
