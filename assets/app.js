@@ -2175,16 +2175,29 @@ function viewReports(){
   const todayIso = isoDate(_now.getFullYear(), _now.getMonth(), _now.getDate());
   if (!REPORT_WEEK_ID){
     const current = DATA.weeklyPlan.find(p => todayIso >= p.startDate && todayIso <= p.endDate);
-    REPORT_WEEK_ID = current ? current.id : (DATA.weeklyPlan[0] ? DATA.weeklyPlan[0].id : null);
+    /* إذا كان اليوم يقع في عطلة نهاية الأسبوع بين أسبوعين (لا يوجد أسبوع خطة يشمله)، نعرض آخر
+       أسبوع بدأ فعلاً بدل القفز دائمًا للأسبوع الأول — حتى يبقى التقرير الافتراضي مرتبطًا بالوقت الحالي */
+    const mostRecentStarted = [...DATA.weeklyPlan].reverse().find(p => p.startDate <= todayIso);
+    REPORT_WEEK_ID = current ? current.id : (mostRecentStarted ? mostRecentStarted.id : (DATA.weeklyPlan[0] ? DATA.weeklyPlan[0].id : null));
   }
 
   let title, rangeLabel, data;
   if (REPORT_MODE === "weekly"){
-    const week = DATA.weeklyPlan.find(p => p.id === REPORT_WEEK_ID) || DATA.weeklyPlan[0];
+    const weekIdx = DATA.weeklyPlan.findIndex(p => p.id === REPORT_WEEK_ID);
+    const week = weekIdx >= 0 ? DATA.weeklyPlan[weekIdx] : DATA.weeklyPlan[0];
     if (week){
       title = "التقرير الأسبوعي";
       rangeLabel = `${formatLongAr(week.startDate)} — ${formatLongAr(week.endDate)}`;
-      data = buildReportData(week.startDate, week.endDate);
+      /* نمدّد نهاية الفترة الفعلية لتشمل عطلة نهاية الأسبوع (الجمعة والسبت) بين هذا الأسبوع والذي
+         يليه، حتى لا تختفي من التقرير مهمة أُنجزت أو شاهد رُفع خلال العطلة مباشرة بعد الأسبوع */
+      let effectiveEnd = week.endDate;
+      const next = weekIdx >= 0 ? DATA.weeklyPlan[weekIdx+1] : null;
+      if (next && next.startDate > week.endDate){
+        const gapEnd = new Date(next.startDate + "T00:00:00");
+        gapEnd.setDate(gapEnd.getDate()-1);
+        effectiveEnd = isoDate(gapEnd.getFullYear(), gapEnd.getMonth(), gapEnd.getDate());
+      }
+      data = buildReportData(week.startDate, effectiveEnd);
     }
   } else {
     const monthStart = isoDate(REPORT_YEAR, REPORT_MONTH, 1);
