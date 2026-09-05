@@ -253,6 +253,26 @@
   .report-evidence-grid img, .report-evidence-grid video{width:90px; height:90px; object-fit:cover; border-radius:8px; border:1px solid var(--line);}
   .done-row td{opacity:.5;}
 
+  .video-thumb-placeholder{
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    background:linear-gradient(160deg,#12306F,#0F2771);
+  }
+  .video-play-icon{
+    width:38px; height:38px; border-radius:50%; background:rgba(255,255,255,.18); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:14px; padding-inline-start:3px;
+  }
+  .video-lightbox{
+    position:fixed; inset:0; background:rgba(10,15,30,.85); z-index:300;
+    display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .video-lightbox-inner{position:relative; max-width:min(720px,92vw); width:100%;}
+  .video-lightbox-inner video{width:100%; max-height:80vh; border-radius:10px; background:#000;}
+  .video-lightbox-close{
+    position:absolute; top:-40px; left:0; background:rgba(255,255,255,.15); color:#fff; border:none;
+    border-radius:8px; width:32px; height:32px; display:flex; align-items:center; justify-content:center;
+  }
+  .video-lightbox-close svg{width:16px; height:16px;}
+
   /* ---------- إدارة مساحة التخزين ---------- */
   .storage-overlay{
     position:fixed; inset:0; background:rgba(15,23,42,.55); z-index:200;
@@ -1166,6 +1186,7 @@ let STUDENTS_OPEN_ID = null;
 let EDIT_COMP_ID = null;
 let SHOW_PLAN_PROGRAM_FORM = null;
 let SHOW_STORAGE_PANEL = false;
+let VIDEO_LIGHTBOX = null; // {kind, id, eid} — الفيديو المطلوب تشغيله حاليًا فقط، وليس كل الفيديوهات
 
 async function persist(){ return await storageSet(STORAGE_KEY, JSON.stringify(DATA)); }
 async function mutate(fn){ fn(DATA); render(); pushToCloud(); return await persist(); }
@@ -1804,10 +1825,27 @@ function viewWeekly(){
 /* ============================================================ */
 /* المهام */
 /* ============================================================ */
+/* البحث عن مصفوفة/عنصر شاهد بحسب kind — تُستخدم لعرض الفيديو عند الطلب دون تضمين بياناته
+   الكاملة (قد تصل لعشرات الميجابايت) داخل نص HTML المُعاد بناؤه في كل render() */
+function findEvidenceArray(kind, id){
+  if (kind === "eventlog") return (DATA.eventLog && DATA.eventLog[id] && DATA.eventLog[id].evidence) || [];
+  if (kind === "planprogram") { const p = findPlanProgram(id); return (p && p.evidence) || []; }
+  const arr = kind === "competition" ? DATA.competitions : DATA.tasks;
+  const item = arr.find(x=>x.id===id);
+  return (item && item.evidence) || [];
+}
+function findEvidenceItem(kind, id, eid){
+  return findEvidenceArray(kind, id).find(e=>e.id===eid) || null;
+}
+
 function evidenceThumb(e, kind){
   if (e.type === "video") {
-    return `<div class="evidence-thumb">
-      <video src="${e.dataUrl}" controls></video>
+    /* لا نضع بيانات الفيديو (dataUrl) هنا إطلاقًا — تضمين فيديوهات متعددة كاملة داخل نص HTML
+       يُعاد بناؤه بالكامل في كل render() هو ما كان يستهلك ذاكرة الجهاز بشكل متراكم ويتسبب في
+       تعليق/إغلاق الصفحة عند رفع فيديو جديد بينما شواهد سابقة معروضة. تُعرض بطاقة خفيفة فقط،
+       ولا يُحمَّل الفيديو الفعلي إلا عند الضغط لتشغيله تحديدًا (نافذة تشغيل واحدة عند الطلب) */
+    return `<div class="evidence-thumb video-thumb-placeholder" data-action="playVideoEvidence" data-kind="${kind}" data-id="${e._parentId}" data-eid="${e.id}">
+      <div class="video-play-icon">▶</div>
       <button class="evidence-remove" data-action="removeEvidence" data-kind="${kind}" data-id="${e._parentId}" data-eid="${e.id}">${ICONS.x}</button>
     </div>`;
   }
@@ -2954,9 +2992,33 @@ function render(){
       </main>
     </div>
     ${SHOW_STORAGE_PANEL ? viewStorageManager() : ""}
+    ${VIDEO_LIGHTBOX ? `
+      <div class="video-lightbox">
+        <div class="video-lightbox-inner" id="video-lightbox-inner">
+          <button class="video-lightbox-close" data-action="closeVideoLightbox">${ICONS.x}</button>
+        </div>
+      </div>` : ""}
   `;
 
   if (TAB === "tasks") onTaskTypeChange();
+  mountVideoLightbox();
+}
+
+/* الفيديو الفعلي (dataUrl قد يصل لعشرات الميجابايت) لا يُمرَّر أبدًا داخل نص HTML المُعاد بناؤه —
+   يُنشأ عنصر <video> عبر الـ DOM مباشرة وتُضبط بياناته كخاصية JS، وليس كنص داخل القالب، حتى لا
+   يتكرر تحميل/فك ترميز كل الفيديوهات المعروضة سابقًا مع كل render() (كان هذا سبب تعليق/إغلاق
+   الصفحة عند رفع فيديو جديد وشواهد فيديو أخرى مفتوحة أو محفوظة) */
+function mountVideoLightbox(){
+  if (!VIDEO_LIGHTBOX) return;
+  const mount = document.getElementById("video-lightbox-inner");
+  if (!mount) return;
+  const item = findEvidenceItem(VIDEO_LIGHTBOX.kind, VIDEO_LIGHTBOX.id, VIDEO_LIGHTBOX.eid);
+  if (!item) return;
+  const video = document.createElement("video");
+  video.controls = true;
+  video.autoplay = true;
+  video.src = item.dataUrl;
+  mount.appendChild(video);
 }
 
 /* ============================================================ */
@@ -3267,11 +3329,20 @@ document.addEventListener("click", async (e) => {
   }
 
   if (action === "dismissInstallBanner") { try { localStorage.setItem(INSTALL_BANNER_DISMISS_KEY, "1"); } catch(e){} render(); return; }
+  if (action === "playVideoEvidence") {
+    VIDEO_LIGHTBOX = { kind: btn.dataset.kind, id: btn.dataset.id, eid: btn.dataset.eid };
+    render();
+    return;
+  }
+  if (action === "closeVideoLightbox") { VIDEO_LIGHTBOX = null; render(); return; }
   if (action === "openStoragePanel") { SHOW_STORAGE_PANEL = true; render(); return; }
   if (action === "closeStoragePanel") { SHOW_STORAGE_PANEL = false; render(); return; }
   if (action === "toggleEvidence") { EVIDENCE_OPEN_ID = (EVIDENCE_OPEN_ID === btn.dataset.id ? null : btn.dataset.id); render(); return; }
   if (action === "removeEvidence") {
     const id = btn.dataset.id, eid = btn.dataset.eid, kind = btn.dataset.kind || "task";
+    if (VIDEO_LIGHTBOX && VIDEO_LIGHTBOX.kind === kind && VIDEO_LIGHTBOX.id === id && VIDEO_LIGHTBOX.eid === eid) {
+      VIDEO_LIGHTBOX = null;
+    }
     await mutate(d => {
       if (kind === "eventlog") {
         if (!d.eventLog) d.eventLog = {};
