@@ -461,118 +461,6 @@ function compressImageDataUrl(dataUrl, maxDim=700, quality=0.5){
     img.src = dataUrl;
   });
 }
-/* بدل حفظ ملف الفيديو كاملاً (يستهلك مساحة تخزين ضخمة)، نأخذ منه عدة لقطات مضغوطة ونحفظها كصور فقط */
-/* محاولة واحدة لأخذ لقطات من فيديو انطلاقًا من مصدر (رابط blob أو data) معيّن */
-/* نلتقط اللقطات أثناء تشغيل فعلي قصير للفيديو (بدل القفز المباشر عبر currentTime)
-   لأن حدث seeked غير موثوق على بعض متصفحات الجوال وبعض ترميزات الفيديو */
-function captureVideoFramesAttempt(srcUrl, maxDim, quality, timeoutMs){
-  return new Promise((resolve) => {
-    /* ننشئ عنصر الفيديو عبر innerHTML (يمرّ من محلّل HTML) لا عبر document.createElement —
-       بعض متصفحات الجوال تتعامل مع عناصر الوسائط المُنشأة بالسكربت المباشر بشكل مختلف عن العناصر المحلَّلة من HTML.
-       كما نضع سمات muted/playsinline كسمات HTML فعلية (لا كخصائص JS فقط) لأن سياسات التشغيل التلقائي تفحص السمة نفسها أحيانًا. */
-    const wrap = document.createElement("div");
-    wrap.style.cssText = "position:fixed; top:0; left:0; width:1px; height:1px; opacity:0; pointer-events:none; overflow:hidden;";
-    wrap.innerHTML = `<video muted playsinline webkit-playsinline preload="auto" style="width:1px;height:1px;"></video>`;
-    const video = wrap.querySelector("video");
-    video.muted = true;
-    document.body.appendChild(wrap);
-
-    const frames = [];
-    /* معلومات تشخيصية — تُعرض للمستخدم فقط عند فشل الاستخراج، لتشخيص السبب الحقيقي على جهازه بدل التخمين */
-    const debug = { loadstart:false, loadeddata:false, playOk:null, playErr:null, mediaErr:null, drawErr:null, dims:null, readyState:null, method:null };
-    let settled = false;
-    let grabTimer = null;
-    let grabCount = 0;
-    const MAX_GRABS = 3;
-    const GRAB_INTERVAL_MS = 450;
-    const overallSafety = setTimeout(() => finish(), timeoutMs);
-
-    function finish(){
-      if (settled) return; settled = true;
-      clearTimeout(grabTimer);
-      clearTimeout(overallSafety);
-      debug.readyState = video.readyState;
-      try { video.pause(); } catch(err){}
-      wrap.remove();
-      resolve({frames, debug});
-    }
-    function grabFrame(){
-      try {
-        let width = video.videoWidth, height = video.videoHeight;
-        debug.dims = `${width}x${height}`;
-        if (width && height) {
-          if (width > maxDim || height > maxDim) {
-            const scale = maxDim / Math.max(width, height);
-            width = Math.round(width*scale); height = Math.round(height*scale);
-          }
-          const canvas = document.createElement("canvas");
-          canvas.width = width; canvas.height = height;
-          canvas.getContext("2d").drawImage(video, 0, 0, width, height);
-          const dataUrl = canvas.toDataURL("image/jpeg", quality);
-          /* تفادي تكرار نفس اللقطة (فيديو قصير جدًا أو انتهى مبكرًا) */
-          if (!frames.length || frames[frames.length-1] !== dataUrl) frames.push(dataUrl);
-        }
-      } catch(err){ debug.drawErr = (err && err.name ? err.name + ": " : "") + (err && err.message ? err.message : String(err)); }
-    }
-    function startGrabbing(){
-      /* requestVideoFrameCallback يُطلق بالضبط عند جهوزية إطار مفكوك الترميز فعليًا للرسم —
-         أدق وأضمن من مؤقّت زمني عشوائي قد يلتقط الرسمة قبل اكتمال فك الإطار (يسبب صورًا تالفة/مشوّهة) */
-      if (typeof video.requestVideoFrameCallback === "function") {
-        debug.method = "rvfc";
-        const onFrame = () => {
-          if (settled) return;
-          grabFrame();
-          grabCount++;
-          if (grabCount >= MAX_GRABS || video.ended) { finish(); return; }
-          video.requestVideoFrameCallback(onFrame);
-        };
-        video.requestVideoFrameCallback(onFrame);
-        return;
-      }
-      debug.method = "interval";
-      grabFrame();
-      grabCount++;
-      grabTimer = setInterval(() => {
-        grabFrame();
-        grabCount++;
-        if (grabCount >= MAX_GRABS || video.ended) { clearInterval(grabTimer); finish(); }
-      }, GRAB_INTERVAL_MS);
-    }
-    video.addEventListener("loadstart", () => { debug.loadstart = true; });
-    video.addEventListener("error", () => {
-      if (video.error) debug.mediaErr = `code ${video.error.code}`;
-      finish();
-    });
-    video.addEventListener("loadeddata", async () => {
-      debug.loadeddata = true;
-      try { await video.play(); debug.playOk = true; }
-      catch(err){ debug.playOk = false; debug.playErr = err && err.message ? err.message : String(err); }
-      startGrabbing();
-    });
-    video.src = srcUrl;
-    try { video.load(); } catch(err){}
-  });
-}
-/* بدل حفظ ملف الفيديو كاملاً (يستهلك مساحة تخزين ضخمة)، نأخذ منه عدة لقطات مضغوطة ونحفظها كصور فقط.
-   نجرّب أولاً برابط blob (أخف على الذاكرة)، وإن فشل (بعض إصدارات Safari على الجوال لا تُحمّل blob: كمصدر فيديو)
-   نعيد المحاولة برابط data: عبر قراءة الملف كاملاً — أبطأ لكنه أكثر توافقًا. */
-function captureVideoFrames(file, maxDim=700, quality=0.5){
-  return new Promise(async (resolve) => {
-    const objUrl = URL.createObjectURL(file);
-    let r1 = {frames:[], debug:{}};
-    try { r1 = await captureVideoFramesAttempt(objUrl, maxDim, quality, 8000); }
-    catch(err){}
-    URL.revokeObjectURL(objUrl);
-    if (r1.frames.length) { resolve({frames:r1.frames, debug:""}); return; }
-    let r2 = {frames:[], debug:{}};
-    try {
-      const dataUrl = await readFileAsDataURL(file);
-      r2 = await captureVideoFramesAttempt(dataUrl, maxDim, quality, 20000);
-    } catch(err){}
-    const debugText = `blob:${JSON.stringify(r1.debug)} | data:${JSON.stringify(r2.debug)}`;
-    resolve({frames:r2.frames, debug:debugText});
-  });
-}
 
 /* ============================================================ */
 /* الحالة العامة */
@@ -1264,7 +1152,6 @@ function evidencePanel(t, kind="task"){
       <label class="upload-btn">📎 إضافة صورة أو فيديو كشاهد
         <input type="file" accept="image/*,video/*" multiple class="evidence-input" data-kind="${kind}" data-id="${t.id}">
       </label>
-      <div style="color:var(--muted); font-size:11px; margin-top:6px;">عند رفع فيديو، يُحفظ الفيديو نفسه بالكامل، مع استخراج عدة لقطات صور منه تلقائيًا لاستخدامها في التقرير المطبوع.</div>
       ${items.length ? `<div class="evidence-grid">${items.map(e=>evidenceThumb(e, kind)).join("")}</div>` : `<div style="color:var(--muted); font-size:12.5px; margin-top:8px;">لا توجد شواهد مرفوعة بعد</div>`}
     </div>`;
 }
@@ -2659,24 +2546,16 @@ document.addEventListener("change", async (e) => {
     const MAX_VIDEO_BYTES = 150 * 1024 * 1024;
     const newItems = [];
     let tooLargeImg = 0, tooLargeVideo = 0, videoFailed = 0;
-    const extractFailNotices = [];
     for (const file of files) {
       const isVideo = file.type.startsWith("video/");
       if (isVideo) {
         if (file.size > MAX_VIDEO_BYTES) { tooLargeVideo++; continue; }
-        /* الفيديو نفسه يُحفظ دائمًا كشاهد كامل (تخزين IndexedDB يتحمّله بلا مشكلة) — ونضيف له أيضًا
-           لقطات صور مستخرجة تلقائيًا كبونص، لتُستخدم في التقرير المطبوع الذي لا يعرض الفيديو */
+        /* حفظ مباشر بدون أي معالجة إضافية (كان هناك استخراج لقطات تلقائي، لكنه تسبب بعدم استقرار
+           على بعض الأجهزة أثناء الرفع — فأُلغي لصالح رفع بسيط وموثوق دائمًا) */
         try {
           const dataUrl = await readFileAsDataURL(file);
           newItems.push({id: uid(), type: "video", dataUrl, name: file.name});
-        } catch(err) { videoFailed++; continue; }
-        let frames = [], debug = "";
-        try { const r = await captureVideoFrames(file); frames = r.frames; debug = r.debug; } catch(err){}
-        if (frames.length) {
-          frames.forEach((dataUrl, i) => newItems.push({id: uid(), type: "image", dataUrl, name: `${file.name} — لقطة ${i+1}`}));
-        } else {
-          extractFailNotices.push(debug);
-        }
+        } catch(err) { videoFailed++; }
         continue;
       }
       if (file.size > MAX_IMAGE_BYTES) { tooLargeImg++; continue; }
@@ -2689,7 +2568,6 @@ document.addEventListener("change", async (e) => {
     if (tooLargeImg) warnings.push(`تم تجاوز ${tooLargeImg} ${tooLargeImg===1?"صورة":"صور"} لأن حجمها أكبر من 6 ميجابايت.`);
     if (tooLargeVideo) warnings.push(`تم تجاوز ${tooLargeVideo} ${tooLargeVideo===1?"فيديو":"فيديوهات"} لأن حجمه أكبر من 150 ميجابايت.`);
     if (videoFailed) warnings.push(`تعذّر حفظ ${videoFailed} ${videoFailed===1?"فيديو":"فيديوهات"} — حاول مرة أخرى.`);
-    if (extractFailNotices.length) warnings.push(`تم حفظ الفيديو، لكن تعذّر استخراج لقطات صور منه إضافيًا على هذا الجهاز (في التقرير المطبوع سيظهر كبطاقة "شاهد فيديو" بدل صورة).\nمعلومات تقنية للمطوّر: ${extractFailNotices.join(" || ")}`);
     if (warnings.length) alert(warnings.join("\n"));
     const applyAdd = (d) => {
       if (kind === "eventlog") {
