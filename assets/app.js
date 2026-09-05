@@ -394,7 +394,6 @@ function mergeRemoteData(remote){
     const p = findPlanProgram(id);
     if (p) p.evidence = evidenceByPlanProgram[id];
   });
-  pruneBeforeSchoolYear();
 }
 
 function initSync(){
@@ -527,22 +526,6 @@ function syWeekNo(iso){
   const aSun = new Date(a); aSun.setDate(a.getDate() - a.getDay());
   const bSun = new Date(b); bSun.setDate(b.getDate() - b.getDay());
   return Math.floor((bSun - aSun) / 604800000) + 1;
-}
-/* يحذف تلقائيًا أي مهام/أسابيع تشغيلية/سجلّات فعاليات مؤرّخة قبل بداية العام الدراسي (30 أغسطس) —
-   حتى لا تظهر بيانات فترة الإعداد (قبل بدء الدراسة فعليًا) في أي تقرير مطبوع بنسبة إنجاز صفر.
-   تُستدعى عند كل تحميل ودمج بيانات، فتبقى الحماية سارية دائمًا وليست تنظيفًا لمرة واحدة فقط. */
-function pruneBeforeSchoolYear(){
-  DATA.tasks = DATA.tasks.filter(t => !(t.dueDate && t.dueDate < SY_START));
-  DATA.tasks.forEach(t => {
-    if (t.doneDate && t.doneDate < SY_START) { t.doneDate = ""; t.done = false; }
-  });
-  DATA.weeklyPlan = (DATA.weeklyPlan||[]).filter(p => !(p.startDate && p.startDate < SY_START));
-  if (DATA.eventLog) {
-    Object.keys(DATA.eventLog).forEach(k => {
-      const iso = k.split("@")[1] || "";
-      if (iso && iso < SY_START) delete DATA.eventLog[k];
-    });
-  }
 }
 const _syS = new Date(SY_START+"T00:00:00"), _syE = new Date(SY_END+"T00:00:00");
 const _inSY = _now >= _syS && _now <= _syE;
@@ -2678,8 +2661,6 @@ document.addEventListener("change", async (e) => {
     try { DATA = JSON.parse(saved); } catch(e) { DATA = JSON.parse(JSON.stringify(DEFAULT_DATA)); }
   }
   ensureDataShape();
-  pruneBeforeSchoolYear();
   render();
-  await persist();
   initSync();
 })();
