@@ -2304,6 +2304,16 @@ function viewLogin(){
   `;
 }
 
+const INSTALL_BANNER_DISMISS_KEY = "installBannerDismissed";
+function shouldShowInstallBanner(){
+  let dismissed = false;
+  try { dismissed = localStorage.getItem(INSTALL_BANNER_DISMISS_KEY) === "1"; } catch(e){}
+  if (dismissed) return false;
+  let standalone = false;
+  try { standalone = window.navigator.standalone === true || window.matchMedia("(display-mode: standalone)").matches; } catch(e){}
+  return !standalone;
+}
+
 function render(){
   if (!AUTHED) {
     document.getElementById("app").innerHTML = viewLogin();
@@ -2325,6 +2335,11 @@ function render(){
   const showTopbarDefault = TAB !== "weekly" && TAB !== "tasks" && TAB !== "calendar" && TAB !== "vision" && TAB !== "competitions" && TAB !== "reports" && TAB !== "plan";
 
   document.getElementById("app").innerHTML = `
+    ${shouldShowInstallBanner() ? `
+      <div class="install-banner">
+        <span>📌 لحماية الشواهد من حذف الجوال التلقائي لمساحة التخزين بعد فترة عدم استخدام: افتح زر المشاركة في سفاري ثم اختر "إضافة إلى الشاشة الرئيسية" — بعدها افتح المنصة من أيقونتها الجديدة بدل سفاري.</span>
+        <button data-action="dismissInstallBanner">✕</button>
+      </div>` : ""}
     <div class="app">
       <aside class="sidebar">
         <div class="sidebar-logo"><img src="${LOGO.whiteLockup}" alt="مدارس الأندلس الأهلية"></div>
@@ -2667,6 +2682,7 @@ document.addEventListener("click", async (e) => {
     return;
   }
 
+  if (action === "dismissInstallBanner") { try { localStorage.setItem(INSTALL_BANNER_DISMISS_KEY, "1"); } catch(e){} render(); return; }
   if (action === "openStoragePanel") { SHOW_STORAGE_PANEL = true; render(); return; }
   if (action === "closeStoragePanel") { SHOW_STORAGE_PANEL = false; render(); return; }
   if (action === "toggleEvidence") { EVIDENCE_OPEN_ID = (EVIDENCE_OPEN_ID === btn.dataset.id ? null : btn.dataset.id); render(); return; }
@@ -2784,6 +2800,10 @@ document.addEventListener("change", async (e) => {
 /* التشغيل */
 /* ============================================================ */
 (async function init(){
+  /* نطلب من المتصفح حماية مساحة التخزين من الحذف التلقائي (قد يحذفها النظام تلقائيًا لتحرير
+     مساحة على الجهاز بعد فترة من عدم الاستخدام، خصوصًا في متصفح آيفون) — دعم هذا الطلب متفاوت
+     بين المتصفحات فيُفشَل بصمت حيث لا يُدعم، لذا هو إجراء احترازي إضافي وليس الحل الوحيد */
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch(e){}
   try { AUTHED = sessionStorage.getItem(AUTH_KEY) === "1"; } catch(e){ AUTHED = false; }
   const saved = await storageGet(STORAGE_KEY);
   if (saved) {
