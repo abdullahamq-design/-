@@ -636,6 +636,17 @@ let EDIT_PLAN_PROGRAM_ID = null;
 let SHOW_STORAGE_PANEL = false;
 let VIDEO_LIGHTBOX = null; // {kind, id, eid} — الفيديو المطلوب تشغيله حاليًا فقط، وليس كل الفيديوهات
 
+/* محتوى الشواهد الفعلي (dataUrl) محفوظ في مفتاح تخزين منفصل تمامًا عن بيانات المنصة الأساسية،
+   ويُحمَّل مرة واحدة في الذاكرة (EVIDENCE_BLOBS) عند بدء التشغيل. هذا يفصل حجم الشواهد كليًا عن
+   persist() الأساسي: أي تعديل عادي (حذف/تعديل مهمة، برنامج، فعالية...) يبقى دائمًا سريعًا وخفيفًا
+   بغض النظر عن حجم الشواهد المتراكمة — فقط رفع أو حذف شاهد بعينه يمسّ هذا المخزن المنفصل. قبل هذا
+   التعديل كان كل تغيير مهما كان بسيطًا يُعيد تسلسل (JSON.stringify) كامل بيانات المنصة بما فيها كل
+   الشواهد دفعة واحدة في كل مرة — وهو ما كان يستهلك ذاكرة الجهاز تراكميًا ويتسبب أحيانًا في إغلاق
+   الصفحة فجأة عند حذف أو تعديل أي شيء، حتى لو لم يكن له علاقة بالشواهد إطلاقًا */
+const EVIDENCE_STORAGE_KEY = STORAGE_KEY + "__evidence";
+let EVIDENCE_BLOBS = {};
+async function persistEvidenceBlobs(){ return await storageSet(EVIDENCE_STORAGE_KEY, JSON.stringify(EVIDENCE_BLOBS)); }
+
 async function persist(){ return await storageSet(STORAGE_KEY, JSON.stringify(DATA)); }
 async function mutate(fn){ fn(DATA); render(); pushToCloud(); return await persist(); }
 
@@ -650,15 +661,15 @@ function formatBytes(bytes){
 /* يجمع كل الشواهد (صور/فيديوهات) من كل مكان في البيانات — المهام، المسابقات، برامج الخطة، وسجل الفعاليات المتكررة */
 function collectAllEvidence(){
   const items = [];
-  DATA.tasks.forEach(t => (t.evidence||[]).forEach(e => items.push({...e, kind:"task", ownerId:t.id, ownerTitle:t.title})));
-  DATA.competitions.forEach(c => (c.evidence||[]).forEach(e => items.push({...e, kind:"competition", ownerId:c.id, ownerTitle:c.name})));
+  DATA.tasks.forEach(t => (t.evidence||[]).forEach(e => items.push({...hydrateEvidence(e), kind:"task", ownerId:t.id, ownerTitle:t.title})));
+  DATA.competitions.forEach(c => (c.evidence||[]).forEach(e => items.push({...hydrateEvidence(e), kind:"competition", ownerId:c.id, ownerTitle:c.name})));
   (DATA.activityPlan && DATA.activityPlan.categories || []).forEach(cat => (cat.programs||[]).forEach(p =>
-    (p.evidence||[]).forEach(e => items.push({...e, kind:"planprogram", ownerId:p.id, ownerTitle:p.name}))));
+    (p.evidence||[]).forEach(e => items.push({...hydrateEvidence(e), kind:"planprogram", ownerId:p.id, ownerTitle:p.name}))));
   Object.keys(DATA.eventLog||{}).forEach(k => {
     const lg = DATA.eventLog[k];
     (lg.evidence||[]).forEach(e => {
       const ev = DATA.weekly.find(w => w.id === k.split("@")[0]);
-      items.push({...e, kind:"eventlog", ownerId:k, ownerTitle:(ev?ev.title:"فعالية") + " · " + (k.split("@")[1]||"")});
+      items.push({...hydrateEvidence(e), kind:"eventlog", ownerId:k, ownerTitle:(ev?ev.title:"فعالية") + " · " + (k.split("@")[1]||"")});
     });
   });
   items.forEach(e => { e.sizeBytes = e.dataUrl ? Math.round(e.dataUrl.length*0.75) : 0; });
@@ -1311,8 +1322,17 @@ function findEvidenceArray(kind, id){
   const item = arr.find(x=>x.id===id);
   return (item && item.evidence) || [];
 }
+/* تُعيد المرجع الفعلي للعنصر داخل DATA (وليس نسخة منه) — ضرورية لأي تعديل يكتب مباشرة على
+   الشاهد (مثل تسجيل cloudUrl بعد نجاح الرفع السحابي) داخل mutate(). للعرض فقط استخدم hydrateEvidence
+   على النتيجة بشكل منفصل، فهي تُنشئ نسخة جديدة ولا تصلح للكتابة عليها */
 function findEvidenceItem(kind, id, eid){
   return findEvidenceArray(kind, id).find(e=>e.id===eid) || null;
+}
+/* عناصر الشواهد داخل DATA لا تحمل محتواها الفعلي (dataUrl) إطلاقًا — فقط id/type/name/cloudUrl —
+   نلحق بها هنا محتواها من المخزن المحلي المنفصل EVIDENCE_BLOBS عند الحاجة الفعلية للعرض فقط */
+function hydrateEvidence(e){
+  const local = EVIDENCE_BLOBS[e.id];
+  return local ? {...e, dataUrl: local} : e;
 }
 
 function evidenceThumb(e, kind){
@@ -1343,7 +1363,7 @@ function evidenceThumb(e, kind){
 }
 
 function evidencePanel(t, kind="task"){
-  const items = (t.evidence || []).map(e => ({...e, _parentId: t.id}));
+  const items = (t.evidence || []).map(e => ({...hydrateEvidence(e), _parentId: t.id}));
   return `
     <div class="evidence-panel">
       <label class="upload-btn">📎 إضافة صورة أو فيديو كشاهد
@@ -1943,15 +1963,15 @@ function reportHtml(title, rangeLabel, data){
   /* كل شاهد مرفوع يظهر — سواء كانت المهمة مؤرّخة أو متكررة */
   const evidence = [];
   const seenT = new Set();
-  done.forEach(t => { seenT.add(t.id); (t.evidence||[]).forEach(e => evidence.push({...e, cap:t.title})); });
-  DATA.tasks.forEach(t => { if (!seenT.has(t.id)) (t.evidence||[]).forEach(e => evidence.push({...e, cap:t.title})); });
-  DATA.competitions.forEach(c => (c.evidence||[]).forEach(e => evidence.push({...e, cap:c.name})));
+  done.forEach(t => { seenT.add(t.id); (t.evidence||[]).forEach(e => evidence.push({...hydrateEvidence(e), cap:t.title})); });
+  DATA.tasks.forEach(t => { if (!seenT.has(t.id)) (t.evidence||[]).forEach(e => evidence.push({...hydrateEvidence(e), cap:t.title})); });
+  DATA.competitions.forEach(c => (c.evidence||[]).forEach(e => evidence.push({...hydrateEvidence(e), cap:c.name})));
   /* شواهد الفعاليات المجدولة المُنفّذة داخل الفترة */
   Object.keys(DATA.eventLog||{}).forEach(k => {
     const lg = DATA.eventLog[k]; const iso = k.split("@")[1] || "";
     if (!lg || iso < data.range0 || iso > data.range1) return;
     const ev = DATA.weekly.find(w => w.id === k.split("@")[0]);
-    (lg.evidence||[]).forEach(e => evidence.push({...e, cap:(ev?ev.title:"فعالية مجدولة")+" · "+iso}));
+    (lg.evidence||[]).forEach(e => evidence.push({...hydrateEvidence(e), cap:(ev?ev.title:"فعالية مجدولة")+" · "+iso}));
   });
   /* نسبة الإنجاز العامة (تظهر في الغلاف) يجب أن تعكس العمل الفعلي كله في الفترة — لا المهام فقط،
      بل الفعاليات المتكررة المنفَّذة أيضًا (زي الطابور واستقبال الطلاب)، وإلا تظهر 0% في الغلاف رغم
@@ -2502,7 +2522,8 @@ function mountVideoLightbox(){
   const mount = document.getElementById("video-lightbox-inner");
   if (!mount) return;
   const item = findEvidenceItem(VIDEO_LIGHTBOX.kind, VIDEO_LIGHTBOX.id, VIDEO_LIGHTBOX.eid);
-  const src = item && (item.dataUrl || item.cloudUrl);
+  const hydrated = item && hydrateEvidence(item);
+  const src = hydrated && (hydrated.dataUrl || hydrated.cloudUrl);
   if (!src) return;
   const video = document.createElement("video");
   video.controls = true;
@@ -2875,6 +2896,7 @@ document.addEventListener("click", async (e) => {
       const item = arr.find(x=>x.id===id);
       if (item && item.evidence) item.evidence = item.evidence.filter(e=>e.id!==eid);
     });
+    if (EVIDENCE_BLOBS[eid]) { delete EVIDENCE_BLOBS[eid]; await persistEvidenceBlobs(); }
     return;
   }
 });
@@ -2917,22 +2939,25 @@ document.addEventListener("change", async (e) => {
     if (tooLargeVideo) warnings.push(`تم تجاوز ${tooLargeVideo} ${tooLargeVideo===1?"فيديو":"فيديوهات"} لأن حجمه أكبر من 15 ميجابايت — فيديو بهذا الحجم قد يتسبب في تعليق الصفحة أو إعادة تحميلها على بعض الأجهزة. صغّر الفيديو أولاً (مثلاً أرسله لنفسك عبر واتساب ثم ارفع النسخة المضغوطة التي يرسلها، أو استخدم خاصية اقتصاص/ضغط الفيديو في تطبيق الصور) ثم أعد المحاولة.`);
     if (videoFailed) warnings.push(`تعذّر حفظ ${videoFailed} ${videoFailed===1?"فيديو":"فيديوهات"} — حاول مرة أخرى.`);
     if (warnings.length) alert(warnings.join("\n"));
+    /* عنصر الشاهد المُدرَج داخل بيانات المنصة نفسها خفيف بلا محتواه الفعلي إطلاقًا (لا dataUrl) —
+       المحتوى محفوظ بالفعل في EVIDENCE_BLOBS المنفصل، ويُلحَق بالعرض عند الحاجة فقط عبر hydrateEvidence */
+    const lightItems = newItems.map(({id, type, name}) => ({id, type, name}));
     const applyAdd = (d) => {
       if (kind === "eventlog") {
         if (!d.eventLog) d.eventLog = {};
         const cur = d.eventLog[id] || {done:false, doneDate:"", evidence:[]};
-        cur.evidence = (cur.evidence||[]).concat(newItems);
+        cur.evidence = (cur.evidence||[]).concat(lightItems);
         d.eventLog[id] = cur;
         return;
       }
       if (kind === "planprogram") {
         const p = findPlanProgram(id);
-        if (p) { if (!p.evidence) p.evidence = []; p.evidence.push(...newItems); }
+        if (p) { if (!p.evidence) p.evidence = []; p.evidence.push(...lightItems); }
         return;
       }
       const arr = kind === "competition" ? d.competitions : d.tasks;
       const item = arr.find(x=>x.id===id);
-      if (item) { if (!item.evidence) item.evidence = []; item.evidence.push(...newItems); }
+      if (item) { if (!item.evidence) item.evidence = []; item.evidence.push(...lightItems); }
     };
     const applyRollback = (d) => {
       if (kind === "eventlog") {
@@ -2950,15 +2975,26 @@ document.addEventListener("change", async (e) => {
       if (item && item.evidence) item.evidence = item.evidence.filter(x => !newItems.some(n=>n.id===x.id));
     };
     if (newItems.length) {
-      const ok = await mutate(applyAdd);
-      if (!ok) {
-        await mutate(applyRollback);
+      /* محتوى الشاهد (dataUrl) يُحفظ في مخزن الشواهد المنفصل أولاً — وليس ضمن بيانات المنصة
+         الأساسية — حتى تبقى بيانات المنصة خفيفة وسريعة الحفظ دائمًا بغض النظر عن حجم الشواهد */
+      newItems.forEach(item => { EVIDENCE_BLOBS[item.id] = item.dataUrl; });
+      const evOk = await persistEvidenceBlobs();
+      if (!evOk) {
+        newItems.forEach(item => { delete EVIDENCE_BLOBS[item.id]; });
         alert("تعذّر حفظ الشاهد — مساحة التخزين في متصفحك ممتلئة أو الملف كبير جدًا. جرّب صورة أصغر، أو احذف شواهد قديمة لا تحتاجها ثم أعد المحاولة.");
       } else {
-        /* بعد نجاح الحفظ المحلي (وهو مضمون بغض النظر عمّا يلي)، نحاول رفع نسخة احتياطية للشاهد على
-           السحابة (Cloudinary) لتظهر لاحقًا على بقية الأجهزة أيضًا. هذا رفع إضافي غير حاسم إطلاقًا:
-           أي فشل فيه (لا إنترنت، الخدمة متعطلة، إلخ) لا يؤثر على الشاهد المحفوظ محليًا بأي شكل */
-        cloudUploadQueue.forEach(({item, blob}) => uploadEvidenceToCloud(kind, id, item.id, blob));
+        const ok = await mutate(applyAdd);
+        if (!ok) {
+          newItems.forEach(item => { delete EVIDENCE_BLOBS[item.id]; });
+          await persistEvidenceBlobs();
+          await mutate(applyRollback);
+          alert("تعذّر حفظ الشاهد — مساحة التخزين في متصفحك ممتلئة أو الملف كبير جدًا. جرّب صورة أصغر، أو احذف شواهد قديمة لا تحتاجها ثم أعد المحاولة.");
+        } else {
+          /* بعد نجاح الحفظ المحلي (وهو مضمون بغض النظر عمّا يلي)، نحاول رفع نسخة احتياطية للشاهد على
+             السحابة (Cloudinary) لتظهر لاحقًا على بقية الأجهزة أيضًا. هذا رفع إضافي غير حاسم إطلاقًا:
+             أي فشل فيه (لا إنترنت، الخدمة متعطلة، إلخ) لا يؤثر على الشاهد المحفوظ محليًا بأي شكل */
+          cloudUploadQueue.forEach(({item, blob}) => uploadEvidenceToCloud(kind, id, item.id, blob));
+        }
       }
     }
     e.target.value = "";
@@ -2991,6 +3027,27 @@ document.addEventListener("change", async (e) => {
     try { DATA = JSON.parse(saved); } catch(e) { DATA = JSON.parse(JSON.stringify(DEFAULT_DATA)); }
   }
   ensureDataShape();
+  try {
+    const savedEvidence = await storageGet(EVIDENCE_STORAGE_KEY);
+    if (savedEvidence) EVIDENCE_BLOBS = JSON.parse(savedEvidence);
+  } catch(e) { EVIDENCE_BLOBS = {}; }
+  /* ترحيل لمرة واحدة: بيانات محفوظة قبل هذا التحديث كانت تحمل محتوى الشاهد (dataUrl) مضمَّنًا مباشرة
+     داخل بيانات المنصة نفسها، وهو بالضبط ما كان يجعل أي تعديل بسيط (حتى غير متعلق بالشواهد) يعيد
+     تسلسل كل تلك البيانات الثقيلة في كل مرة ويستهلك ذاكرة الجهاز تراكميًا. هنا فقط، مرة واحدة، نقل
+     محتوى كل شاهد قديم إلى المخزن المنفصل EVIDENCE_BLOBS مع إبقاء الشاهد نفسه (id/type/name) كما هو
+     تمامًا في مكانه — لا يُحذف أي شاهد إطلاقًا، فقط يُنقل محتواه لمكان أخف وأسرع */
+  if (!DATA.__migratedEvidenceStore) {
+    const migrate = (arr) => (arr||[]).forEach(e => {
+      if (e.dataUrl) { if (!EVIDENCE_BLOBS[e.id]) EVIDENCE_BLOBS[e.id] = e.dataUrl; delete e.dataUrl; }
+    });
+    DATA.tasks.forEach(t => migrate(t.evidence));
+    DATA.competitions.forEach(c => migrate(c.evidence));
+    (DATA.activityPlan && DATA.activityPlan.categories || []).forEach(cat => (cat.programs||[]).forEach(p => migrate(p.evidence)));
+    Object.keys(DATA.eventLog||{}).forEach(k => migrate(DATA.eventLog[k] && DATA.eventLog[k].evidence));
+    DATA.__migratedEvidenceStore = true;
+    await persistEvidenceBlobs();
+    await persist();
+  }
   /* تنظيف لمرة واحدة (بناءً على طلب صريح): حذف فعاليات الجدول/التقويم "لمرة واحدة" المؤرَّخة قبل
      بداية العام الدراسي (لا توجد دراسة قبل هذا التاريخ أصلًا). محمي بعلامة تمنعه من التكرار مستقبلاً
      — هذا تنظيف واحد منفَّذ الآن فقط، وليس قاعدة حذف تلقائي دائمة. */
