@@ -337,7 +337,9 @@ async function storageSet(key, value){
 /* ============================================================ */
 /* المزامنة السحابية بين الأجهزة (Firebase — اختيارية) */
 /* تُفعَّل تلقائياً فقط إذا عبّأت بياناتك في assets/firebase-config.js */
-/* الشواهد (صور/فيديو) لا تُزامَن — تبقى محفوظة محلياً في كل جهاز فقط */
+/* الشواهد نفسها (الصور/الفيديو) تبقى محفوظة محليًا في كل جهاز دائمًا كأساس أول (يعمل حتى بلا إنترنت) */
+/* وتُرفع أيضًا نسخة احتياطية منها لخدمة Cloudinary — رفع إضافي غير حاسم لا يؤثر على الحفظ المحلي أبدًا؛
+   رابط النسخة السحابية فقط (لا محتوى الشاهد) هو ما يُزامَن عبر Firestore ليظهر على بقية الأجهزة */
 /* ============================================================ */
 const SYNC_COLLECTION = "andalus-activity-platform";
 const SYNC_DOC_ID = "shared-data";
@@ -345,15 +347,44 @@ let SYNC_ENABLED = false;
 let SYNC_APPLYING_REMOTE = false;
 let SYNC_STATUS = "offline"; // offline | connecting | synced | error
 
+const CLOUDINARY_CLOUD_NAME = "hhfoh7hm";
+const CLOUDINARY_UPLOAD_PRESET = "cjgu6kn5";
+/* رفع نسخة احتياطية للشاهد على Cloudinary — عملية غير حاسمة بالكامل: أي فشل (لا إنترنت، الخدمة
+   متعطلة، إلخ) يُتجاهل بصمت ولا يؤثر مطلقًا على الشاهد المحفوظ محليًا أصلاً قبل استدعاء هذه الدالة */
+async function uploadEvidenceToCloud(kind, parentId, evidenceId, blob){
+  try {
+    const form = new FormData();
+    form.append("file", blob);
+    form.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`, {
+      method: "POST", body: form
+    });
+    if (!res.ok) return;
+    const json = await res.json();
+    if (!json.secure_url) return;
+    await mutate(d => {
+      const item = findEvidenceItem(kind, parentId, evidenceId);
+      if (item) item.cloudUrl = json.secure_url;
+    });
+  } catch(e) { /* رفع سحابي فاشل — الشاهد يبقى محفوظًا محليًا كما هو دون أي تأثير */ }
+}
+
+/* نُبقي فقط البيانات الخفيفة عن كل شاهد (بلا محتواه الفعلي dataUrl مطلقًا — قد يصل لعشرات
+   الميجابايتات ويتجاوز حد حجم مستند Firestore) — رابط النسخة السحابية (cloudUrl) إن وُجد يكفي
+   لعرض الشاهد على بقية الأجهزة. شاهد لم يكتمل رفعه للسحابة بعد (لا cloudUrl) يُستبعد من هذه
+   المزامنة مؤقتًا فقط، وسيصل تلقائيًا في أول مزامنة تالية بعد نجاح رفعه */
+function stripEvidenceLight(arr){
+  return (arr||[]).filter(e=>e.cloudUrl).map(e=>({id:e.id, type:e.type, name:e.name, cloudUrl:e.cloudUrl}));
+}
 function stripEvidenceForSync(data){
   const copy = JSON.parse(JSON.stringify(data));
-  (copy.tasks||[]).forEach(t => { delete t.evidence; });
-  (copy.competitions||[]).forEach(c => { delete c.evidence; });
+  (copy.tasks||[]).forEach(t => { t.evidence = stripEvidenceLight(t.evidence); });
+  (copy.competitions||[]).forEach(c => { c.evidence = stripEvidenceLight(c.evidence); });
   if (copy.eventLog) {
-    Object.keys(copy.eventLog).forEach(k => { if (copy.eventLog[k]) delete copy.eventLog[k].evidence; });
+    Object.keys(copy.eventLog).forEach(k => { if (copy.eventLog[k]) copy.eventLog[k].evidence = stripEvidenceLight(copy.eventLog[k].evidence); });
   }
   if (copy.activityPlan && copy.activityPlan.categories) {
-    copy.activityPlan.categories.forEach(cat => (cat.programs||[]).forEach(p => { delete p.evidence; }));
+    copy.activityPlan.categories.forEach(cat => (cat.programs||[]).forEach(p => { p.evidence = stripEvidenceLight(p.evidence); }));
   }
   return copy;
 }
@@ -373,17 +404,33 @@ function ensureDataShape(){
   (DATA.weekly||[]).forEach(w => { if (w.recurring === undefined) w.recurring = true; });
 }
 
+/* دمج مصفوفة شواهد بحسب id: أي شاهد محلي يبقى بمحتواه الفعلي (dataUrl) كما هو دائمًا — لا يُستبدل
+   أبدًا بنسخة remote (التي أصلاً بلا dataUrl، بيانات خفيفة فقط). إن لم يكن للشاهد المحلي رابط سحابي
+   بعد ووصل من remote، نضيفه (رفع سابق من نفس الجهاز اكتمل بعد آخر مزامنة). شاهد جديد بالكامل من
+   remote (رُفع من جهاز آخر) يُضاف محليًا بصورته الخفيفة (يُعرض عبر cloudUrl حتى يتوفر محليًا) */
+function mergeEvidenceArray(localEv, remoteEv){
+  const map = new Map((localEv||[]).map(e => [e.id, e]));
+  (remoteEv||[]).forEach(re => {
+    const le = map.get(re.id);
+    if (le) {
+      if (!le.cloudUrl && re.cloudUrl) le.cloudUrl = re.cloudUrl;
+    } else {
+      map.set(re.id, re);
+    }
+  });
+  return Array.from(map.values());
+}
 /* دمج إضافي آمن لمصفوفة عناصر مُعرَّفة بـ id: أي عنصر محلي غير موجود في remote (لم يصل للسحابة بعد
    من هذا الجهاز أو جهاز آخر) يبقى كما هو ولا يُحذف أبدًا بسبب المزامنة. عنصر موجود في remote يُحدَّث
-   بحقوله فوق النسخة المحلية مع الإبقاء على حقل الشواهد المحلي (الشواهد لا تُزامن أصلاً). عنصر جديد
-   بالكامل من remote (أضافه جهاز آخر) يُضاف محليًا. */
+   بحقوله فوق النسخة المحلية مع دمج الشواهد (وليس استبدالها). عنصر جديد بالكامل من remote (أضافه
+   جهاز آخر) يُضاف محليًا. */
 function mergeArrayById(localArr, remoteArr){
   const map = new Map((localArr||[]).map(x => [x.id, x]));
   (remoteArr||[]).forEach(r => {
     const local = map.get(r.id);
     if (local) {
       const merged = {...local, ...r};
-      if (local.evidence && local.evidence.length) merged.evidence = local.evidence;
+      merged.evidence = mergeEvidenceArray(local.evidence, r.evidence);
       map.set(r.id, merged);
     } else {
       map.set(r.id, r);
@@ -399,7 +446,7 @@ function mergeEventLog(localLog, remoteLog){
     const remoteEntry = remoteLog[k];
     if (localEntry) {
       const combined = {...localEntry, ...remoteEntry};
-      if (localEntry.evidence && localEntry.evidence.length) combined.evidence = localEntry.evidence;
+      combined.evidence = mergeEvidenceArray(localEntry.evidence, remoteEntry.evidence);
       merged[k] = combined;
     } else {
       merged[k] = remoteEntry;
@@ -630,11 +677,11 @@ function viewStorageManager(){
           </div>
           <button class="icon-btn" data-action="closeStoragePanel">${ICONS.x}</button>
         </div>
-        <div style="font-size:12px;color:var(--muted);margin:12px 0 14px;">الشواهد (الصور والفيديوهات) تُحفظ داخل متصفح هذا الجهاز فقط، ومساحته محدودة. إذا ظهرت رسالة "تعذّر حفظ الشاهد"، احذف بعض الشواهد القديمة غير الضرورية من هنا (مرتّبة من الأكبر حجمًا) لتحرير مساحة ثم أعد المحاولة.</div>
+        <div style="font-size:12px;color:var(--muted);margin:12px 0 14px;">الشواهد تُحفظ داخل متصفح هذا الجهاز أولاً (ومساحته محدودة)، وتُرفع أيضًا نسخة احتياطية منها تلقائيًا لتظهر على بقية أجهزتك (☁️ = وصلت من جهاز آخر ولم تُحمَّل بعد لهذا الجهاز). إذا ظهرت رسالة "تعذّر حفظ الشاهد"، احذف بعض الشواهد القديمة غير الضرورية من هنا (مرتّبة من الأكبر حجمًا) لتحرير مساحة ثم أعد المحاولة.</div>
         ${items.length ? `<div class="storage-list">
           ${items.map(e => `
             <div class="storage-item">
-              ${e.type==="image" ? `<img src="${e.dataUrl}" class="storage-thumb">` : `<div class="storage-thumb storage-video">🎞️</div>`}
+              ${!e.dataUrl ? `<div class="storage-thumb storage-video">☁️</div>` : e.type==="image" ? `<img src="${e.dataUrl}" class="storage-thumb">` : `<div class="storage-thumb storage-video">🎞️</div>`}
               <div class="flex1">
                 <div class="title" style="font-size:12.5px;">${esc(e.ownerTitle)}</div>
                 <div class="meta">${esc(e.name||"")}${e.name?" · ":""}${formatBytes(e.sizeBytes)}</div>
@@ -1244,13 +1291,23 @@ function evidenceThumb(e, kind){
        يُعاد بناؤه بالكامل في كل render() هو ما كان يستهلك ذاكرة الجهاز بشكل متراكم ويتسبب في
        تعليق/إغلاق الصفحة عند رفع فيديو جديد بينما شواهد سابقة معروضة. تُعرض بطاقة خفيفة فقط،
        ولا يُحمَّل الفيديو الفعلي إلا عند الضغط لتشغيله تحديدًا (نافذة تشغيل واحدة عند الطلب) */
-    return `<div class="evidence-thumb video-thumb-placeholder" data-action="playVideoEvidence" data-kind="${kind}" data-id="${e._parentId}" data-eid="${e.id}">
-      <div class="video-play-icon">▶</div>
+    const canPlay = e.dataUrl || e.cloudUrl;
+    return `<div class="evidence-thumb video-thumb-placeholder" ${canPlay ? `data-action="playVideoEvidence" data-kind="${kind}" data-id="${e._parentId}" data-eid="${e.id}"` : `style="cursor:default;"`}>
+      ${canPlay ? `<div class="video-play-icon">▶</div>` : `<div style="font-size:11px; color:#fff; text-align:center; padding:6px;">⏳ لم يصل بعد لهذا الجهاز</div>`}
+      <button class="evidence-remove" data-action="removeEvidence" data-kind="${kind}" data-id="${e._parentId}" data-eid="${e.id}">${ICONS.x}</button>
+    </div>`;
+  }
+  /* هذا الجهاز نفسه رفع الشاهد ولديه نسخته الكاملة محليًا (dataUrl)، أو وصل من جهاز آخر عبر
+     المزامنة وله فقط رابط سحابي (cloudUrl) بلا نسخة محلية بعد — كلاهما يُعرض بنفس الطريقة */
+  const src = e.dataUrl || e.cloudUrl;
+  if (!src) {
+    return `<div class="evidence-thumb video-thumb-placeholder" style="cursor:default;">
+      <div style="font-size:11px; color:#fff; text-align:center; padding:6px;">⏳ لم يصل بعد لهذا الجهاز</div>
       <button class="evidence-remove" data-action="removeEvidence" data-kind="${kind}" data-id="${e._parentId}" data-eid="${e.id}">${ICONS.x}</button>
     </div>`;
   }
   return `<div class="evidence-thumb">
-    <img src="${e.dataUrl}" alt="">
+    <img src="${src}" alt="">
     <button class="evidence-remove" data-action="removeEvidence" data-kind="${kind}" data-id="${e._parentId}" data-eid="${e.id}">${ICONS.x}</button>
   </div>`;
 }
@@ -1845,7 +1902,9 @@ function reportEvidenceMedia(e){
   if (e.type === "video") {
     return `<div class="rpt-video-placeholder">🎞️<span>شاهد فيديو</span></div>`;
   }
-  return `<img src="${e.dataUrl}" alt="">`;
+  const src = e.dataUrl || e.cloudUrl;
+  if (!src) return `<div class="rpt-video-placeholder">⏳<span>لم يصل بعد لهذا الجهاز</span></div>`;
+  return `<img src="${src}" alt="">`;
 }
 
 function reportHtml(title, rangeLabel, data){
@@ -2413,11 +2472,12 @@ function mountVideoLightbox(){
   const mount = document.getElementById("video-lightbox-inner");
   if (!mount) return;
   const item = findEvidenceItem(VIDEO_LIGHTBOX.kind, VIDEO_LIGHTBOX.id, VIDEO_LIGHTBOX.eid);
-  if (!item) return;
+  const src = item && (item.dataUrl || item.cloudUrl);
+  if (!src) return;
   const video = document.createElement("video");
   video.controls = true;
   video.autoplay = true;
-  video.src = item.dataUrl;
+  video.src = src;
   mount.appendChild(video);
 }
 
@@ -2774,6 +2834,7 @@ document.addEventListener("change", async (e) => {
        هذا الحد يمنع محاولة تحميل ملف كبير بما يكفي لتجاوز الذاكرة المتاحة للمتصفح من الأساس. */
     const MAX_VIDEO_BYTES = 15 * 1024 * 1024;
     const newItems = [];
+    const cloudUploadQueue = []; // {item, blob} — يُرفع للسحابة بعد نجاح الحفظ المحلي، بلا أي تأثير عليه
     let tooLargeImg = 0, tooLargeVideo = 0, videoFailed = 0;
     for (const file of files) {
       const isVideo = file.type.startsWith("video/");
@@ -2781,7 +2842,9 @@ document.addEventListener("change", async (e) => {
         if (file.size > MAX_VIDEO_BYTES) { tooLargeVideo++; continue; }
         try {
           const dataUrl = await readFileAsDataURL(file);
-          newItems.push({id: uid(), type: "video", dataUrl, name: file.name});
+          const item = {id: uid(), type: "video", dataUrl, name: file.name};
+          newItems.push(item);
+          cloudUploadQueue.push({item, blob: file});
         } catch(err) { videoFailed++; }
         continue;
       }
@@ -2789,7 +2852,9 @@ document.addEventListener("change", async (e) => {
       let dataUrl;
       try { dataUrl = await readFileAsDataURL(file); } catch(err) { continue; }
       try { dataUrl = await compressImageDataUrl(dataUrl); } catch(err){}
-      newItems.push({id: uid(), type: "image", dataUrl, name: file.name});
+      const item = {id: uid(), type: "image", dataUrl, name: file.name};
+      newItems.push(item);
+      try { cloudUploadQueue.push({item, blob: await (await fetch(dataUrl)).blob()}); } catch(err){}
     }
     const warnings = [];
     if (tooLargeImg) warnings.push(`تم تجاوز ${tooLargeImg} ${tooLargeImg===1?"صورة":"صور"} لأن حجمها أكبر من 6 ميجابايت.`);
@@ -2833,6 +2898,11 @@ document.addEventListener("change", async (e) => {
       if (!ok) {
         await mutate(applyRollback);
         alert("تعذّر حفظ الشاهد — مساحة التخزين في متصفحك ممتلئة أو الملف كبير جدًا. جرّب صورة أصغر، أو احذف شواهد قديمة لا تحتاجها ثم أعد المحاولة.");
+      } else {
+        /* بعد نجاح الحفظ المحلي (وهو مضمون بغض النظر عمّا يلي)، نحاول رفع نسخة احتياطية للشاهد على
+           السحابة (Cloudinary) لتظهر لاحقًا على بقية الأجهزة أيضًا. هذا رفع إضافي غير حاسم إطلاقًا:
+           أي فشل فيه (لا إنترنت، الخدمة متعطلة، إلخ) لا يؤثر على الشاهد المحفوظ محليًا بأي شكل */
+        cloudUploadQueue.forEach(({item, blob}) => uploadEvidenceToCloud(kind, id, item.id, blob));
       }
     }
     e.target.value = "";
