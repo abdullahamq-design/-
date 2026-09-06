@@ -1740,7 +1740,10 @@ function viewVision(){
     </div>`;
 
   return `
-    ${sectionTitle("الإطار العام", "الخطة والرؤية", "compass")}
+    <div class="topbar">
+      ${sectionTitle("الإطار العام", "الخطة والرؤية", "compass")}
+      <button class="btn ghost" data-action="reportPrint">🖨️ طباعة</button>
+    </div>
     ${moeFrame}
     <div style="height:30px"></div>
     <div class="vision-wrap">
