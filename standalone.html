@@ -1232,6 +1232,7 @@ let EVIDENCE_OPEN_ID = null;
 let STUDENTS_OPEN_ID = null;
 let EDIT_COMP_ID = null;
 let SHOW_PLAN_PROGRAM_FORM = null;
+let EDIT_PLAN_PROGRAM_ID = null;
 let SHOW_STORAGE_PANEL = false;
 let VIDEO_LIGHTBOX = null; // {kind, id, eid} — الفيديو المطلوب تشغيله حاليًا فقط، وليس كل الفيديوهات
 
@@ -1461,6 +1462,30 @@ function planStudentsPanel(p){
     </div>`;
 }
 
+/* تعديل برنامج موجود — يسمح بتغيير تاريخه مباشرة (مثلاً من الأحد إلى الاثنين) دون حاجة لحذفه
+   وإعادة إضافته، مع الحفاظ التام على شواهده وطلابه المسجَّلين كما هم دون أي مساس بهم */
+function inlinePlanProgramEditForm(p){
+  return `
+    <div class="panel">
+      <div class="field full"><label>اسم البرنامج</label><input id="pl-edit-name" type="text" value="${esc(p.name)}"></div>
+      <div class="field"><label>الفصل الدراسي</label>
+        <select id="pl-edit-semester">
+          <option value="1" ${p.semester===1?"selected":""}>الفصل الأول</option>
+          <option value="2" ${p.semester===2?"selected":""}>الفصل الثاني</option>
+        </select>
+      </div>
+      <div class="field"><label>رقم الأسبوع</label><input id="pl-edit-week" type="number" min="1" max="20" value="${p.week}"></div>
+      <div class="field"><label>التاريخ الفعلي</label><input id="pl-edit-date" type="date" value="${esc(p.date)}"></div>
+      <div class="field"><label>عدد الطلاب المستهدف</label><input id="pl-edit-target" type="number" min="0" value="${p.targetCount}"></div>
+      <div class="field"><label>مكان الفعالية</label><input id="pl-edit-location" type="text" value="${esc(p.location||"")}"></div>
+      <div class="field full"><label>وصف مختصر</label><textarea id="pl-edit-desc" rows="2">${esc(p.desc||"")}</textarea></div>
+      <div class="actions">
+        <button class="btn ghost" data-action="closePlanProgramEdit">إلغاء</button>
+        <button class="btn" data-action="savePlanProgramEdit" data-id="${p.id}">حفظ التعديل</button>
+      </div>
+    </div>`;
+}
+
 function planProgramFormPanel(cat){
   return `
     <div class="panel">
@@ -1491,6 +1516,7 @@ function viewActivityPlan(){
       const evidenceCount = (p.evidence||[]).length;
       const semLabel = `فصل ${p.semester} · الأسبوع ${p.week}`;
       const panelRows = [];
+      if (EDIT_PLAN_PROGRAM_ID === p.id) panelRows.push(`<tr class="evidence-row"><td colspan="4">${inlinePlanProgramEditForm(p)}</td></tr>`);
       if (STUDENTS_OPEN_ID === p.id) panelRows.push(`<tr class="evidence-row"><td colspan="4">${planStudentsPanel(p)}</td></tr>`);
       if (EVIDENCE_OPEN_ID === p.id) panelRows.push(`<tr class="evidence-row"><td colspan="4">${evidencePanel(p, "planprogram")}</td></tr>`);
       return `
@@ -1505,6 +1531,7 @@ function viewActivityPlan(){
           <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
             <button class="evidence-btn has" data-action="togglePlanStudents" data-id="${p.id}">👥 الطلاب المنفذون (${studentCount})</button>
             <button class="evidence-btn ${evidenceCount?'has':''}" data-action="toggleEvidence" data-id="${p.id}">📎 الشواهد${evidenceCount?` (${evidenceCount})`:""}</button>
+            <button class="icon-btn" data-action="editPlanProgram" data-id="${p.id}" title="تعديل البرنامج">${ICONS.pencil}</button>
             <button class="icon-btn" data-action="removePlanProgram" data-id="${p.id}" title="حذف البرنامج">${ICONS.trash}</button>
           </div>
         </td>
@@ -3333,6 +3360,32 @@ document.addEventListener("click", async (e) => {
   if (action === "removePlanProgram") {
     const id = btn.dataset.id;
     await mutate(d => { d.activityPlan.categories.forEach(cat => { cat.programs = cat.programs.filter(p=>p.id!==id); }); });
+    return;
+  }
+  if (action === "editPlanProgram") {
+    EDIT_PLAN_PROGRAM_ID = (EDIT_PLAN_PROGRAM_ID === btn.dataset.id ? null : btn.dataset.id);
+    render();
+    return;
+  }
+  if (action === "closePlanProgramEdit") { EDIT_PLAN_PROGRAM_ID = null; render(); return; }
+  if (action === "savePlanProgramEdit") {
+    const id = btn.dataset.id;
+    const name = document.getElementById("pl-edit-name").value.trim();
+    const semester = parseInt(document.getElementById("pl-edit-semester").value, 10);
+    const week = parseInt(document.getElementById("pl-edit-week").value, 10) || 1;
+    const date = document.getElementById("pl-edit-date").value;
+    const targetCount = parseInt(document.getElementById("pl-edit-target").value, 10) || 0;
+    const location = document.getElementById("pl-edit-location").value.trim();
+    const desc = document.getElementById("pl-edit-desc").value.trim();
+    if (!name || !date) return;
+    /* نُحدِّث حقول البرنامج فقط (الاسم، الفصل، الأسبوع، التاريخ الفعلي المُدخَل مباشرة، المستهدف،
+       المكان، الوصف) — مع الإبقاء التام على id والطلاب المسجَّلين والشواهد المرفوعة كما هي تمامًا،
+       فلا خطر إطلاقًا على أي بيانات أو شواهد محفوظة مسبقًا لهذا البرنامج */
+    await mutate(d => {
+      const p = findPlanProgram(id);
+      if (p) Object.assign(p, {name, semester, week, date, targetCount, location, desc});
+    });
+    EDIT_PLAN_PROGRAM_ID = null; render();
     return;
   }
   if (action === "togglePlanStudents") { STUDENTS_OPEN_ID = (STUDENTS_OPEN_ID === btn.dataset.id ? null : btn.dataset.id); render(); return; }
