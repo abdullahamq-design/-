@@ -295,6 +295,14 @@ function idbSet(key, value){
     tx.onerror = () => reject(tx.error);
   }));
 }
+function idbDelete(key){
+  return openIDB().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, "readwrite");
+    tx.objectStore(IDB_STORE).delete(key);
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject(tx.error);
+  }));
+}
 async function storageGet(key){
   if (window.storage && typeof window.storage.get === "function") {
     try { const r = await window.storage.get(key); return r ? r.value : null; } catch(e){ return null; }
@@ -332,6 +340,14 @@ async function storageSet(key, value){
       return true;
     } catch(e3){ return false; }
   }
+}
+async function storageRemove(key){
+  if (window.storage && typeof window.storage.remove === "function") {
+    try { await window.storage.remove(key); return true; } catch(e){}
+  }
+  try { await idbDelete(key); } catch(e){}
+  try { localStorage.removeItem(key); localStorage.removeItem(key + "__backend"); } catch(e){}
+  return true;
 }
 
 /* ============================================================ */
@@ -636,16 +652,31 @@ let EDIT_PLAN_PROGRAM_ID = null;
 let SHOW_STORAGE_PANEL = false;
 let VIDEO_LIGHTBOX = null; // {kind, id, eid} — الفيديو المطلوب تشغيله حاليًا فقط، وليس كل الفيديوهات
 
-/* محتوى الشواهد الفعلي (dataUrl) محفوظ في مفتاح تخزين منفصل تمامًا عن بيانات المنصة الأساسية،
-   ويُحمَّل مرة واحدة في الذاكرة (EVIDENCE_BLOBS) عند بدء التشغيل. هذا يفصل حجم الشواهد كليًا عن
-   persist() الأساسي: أي تعديل عادي (حذف/تعديل مهمة، برنامج، فعالية...) يبقى دائمًا سريعًا وخفيفًا
-   بغض النظر عن حجم الشواهد المتراكمة — فقط رفع أو حذف شاهد بعينه يمسّ هذا المخزن المنفصل. قبل هذا
-   التعديل كان كل تغيير مهما كان بسيطًا يُعيد تسلسل (JSON.stringify) كامل بيانات المنصة بما فيها كل
-   الشواهد دفعة واحدة في كل مرة — وهو ما كان يستهلك ذاكرة الجهاز تراكميًا ويتسبب أحيانًا في إغلاق
-   الصفحة فجأة عند حذف أو تعديل أي شيء، حتى لو لم يكن له علاقة بالشواهد إطلاقًا */
+/* محتوى كل شاهد (dataUrl) يُحفظ في مفتاح تخزين خاص به وحده — منفصل تمامًا عن بيانات المنصة
+   الأساسية وعن بقية الشواهد أيضًا. هذا يعني أن أي عملية (حفظ بيانات المنصة، رفع شاهد جديد، حذف
+   شاهد) تمسّ فقط حجمها الفعلي الخاص بها، بغض النظر عن حجم كل الشواهد الأخرى المتراكمة:
+   - تعديل عادي (حذف/تعديل مهمة، برنامج، فعالية...) لا يمسّ الشواهد إطلاقًا (DATA خفيفة دائمًا).
+   - رفع شاهد جديد يكتب فقط محتواه هو في مفتاحه الخاص — لا يُعاد كتابة أي شاهد آخر موجود مسبقًا.
+   - حذف شاهد يمسح فقط مفتاحه هو.
+   محتوى الشواهد يُحمَّل في الذاكرة (EVIDENCE_BLOBS) مرة واحدة عند بدء التشغيل، بالتوازي لكل شاهد.
+   (المحاولة الأولى لهذا الإصلاح جمّعت كل الشواهد في مفتاح واحد مشترك — وهذا كرّر نفس المشكلة بشكل
+   مصغّر: رفع شاهد جديد كان لا يزال يعيد كتابة كل الشواهد الأخرى دفعة واحدة. هذا التصميم يصلح ذلك
+   جذريًا بمفتاح مستقل تمامًا لكل شاهد على حدة) */
 const EVIDENCE_STORAGE_KEY = STORAGE_KEY + "__evidence";
+function evidenceBlobKey(id){ return EVIDENCE_STORAGE_KEY + ":" + id; }
 let EVIDENCE_BLOBS = {};
-async function persistEvidenceBlobs(){ return await storageSet(EVIDENCE_STORAGE_KEY, JSON.stringify(EVIDENCE_BLOBS)); }
+async function persistEvidenceBlob(id){ return await storageSet(evidenceBlobKey(id), EVIDENCE_BLOBS[id]); }
+async function removeEvidenceBlob(id){ delete EVIDENCE_BLOBS[id]; return await storageRemove(evidenceBlobKey(id)); }
+/* كل معرّفات الشواهد المُشار إليها حاليًا في أي مكان ببيانات المنصة — تُستخدم عند بدء التشغيل لمعرفة
+   أي الشواهد يجب تحميل محتواها الفعلي، بدل الاعتماد على فهرس منفصل قد يفقد تزامنه مع البيانات */
+function allEvidenceIds(){
+  const ids = [];
+  DATA.tasks.forEach(t => (t.evidence||[]).forEach(e => ids.push(e.id)));
+  DATA.competitions.forEach(c => (c.evidence||[]).forEach(e => ids.push(e.id)));
+  (DATA.activityPlan && DATA.activityPlan.categories || []).forEach(cat => (cat.programs||[]).forEach(p => (p.evidence||[]).forEach(e => ids.push(e.id))));
+  Object.keys(DATA.eventLog||{}).forEach(k => (DATA.eventLog[k].evidence||[]).forEach(e => ids.push(e.id)));
+  return ids;
+}
 
 async function persist(){ return await storageSet(STORAGE_KEY, JSON.stringify(DATA)); }
 async function mutate(fn){ fn(DATA); render(); pushToCloud(); return await persist(); }
@@ -2896,7 +2927,7 @@ document.addEventListener("click", async (e) => {
       const item = arr.find(x=>x.id===id);
       if (item && item.evidence) item.evidence = item.evidence.filter(e=>e.id!==eid);
     });
-    if (EVIDENCE_BLOBS[eid]) { delete EVIDENCE_BLOBS[eid]; await persistEvidenceBlobs(); }
+    if (EVIDENCE_BLOBS[eid]) { await removeEvidenceBlob(eid); }
     return;
   }
 });
@@ -2942,22 +2973,22 @@ document.addEventListener("change", async (e) => {
     /* عنصر الشاهد المُدرَج داخل بيانات المنصة نفسها خفيف بلا محتواه الفعلي إطلاقًا (لا dataUrl) —
        المحتوى محفوظ بالفعل في EVIDENCE_BLOBS المنفصل، ويُلحَق بالعرض عند الحاجة فقط عبر hydrateEvidence */
     const lightItems = newItems.map(({id, type, name}) => ({id, type, name}));
-    const applyAdd = (d) => {
+    const applyAdd = (d, items) => {
       if (kind === "eventlog") {
         if (!d.eventLog) d.eventLog = {};
         const cur = d.eventLog[id] || {done:false, doneDate:"", evidence:[]};
-        cur.evidence = (cur.evidence||[]).concat(lightItems);
+        cur.evidence = (cur.evidence||[]).concat(items);
         d.eventLog[id] = cur;
         return;
       }
       if (kind === "planprogram") {
         const p = findPlanProgram(id);
-        if (p) { if (!p.evidence) p.evidence = []; p.evidence.push(...lightItems); }
+        if (p) { if (!p.evidence) p.evidence = []; p.evidence.push(...items); }
         return;
       }
       const arr = kind === "competition" ? d.competitions : d.tasks;
       const item = arr.find(x=>x.id===id);
-      if (item) { if (!item.evidence) item.evidence = []; item.evidence.push(...lightItems); }
+      if (item) { if (!item.evidence) item.evidence = []; item.evidence.push(...items); }
     };
     const applyRollback = (d) => {
       if (kind === "eventlog") {
@@ -2975,25 +3006,30 @@ document.addEventListener("change", async (e) => {
       if (item && item.evidence) item.evidence = item.evidence.filter(x => !newItems.some(n=>n.id===x.id));
     };
     if (newItems.length) {
-      /* محتوى الشاهد (dataUrl) يُحفظ في مخزن الشواهد المنفصل أولاً — وليس ضمن بيانات المنصة
-         الأساسية — حتى تبقى بيانات المنصة خفيفة وسريعة الحفظ دائمًا بغض النظر عن حجم الشواهد */
+      /* كل شاهد يُحفظ في مفتاحه المستقل الخاص به وحده — بالتوازي — فلا يمسّ رفع شاهد جديد أي
+         شاهد آخر محفوظ مسبقًا، ولا يتأثر بحجم كل الشواهد الأخرى المتراكمة إطلاقًا */
       newItems.forEach(item => { EVIDENCE_BLOBS[item.id] = item.dataUrl; });
-      const evOk = await persistEvidenceBlobs();
-      if (!evOk) {
-        newItems.forEach(item => { delete EVIDENCE_BLOBS[item.id]; });
-        alert("تعذّر حفظ الشاهد — مساحة التخزين في متصفحك ممتلئة أو الملف كبير جدًا. جرّب صورة أصغر، أو احذف شواهد قديمة لا تحتاجها ثم أعد المحاولة.");
-      } else {
-        const ok = await mutate(applyAdd);
+      const results = await Promise.all(newItems.map(item => persistEvidenceBlob(item.id)));
+      const savedItems = newItems.filter((item, i) => results[i]);
+      const failedItems = newItems.filter((item, i) => !results[i]);
+      failedItems.forEach(item => { delete EVIDENCE_BLOBS[item.id]; });
+      if (failedItems.length) {
+        alert(`تعذّر حفظ ${failedItems.length} ${failedItems.length===1?"شاهد":"شواهد"} — مساحة التخزين في متصفحك ممتلئة أو الملف كبير جدًا. جرّب صورة أصغر، أو احذف شواهد قديمة لا تحتاجها ثم أعد المحاولة.`);
+      }
+      if (savedItems.length) {
+        const savedIds = new Set(savedItems.map(item => item.id));
+        const lightSaved = lightItems.filter(item => savedIds.has(item.id));
+        const ok = await mutate(d => applyAdd(d, lightSaved));
         if (!ok) {
-          newItems.forEach(item => { delete EVIDENCE_BLOBS[item.id]; });
-          await persistEvidenceBlobs();
+          savedItems.forEach(item => { delete EVIDENCE_BLOBS[item.id]; });
+          await Promise.all(savedItems.map(item => storageRemove(evidenceBlobKey(item.id))));
           await mutate(applyRollback);
           alert("تعذّر حفظ الشاهد — مساحة التخزين في متصفحك ممتلئة أو الملف كبير جدًا. جرّب صورة أصغر، أو احذف شواهد قديمة لا تحتاجها ثم أعد المحاولة.");
         } else {
           /* بعد نجاح الحفظ المحلي (وهو مضمون بغض النظر عمّا يلي)، نحاول رفع نسخة احتياطية للشاهد على
              السحابة (Cloudinary) لتظهر لاحقًا على بقية الأجهزة أيضًا. هذا رفع إضافي غير حاسم إطلاقًا:
              أي فشل فيه (لا إنترنت، الخدمة متعطلة، إلخ) لا يؤثر على الشاهد المحفوظ محليًا بأي شكل */
-          cloudUploadQueue.forEach(({item, blob}) => uploadEvidenceToCloud(kind, id, item.id, blob));
+          cloudUploadQueue.filter(({item}) => savedIds.has(item.id)).forEach(({item, blob}) => uploadEvidenceToCloud(kind, id, item.id, blob));
         }
       }
     }
@@ -3027,26 +3063,43 @@ document.addEventListener("change", async (e) => {
     try { DATA = JSON.parse(saved); } catch(e) { DATA = JSON.parse(JSON.stringify(DEFAULT_DATA)); }
   }
   ensureDataShape();
-  try {
-    const savedEvidence = await storageGet(EVIDENCE_STORAGE_KEY);
-    if (savedEvidence) EVIDENCE_BLOBS = JSON.parse(savedEvidence);
-  } catch(e) { EVIDENCE_BLOBS = {}; }
-  /* ترحيل لمرة واحدة: بيانات محفوظة قبل هذا التحديث كانت تحمل محتوى الشاهد (dataUrl) مضمَّنًا مباشرة
-     داخل بيانات المنصة نفسها، وهو بالضبط ما كان يجعل أي تعديل بسيط (حتى غير متعلق بالشواهد) يعيد
-     تسلسل كل تلك البيانات الثقيلة في كل مرة ويستهلك ذاكرة الجهاز تراكميًا. هنا فقط، مرة واحدة، نقل
-     محتوى كل شاهد قديم إلى المخزن المنفصل EVIDENCE_BLOBS مع إبقاء الشاهد نفسه (id/type/name) كما هو
-     تمامًا في مكانه — لا يُحذف أي شاهد إطلاقًا، فقط يُنقل محتواه لمكان أخف وأسرع */
+  let evidenceMigrated = false;
+  /* ترحيل V1 لمرة واحدة: بيانات محفوظة قبل أي من هذه الإصلاحات كانت تحمل محتوى الشاهد (dataUrl)
+     مضمَّنًا مباشرة داخل عنصر الشاهد نفسه في بيانات المنصة — لا يُحذف أي شاهد إطلاقًا، فقط يُنقل
+     محتواه لمكان أخف وأسرع مع إبقاء الشاهد نفسه (id/type/name) كما هو تمامًا في مكانه */
   if (!DATA.__migratedEvidenceStore) {
     const migrate = (arr) => (arr||[]).forEach(e => {
-      if (e.dataUrl) { if (!EVIDENCE_BLOBS[e.id]) EVIDENCE_BLOBS[e.id] = e.dataUrl; delete e.dataUrl; }
+      if (e.dataUrl) { EVIDENCE_BLOBS[e.id] = e.dataUrl; delete e.dataUrl; evidenceMigrated = true; }
     });
     DATA.tasks.forEach(t => migrate(t.evidence));
     DATA.competitions.forEach(c => migrate(c.evidence));
     (DATA.activityPlan && DATA.activityPlan.categories || []).forEach(cat => (cat.programs||[]).forEach(p => migrate(p.evidence)));
     Object.keys(DATA.eventLog||{}).forEach(k => migrate(DATA.eventLog[k] && DATA.eventLog[k].evidence));
     DATA.__migratedEvidenceStore = true;
-    await persistEvidenceBlobs();
+  }
+  /* ترحيل V2 لمرة واحدة: إصلاح سابق (غير كافٍ) كان يجمع محتوى كل الشواهد في مفتاح تخزين واحد
+     مشترك — فكان رفع شاهد جديد لا يزال يعيد كتابة كل الشواهد الأخرى دفعة واحدة، وهي نفس المشكلة
+     بشكل مصغّر. هنا نسحب ما كان مُجمَّعًا في ذلك المفتاح المشترك، تمهيدًا لتفريقه لمفتاح مستقل لكل
+     شاهد على حدة (الإصلاح الجذري النهائي أدناه) — لا يُحذف أي شاهد إطلاقًا هنا أيضًا */
+  if (!DATA.__migratedEvidenceStoreV2) {
+    try {
+      const oldCombined = await storageGet(EVIDENCE_STORAGE_KEY);
+      if (oldCombined) {
+        const oldMap = JSON.parse(oldCombined);
+        Object.keys(oldMap).forEach(id => { if (!EVIDENCE_BLOBS[id]) { EVIDENCE_BLOBS[id] = oldMap[id]; evidenceMigrated = true; } });
+      }
+    } catch(e){}
+    DATA.__migratedEvidenceStoreV2 = true;
+  }
+  if (evidenceMigrated) {
+    await Promise.all(Object.keys(EVIDENCE_BLOBS).map(id => persistEvidenceBlob(id)));
+    try { await storageRemove(EVIDENCE_STORAGE_KEY); } catch(e){}
     await persist();
+  } else {
+    /* المسار العادي: كل شاهد بمفتاحه المستقل، تُحمَّل كلها بالتوازي مرة واحدة عند بدء التشغيل */
+    const ids = allEvidenceIds();
+    const values = await Promise.all(ids.map(id => storageGet(evidenceBlobKey(id))));
+    ids.forEach((id, i) => { if (values[i] != null) EVIDENCE_BLOBS[id] = values[i]; });
   }
   /* تنظيف لمرة واحدة (بناءً على طلب صريح): حذف فعاليات الجدول/التقويم "لمرة واحدة" المؤرَّخة قبل
      بداية العام الدراسي (لا توجد دراسة قبل هذا التاريخ أصلًا). محمي بعلامة تمنعه من التكرار مستقبلاً
