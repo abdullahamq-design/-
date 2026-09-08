@@ -418,6 +418,7 @@ function ensureDataShape(){
      نُبقيها متكررة صراحة حتى لا تختفي فجأة، بينما أي فعالية جديدة تُضاف من الآن تكون لمرة واحدة
      افتراضيًا ما لم يُفعَّل خيار التكرار صراحة */
   (DATA.weekly||[]).forEach(w => { if (w.recurring === undefined) w.recurring = true; });
+  (DATA.weeklyPlan||[]).forEach(p => { if (p.done === undefined) p.done = false; });
 }
 
 /* دمج مصفوفة شواهد بحسب id: أي شاهد محلي يبقى بمحتواه الفعلي (dataUrl) كما هو دائمًا — لا يُستبدل
@@ -1115,12 +1116,13 @@ function viewVision(){
     </div>` : "";
 
   const planCards = plan.length ? plan.map(p => `
-    <div class="item" style="align-items:flex-start;">
+    <div class="item ${p.done?"done-row":""}" style="align-items:flex-start;">
+      <button class="check ${p.done?"done":""}" data-action="togglePlanWeekDone" data-id="${p.id}" title="${p.done?"إلغاء التمام":"إتمام وإنهاء"}">${ICONS.check}</button>
       <div class="flex1">
         <div class="meta" style="font-weight:800; color:var(--blue); margin-bottom:4px;">
-          ${p.startDate ? esc(p.startDate) : "؟"} — ${p.endDate ? esc(p.endDate) : "؟"}
+          ${p.startDate ? esc(p.startDate) : "؟"} — ${p.endDate ? esc(p.endDate) : "؟"} ${p.done?'<span style="color:var(--cyan);">· ✓ منتهية</span>':""}
         </div>
-        <div class="title" style="font-weight:600; line-height:1.7;">${esc(p.focus) || "—"}</div>
+        <div class="title" style="font-weight:600; line-height:1.7; ${p.done?"text-decoration:line-through;opacity:.65;":""}">${esc(p.focus) || "—"}</div>
         ${(p.domain||p.program)?`<div style="margin-top:6px; display:flex; gap:6px; flex-wrap:wrap;">${p.domain?chip(p.domain, domainColor(p.domain)):""}${p.program?chip("📘 "+p.program, "var(--muted)"):""}</div>`:""}
       </div>
       <button class="trash-btn" data-action="removePlanWeek" data-id="${p.id}">${ICONS.trash}</button>
@@ -1779,7 +1781,7 @@ function viewCalendar(){
   const detailBody = `
     ${sel.planEntry ? `
       <div class="alert-row soon" style="background:#F6EAF5; color:var(--magenta); margin-bottom:14px;">
-        ${ICONS.compass}<span class="t" style="color:var(--ink);">خطة الأسبوع (${esc(sel.planEntry.startDate)} — ${esc(sel.planEntry.endDate)}): ${esc(sel.planEntry.focus)}</span>
+        ${ICONS.compass}<span class="t" style="color:var(--ink); ${sel.planEntry.done?"text-decoration:line-through;opacity:.65;":""}">خطة الأسبوع (${esc(sel.planEntry.startDate)} — ${esc(sel.planEntry.endDate)}): ${esc(sel.planEntry.focus)}${sel.planEntry.done?' <b style="color:var(--cyan); text-decoration:none;">· ✓ منتهية</b>':""}</span>
       </div>` : ""}
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
       <div style="font-weight:800;color:var(--navy);font-size:13px;">الفعاليات المتكررة</div>
@@ -2702,6 +2704,11 @@ document.addEventListener("click", async (e) => {
   if (action === "removePlanWeek") {
     const id = btn.dataset.id;
     await mutate(d => { d.weeklyPlan = d.weeklyPlan.filter(p=>p.id!==id); });
+    return;
+  }
+  if (action === "togglePlanWeekDone") {
+    const id = btn.dataset.id;
+    await mutate(d => { const p = d.weeklyPlan.find(x=>x.id===id); if (p) p.done = !p.done; });
     return;
   }
 
