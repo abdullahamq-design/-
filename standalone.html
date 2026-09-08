@@ -396,7 +396,7 @@
   /* بطاقات إحصاء ملوّنة */
   .rpt-bigstats{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:16px;}
   .rpt-bigstat{border-radius:14px; padding:22px 20px; color:#fff; position:relative; min-height:104px;}
-  .rpt-bigstat .n{font-family:Georgia,serif; font-weight:700; font-size:38px; line-height:1;}
+  .rpt-bigstat .n{font-family:Georgia,serif; font-weight:700; font-size:38px; line-height:1; margin-top:24px;}
   .rpt-bigstat .l{font-size:12.5px; opacity:.92; margin-top:8px;}
   .rpt-bigstat .badge{position:absolute; top:16px; inset-inline-start:18px; background:rgba(255,255,255,.18);
     border-radius:8px; padding:4px 11px; font-size:12px; font-weight:700;}
@@ -1019,6 +1019,7 @@ function ensureDataShape(){
      افتراضيًا ما لم يُفعَّل خيار التكرار صراحة */
   (DATA.weekly||[]).forEach(w => { if (w.recurring === undefined) w.recurring = true; });
   (DATA.weeklyPlan||[]).forEach(p => { if (p.done === undefined) p.done = false; });
+  (DATA.activityPlan && DATA.activityPlan.categories || []).forEach(cat => (cat.programs||[]).forEach(p => { if (p.done === undefined) p.done = false; }));
 }
 
 /* دمج مصفوفة شواهد بحسب id: أي شاهد محلي يبقى بمحتواه الفعلي (dataUrl) كما هو دائمًا — لا يُستبدل
@@ -1497,6 +1498,14 @@ function planStudentsPanel(p){
           <div class="flex1"><div class="title">${esc(s.name)}</div>${s.grade?`<div class="meta">الصف: ${esc(s.grade)}</div>`:""}</div>
           <button class="trash-btn" data-action="removePlanStudent" data-id="${p.id}" data-sid="${s.id}">${ICONS.trash}</button>
         </div>`).join("")}</div>` : `<div style="color:var(--muted); font-size:12.5px; margin-bottom:12px;">العدد المعتمد من الخطة: ${p.actualCount} طالب — لم تُضف أسماء بعد</div>`}
+      <div style="border-top:1px dashed var(--line); padding-top:12px; margin-bottom:12px;">
+        <div style="font-size:11.5px; color:var(--muted); margin-bottom:8px;">إذا لا تحتاج تسجيل أسماء الطلاب، اكتفِ بعدد فقط:</div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <button class="btn small ghost" data-action="markAllStudentsParticipated" data-id="${p.id}">✓ جميع الطلاب شاركوا (${p.targetCount})</button>
+          <input id="ps-count-${p.id}" type="number" min="0" placeholder="أو عدد محدد" style="width:120px; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-family:'Cairo'; font-size:12.5px;">
+          <button class="btn small" data-action="setPlanProgramCount" data-id="${p.id}">حفظ العدد</button>
+        </div>
+      </div>
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
         <input id="ps-name-${p.id}" type="text" placeholder="اسم الطالب" style="flex:1; min-width:140px; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-family:'Cairo'; font-size:12.5px;">
         <input id="ps-grade-${p.id}" type="text" placeholder="الصف (اختياري)" style="width:110px; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-family:'Cairo'; font-size:12.5px;">
@@ -1563,17 +1572,18 @@ function viewActivityPlan(){
       if (STUDENTS_OPEN_ID === p.id) panelRows.push(`<tr class="evidence-row"><td colspan="4">${planStudentsPanel(p)}</td></tr>`);
       if (EVIDENCE_OPEN_ID === p.id) panelRows.push(`<tr class="evidence-row"><td colspan="4">${evidencePanel(p, "planprogram")}</td></tr>`);
       return `
-      <tr>
+      <tr class="${p.done?'done-row':''}">
         <td style="width:150px; font-size:12px; color:var(--muted);">${esc(formatLongAr(p.date))}<div style="font-size:10.5px; margin-top:2px;">${semLabel}</div></td>
         <td>
-          <div class="tt">${esc(p.name)}</div>
+          <div class="tt">${esc(p.name)}${p.done?' <span style="color:var(--cyan); text-decoration:none;">· ✓ منتهي</span>':""}</div>
           <div class="meta">${esc(p.desc)}${p.location?` · ${esc(p.location)}`:""}</div>
         </td>
         <td style="width:90px; text-align:center; font-size:12px; font-weight:700; color:var(--navy);">${p.targetCount}</td>
-        <td style="width:260px;">
+        <td style="width:280px;">
           <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
             <button class="evidence-btn has" data-action="togglePlanStudents" data-id="${p.id}">👥 الطلاب المنفذون (${studentCount})</button>
             <button class="evidence-btn ${evidenceCount?'has':''}" data-action="toggleEvidence" data-id="${p.id}">📎 الشواهد${evidenceCount?` (${evidenceCount})`:""}</button>
+            <button class="icon-btn" data-action="togglePlanProgramDone" data-id="${p.id}" title="${p.done?'إلغاء الإتمام':'إتمام'}">${ICONS.check}</button>
             <button class="icon-btn" data-action="editPlanProgram" data-id="${p.id}" title="تعديل البرنامج">${ICONS.pencil}</button>
             <button class="icon-btn" data-action="removePlanProgram" data-id="${p.id}" title="حذف البرنامج">${ICONS.trash}</button>
           </div>
@@ -2316,7 +2326,10 @@ function buildTableRows(){
     const weekdayName = DAY_INDEX[new Date(CAL_YEAR, CAL_MONTH, d).getDay()];
     const {weeklyEvents, tasksDue, programsDue, planEntry} = getDayItems(iso, weekdayName);
     const items = [];
-    weeklyEvents.forEach(w => items.push(`<div style="display:flex; align-items:center; gap:6px;">🕐 <b>${esc(w.time)}</b> — ${esc(w.title)}${w.location?` <span style="color:var(--muted)">(${esc(w.location)})</span>`:""}<button class="icon-btn" data-action="editWeekly" data-id="${w.id}" style="margin-inline-start:auto;">${ICONS.pencil}</button><button class="trash-btn" data-action="removeWeekly" data-id="${w.id}">${ICONS.trash}</button></div>`));
+    weeklyEvents.forEach(w => items.push(
+      EDIT_WEEKLY_ID === w.id ? inlineWeeklyEditForm(w) :
+      `<div style="display:flex; align-items:center; gap:6px;">🕐 <b>${esc(w.time)}</b> — ${esc(w.title)}${w.location?` <span style="color:var(--muted)">(${esc(w.location)})</span>`:""}<button class="icon-btn" data-action="editWeekly" data-id="${w.id}" style="margin-inline-start:auto;">${ICONS.pencil}</button><button class="trash-btn" data-action="removeWeekly" data-id="${w.id}">${ICONS.trash}</button></div>`
+    ));
     tasksDue.forEach(t => items.push(`<div style="color:${t.done?'var(--muted)':'var(--coral)'}">${t.done?"✔":"◻"} ${esc(t.title)}</div>`));
     programsDue.forEach(p => items.push(`<div style="color:var(--navy)">🎯 ${esc(p.name)} <span style="color:var(--muted)">(${esc(p.catName)})</span></div>`));
     if (planEntry) items.push(`<div style="color:var(--magenta)">📌 ${esc(planEntry.focus)}</div>`);
@@ -2433,15 +2446,19 @@ function viewCalendar(){
       <div style="font-weight:800;color:var(--navy);margin-bottom:8px;font-size:13px; margin-top:16px;">برامج خطة رائد النشاط</div>
       <div class="list">
         ${sel.programsDue.map(p=>{
+          if (EDIT_PLAN_PROGRAM_ID === p.id) return `<div class="item" style="display:block;">${inlinePlanProgramEditForm(findPlanProgram(p.id))}</div>`;
           const evN=(p.evidence||[]).length;
           const panel = EVIDENCE_OPEN_ID === p.id ? `<div class="item" style="display:block;">${evidencePanel(p,"planprogram")}</div>` : "";
           return `
           <div class="item">
             <div class="flex1">
-              <div class="title">🎯 ${esc(p.name)}</div>
+              <div class="title" style="${p.done?'text-decoration:line-through;opacity:.65;':''}">🎯 ${esc(p.name)}${p.done?' <span style="color:var(--cyan); text-decoration:none;">· ✓ منتهي</span>':""}</div>
               <div class="meta">${esc(p.catName)}${evN?` · 📎 ${evN} شاهد`:""}</div>
             </div>
             <button class="evidence-btn ${evN?'has':''}" data-action="toggleEvidence" data-id="${p.id}" title="الشواهد">📎${evN?` ${evN}`:""}</button>
+            <button class="icon-btn" data-action="togglePlanProgramDone" data-id="${p.id}" title="${p.done?'إلغاء الإتمام':'إتمام'}">${ICONS.check}</button>
+            <button class="icon-btn" data-action="editPlanProgram" data-id="${p.id}" title="تعديل البرنامج">${ICONS.pencil}</button>
+            <button class="trash-btn" data-action="removePlanProgram" data-id="${p.id}" title="حذف البرنامج">${ICONS.trash}</button>
           </div>${panel}`;
         }).join("")}
       </div>` : ""}
@@ -3426,6 +3443,11 @@ document.addEventListener("click", async (e) => {
     render();
     return;
   }
+  if (action === "togglePlanProgramDone") {
+    const id = btn.dataset.id;
+    await mutate(() => { const p = findPlanProgram(id); if (p) p.done = !p.done; });
+    return;
+  }
   if (action === "closePlanProgramEdit") { EDIT_PLAN_PROGRAM_ID = null; render(); return; }
   if (action === "savePlanProgramEdit") {
     const id = btn.dataset.id;
@@ -3467,6 +3489,19 @@ document.addEventListener("click", async (e) => {
       const p = findPlanProgram(id);
       if (p && p.students) p.students = p.students.filter(s=>s.id!==sid);
     });
+    return;
+  }
+  if (action === "markAllStudentsParticipated") {
+    const id = btn.dataset.id;
+    await mutate(() => { const p = findPlanProgram(id); if (p) p.actualCount = p.targetCount; });
+    return;
+  }
+  if (action === "setPlanProgramCount") {
+    const id = btn.dataset.id;
+    const input = document.getElementById(`ps-count-${id}`);
+    const n = parseInt(input.value, 10);
+    if (isNaN(n) || n < 0) return;
+    await mutate(() => { const p = findPlanProgram(id); if (p) p.actualCount = n; });
     return;
   }
 
@@ -3714,6 +3749,16 @@ document.addEventListener("change", async (e) => {
   if (!DATA.__prunedWeeklyBeforeSY) {
     DATA.weekly = DATA.weekly.filter(w => !(!w.recurring && w.date && w.date < SY_START));
     DATA.__prunedWeeklyBeforeSY = true;
+    await persist();
+  }
+  /* ترميم لمرة واحدة: فقرة الأسبوع الأول من الخطة التشغيلية (٣٠ أغسطس — ٣ سبتمبر) حُذفت عن غير
+     قصد (على الأرجح أثناء محاولة حذف فقرة أخرى من قائمة طويلة). نعيدها بمحتواها الأصلي إن كانت
+     غائبة، مرة واحدة فقط — إن حذفها المستخدم لاحقًا عن قصد فلن تعود مجددًا */
+  if (!DATA.__restoredWeek1Plan) {
+    if (!DATA.weeklyPlan.some(p => p.id === "p1")) {
+      DATA.weeklyPlan.push({id:"p1", startDate:"2026-08-30", endDate:"2026-09-03", domain:"المواطنة والحياة", program:"قيمنا حياة", focus:"الأسبوع التمهيدي: تزيين الأروقة بالملصقات وبوابة بالونات، إذاعة ترحيبية بكلمة المدير والوكيل، ضيافة ترحيبية بكل فصل (تمر وقهوة)، توزيع بطاقات تحفيزية، وجولة تعريفية بالأنشطة والمرافق للطلاب المستجدين.", done:false});
+    }
+    DATA.__restoredWeek1Plan = true;
     await persist();
   }
   render();
