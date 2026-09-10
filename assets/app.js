@@ -420,6 +420,7 @@ function ensureDataShape(){
   (DATA.weekly||[]).forEach(w => { if (w.recurring === undefined) w.recurring = true; });
   (DATA.weeklyPlan||[]).forEach(p => { if (p.done === undefined) p.done = false; });
   (DATA.activityPlan && DATA.activityPlan.categories || []).forEach(cat => (cat.programs||[]).forEach(p => { if (p.done === undefined) p.done = false; }));
+  (DATA.competitions||[]).forEach(c => { if (c.impact === undefined) c.impact = ""; });
 }
 
 /* دمج مصفوفة شواهد بحسب id: أي شاهد محلي يبقى بمحتواه الفعلي (dataUrl) كما هو دائمًا — لا يُستبدل
@@ -653,6 +654,7 @@ let REPORT_MONTH = _inSY ? _now.getMonth() : _syS.getMonth();
 let REPORT_COPIED = false;
 let EVIDENCE_OPEN_ID = null;
 let STUDENTS_OPEN_ID = null;
+let IMPACT_OPEN_ID = null;
 let EDIT_COMP_ID = null;
 let SHOW_PLAN_PROGRAM_FORM = null;
 let EDIT_PLAN_PROGRAM_ID = null;
@@ -1614,6 +1616,19 @@ function studentsPanel(c){
     </div>`;
 }
 
+function impactPanel(c){
+  const impact = c.impact || "";
+  return `
+    <div class="evidence-panel">
+      <div style="font-weight:800;color:var(--navy);font-size:12.5px;margin-bottom:6px;">قياس الأثر المستفاد من الطلاب</div>
+      <div style="color:var(--muted); font-size:12px; margin-bottom:10px;">صف باختصار الأثر أو الفائدة التي تحققت للطلاب من مشاركتهم في هذه المسابقة (مهارات، وعي، ثقة، نتائج ملموسة...).</div>
+      <textarea id="c-impact-${c.id}" rows="4" placeholder="مثال: نمّت المسابقة مهارات البحث العلمي لدى المشاركين وعزّزت روح المنافسة الإيجابية بين الطلاب..." style="width:100%; border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-family:'IBM Plex Sans Arabic'; font-size:13px; resize:vertical;">${esc(impact)}</textarea>
+      <div style="margin-top:10px;">
+        <button class="btn small" data-action="saveImpact" data-id="${c.id}">حفظ قياس الأثر</button>
+      </div>
+    </div>`;
+}
+
 function compFormPanel(){
   const editing = EDIT_COMP_ID ? DATA.competitions.find(c => c.id === EDIT_COMP_ID) : null;
   return `
@@ -1674,6 +1689,7 @@ function viewCompetitions(){
         <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
           <button class="evidence-btn ${studentCount ? "has" : ""}" data-action="toggleStudents" data-id="${c.id}">👥 الطلاب المسجلون${studentCount ? ` (${studentCount})` : ""}</button>
           <button class="evidence-btn ${evidenceCount ? "has" : ""}" data-action="toggleEvidence" data-id="${c.id}">📎 شواهد التسجيل${evidenceCount ? ` (${evidenceCount})` : ""}</button>
+          <button class="evidence-btn ${c.impact ? "has" : ""}" data-action="toggleImpact" data-id="${c.id}">📊 قياس الأثر</button>
           <button class="icon-btn" data-action="editCompetition" data-id="${c.id}" title="تعديل المسابقة">${ICONS.pencil}</button>
           <button class="trash-btn" data-action="removeCompetition" data-id="${c.id}" title="حذف">${ICONS.trash}</button>
         </div>
@@ -1682,8 +1698,9 @@ function viewCompetitions(){
 
     const studentsRow = STUDENTS_OPEN_ID === c.id ? `<tr class="evidence-row"><td colspan="5">${studentsPanel(c)}</td></tr>` : "";
     const evidenceRow = EVIDENCE_OPEN_ID === c.id ? `<tr class="evidence-row"><td colspan="5">${evidencePanel(c, "competition")}</td></tr>` : "";
+    const impactRow = IMPACT_OPEN_ID === c.id ? `<tr class="evidence-row"><td colspan="5">${impactPanel(c)}</td></tr>` : "";
 
-    return mainRow + studentsRow + evidenceRow;
+    return mainRow + studentsRow + evidenceRow + impactRow;
   }).join("");
 
   return `
@@ -2771,7 +2788,7 @@ document.addEventListener("click", async (e) => {
     const deadline = document.getElementById("c-deadline").value;
     const result = document.getElementById("c-result").value.trim();
     if (!name) return;
-    await mutate(d => { d.competitions.push({id:uid(), name, organizer, level, status, deadline, result, students:[], evidence:[]}); });
+    await mutate(d => { d.competitions.push({id:uid(), name, organizer, level, status, deadline, result, students:[], evidence:[], impact:""}); });
     SHOW_COMP_FORM = false; render();
     return;
   }
@@ -2797,6 +2814,13 @@ document.addEventListener("click", async (e) => {
     return;
   }
   if (action === "toggleStudents") { STUDENTS_OPEN_ID = (STUDENTS_OPEN_ID === btn.dataset.id ? null : btn.dataset.id); render(); return; }
+  if (action === "toggleImpact") { IMPACT_OPEN_ID = (IMPACT_OPEN_ID === btn.dataset.id ? null : btn.dataset.id); render(); return; }
+  if (action === "saveImpact") {
+    const id = btn.dataset.id;
+    const val = document.getElementById(`c-impact-${id}`).value.trim();
+    await mutate(d => { const c = d.competitions.find(x=>x.id===id); if (c) c.impact = val; });
+    return;
+  }
   if (action === "addStudent") {
     const id = btn.dataset.id;
     const nameInput = document.getElementById(`s-name-${id}`);
