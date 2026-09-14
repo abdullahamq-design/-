@@ -420,7 +420,7 @@ function ensureDataShape(){
   (DATA.weekly||[]).forEach(w => { if (w.recurring === undefined) w.recurring = true; });
   (DATA.weeklyPlan||[]).forEach(p => { if (p.done === undefined) p.done = false; });
   (DATA.activityPlan && DATA.activityPlan.categories || []).forEach(cat => (cat.programs||[]).forEach(p => { if (p.done === undefined) p.done = false; }));
-  (DATA.competitions||[]).forEach(c => { if (c.impact === undefined) c.impact = ""; });
+  (DATA.competitions||[]).forEach(c => { if (c.impact === undefined) c.impact = ""; if (!c.stages) c.stages = []; });
 }
 
 /* دمج مصفوفة شواهد بحسب id: أي شاهد محلي يبقى بمحتواه الفعلي (dataUrl) كما هو دائمًا — لا يُستبدل
@@ -655,6 +655,7 @@ let REPORT_COPIED = false;
 let EVIDENCE_OPEN_ID = null;
 let STUDENTS_OPEN_ID = null;
 let IMPACT_OPEN_ID = null;
+let STAGES_OPEN_ID = null;
 let EDIT_COMP_ID = null;
 let SHOW_PLAN_PROGRAM_FORM = null;
 let EDIT_PLAN_PROGRAM_ID = null;
@@ -1368,9 +1369,18 @@ function viewWeekly(){
 function findEvidenceArray(kind, id){
   if (kind === "eventlog") return (DATA.eventLog && DATA.eventLog[id] && DATA.eventLog[id].evidence) || [];
   if (kind === "planprogram") { const p = findPlanProgram(id); return (p && p.evidence) || []; }
+  if (kind === "compstage") { const {stage} = findCompStage(id); return (stage && stage.evidence) || []; }
   const arr = kind === "competition" ? DATA.competitions : DATA.tasks;
   const item = arr.find(x=>x.id===id);
   return (item && item.evidence) || [];
+}
+/* يبحث عن مرحلة تسجيل مسابقة عبر معرّف مركّب "compId::stageId" — تُستخدم لربط شواهد كل مرحلة
+   ببنية الشواهد العامة (findEvidenceArray/removeEvidence/إلخ) دون إنشاء مسار منفصل لها */
+function findCompStage(compositeId){
+  const [compId, stageId] = String(compositeId).split("::");
+  const c = DATA.competitions.find(x=>x.id===compId);
+  const stage = c && (c.stages||[]).find(s=>s.id===stageId);
+  return {c, stage};
 }
 /* تُعيد المرجع الفعلي للعنصر داخل DATA (وليس نسخة منه) — ضرورية لأي تعديل يكتب مباشرة على
    الشاهد (مثل تسجيل cloudUrl بعد نجاح الرفع السحابي) داخل mutate(). للعرض فقط استخدم hydrateEvidence
@@ -1629,6 +1639,54 @@ function impactPanel(c){
     </div>`;
 }
 
+/* حالة كل مرحلة تُحسب تلقائيًا من تاريخي البداية/النهاية مقارنة بتاريخ اليوم — لا حاجة لتحديثها يدويًا */
+function stageStatus(stage){
+  const dStart = stage.start ? daysUntil(stage.start) : null;
+  const dEnd = stage.end ? daysUntil(stage.end) : null;
+  if (dEnd !== null && dEnd < 0) return {label:"انتهت", color:"var(--muted)", key:"done"};
+  if (dStart !== null && dStart > 0) return {label:`تبدأ بعد ${dStart} ${dStart===1?"يوم":"أيام"}`, color:"var(--blue)", key:"upcoming"};
+  if (dEnd !== null) return {label: dEnd===0 ? "تنتهي اليوم" : `جارية الآن — باقي ${dEnd} ${dEnd===1?"يوم":"أيام"}`, color:"var(--cyan)", key:"active"};
+  return {label:"جارية الآن", color:"var(--cyan)", key:"active"};
+}
+
+function stagesPanel(c){
+  const stages = c.stages || [];
+  const withStatus = stages.map(s => ({...s, _st: stageStatus(s)}));
+  const activeStage = withStatus.find(s => s._st.key === "active");
+  const doneCount = withStatus.filter(s => s._st.key === "done").length;
+  return `
+    <div class="evidence-panel">
+      <div style="font-weight:800;color:var(--navy);font-size:12.5px;margin-bottom:4px;">مراحل التسجيل والتأهيل</div>
+      <div style="color:var(--muted); font-size:12px; margin-bottom:14px;">
+        ${stages.length ? `${doneCount} من ${stages.length} مرحلة منتهية${activeStage ? ` · المرحلة الحالية: ${esc(activeStage.name)}` : ""}` : "لم تُضف مراحل بعد — أضف أول مرحلة بالأسفل"}
+      </div>
+      ${withStatus.map(s => `
+        <div style="border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin-bottom:10px; ${s._st.key==='active' ? 'border-inline-start:4px solid var(--cyan);' : ''}">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap;">
+            <div>
+              <div style="font-weight:800; font-family:'Cairo'; font-size:13px; color:var(--navy);">${esc(s.name)}</div>
+              <div style="font-size:11.5px; color:var(--muted); margin-top:3px;">
+                ${(s.start || s.end) ? `${esc(s.start||"—")} → ${esc(s.end||"—")}` : ""}${s.location ? ` · ${esc(s.location)}` : ""}
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:11px; font-weight:700; color:${s._st.color};">${s._st.label}</span>
+              <button class="trash-btn" data-action="removeCompStage" data-id="${c.id}" data-sid="${s.id}">${ICONS.trash}</button>
+            </div>
+          </div>
+          ${evidencePanel({id:`${c.id}::${s.id}`, evidence:s.evidence}, "compstage")}
+        </div>
+      `).join("")}
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; padding-top:10px; border-top:1px solid var(--line);">
+        <input id="stg-name-${c.id}" type="text" placeholder="اسم المرحلة (مثال: فتح التسجيل)" style="flex:1; min-width:160px; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-family:'Cairo'; font-size:12.5px;">
+        <input id="stg-start-${c.id}" type="date" style="border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:12.5px;">
+        <input id="stg-end-${c.id}" type="date" style="border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:12.5px;">
+        <input id="stg-loc-${c.id}" type="text" placeholder="مقر التنفيذ (اختياري)" style="width:140px; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-family:'Cairo'; font-size:12.5px;">
+        <button class="btn small" data-action="addCompStage" data-id="${c.id}">إضافة مرحلة</button>
+      </div>
+    </div>`;
+}
+
 function compFormPanel(){
   const editing = EDIT_COMP_ID ? DATA.competitions.find(c => c.id === EDIT_COMP_ID) : null;
   return `
@@ -1690,6 +1748,7 @@ function viewCompetitions(){
           <button class="evidence-btn ${studentCount ? "has" : ""}" data-action="toggleStudents" data-id="${c.id}">👥 الطلاب المسجلون${studentCount ? ` (${studentCount})` : ""}</button>
           <button class="evidence-btn ${evidenceCount ? "has" : ""}" data-action="toggleEvidence" data-id="${c.id}">📎 شواهد التسجيل${evidenceCount ? ` (${evidenceCount})` : ""}</button>
           <button class="evidence-btn ${c.impact ? "has" : ""}" data-action="toggleImpact" data-id="${c.id}">📊 قياس الأثر</button>
+          <button class="evidence-btn ${(c.stages && c.stages.length) ? "has" : ""}" data-action="toggleStages" data-id="${c.id}">🛣 مراحل التسجيل</button>
           <button class="icon-btn" data-action="editCompetition" data-id="${c.id}" title="تعديل المسابقة">${ICONS.pencil}</button>
           <button class="trash-btn" data-action="removeCompetition" data-id="${c.id}" title="حذف">${ICONS.trash}</button>
         </div>
@@ -1699,8 +1758,9 @@ function viewCompetitions(){
     const studentsRow = STUDENTS_OPEN_ID === c.id ? `<tr class="evidence-row"><td colspan="5">${studentsPanel(c)}</td></tr>` : "";
     const evidenceRow = EVIDENCE_OPEN_ID === c.id ? `<tr class="evidence-row"><td colspan="5">${evidencePanel(c, "competition")}</td></tr>` : "";
     const impactRow = IMPACT_OPEN_ID === c.id ? `<tr class="evidence-row"><td colspan="5">${impactPanel(c)}</td></tr>` : "";
+    const stagesRow = STAGES_OPEN_ID === c.id ? `<tr class="evidence-row"><td colspan="5">${stagesPanel(c)}</td></tr>` : "";
 
-    return mainRow + studentsRow + evidenceRow + impactRow;
+    return mainRow + studentsRow + evidenceRow + impactRow + stagesRow;
   }).join("");
 
   return `
@@ -2821,6 +2881,28 @@ document.addEventListener("click", async (e) => {
     await mutate(d => { const c = d.competitions.find(x=>x.id===id); if (c) c.impact = val; });
     return;
   }
+  if (action === "toggleStages") { STAGES_OPEN_ID = (STAGES_OPEN_ID === btn.dataset.id ? null : btn.dataset.id); render(); return; }
+  if (action === "addCompStage") {
+    const id = btn.dataset.id;
+    const name = document.getElementById(`stg-name-${id}`).value.trim();
+    if (!name) return;
+    const start = document.getElementById(`stg-start-${id}`).value;
+    const end = document.getElementById(`stg-end-${id}`).value;
+    const location = document.getElementById(`stg-loc-${id}`).value.trim();
+    await mutate(d => {
+      const c = d.competitions.find(x=>x.id===id);
+      if (c) { if (!c.stages) c.stages = []; c.stages.push({id:uid(), name, start, end, location, evidence:[]}); }
+    });
+    return;
+  }
+  if (action === "removeCompStage") {
+    const id = btn.dataset.id, sid = btn.dataset.sid;
+    await mutate(d => {
+      const c = d.competitions.find(x=>x.id===id);
+      if (c && c.stages) c.stages = c.stages.filter(s=>s.id!==sid);
+    });
+    return;
+  }
   if (action === "addStudent") {
     const id = btn.dataset.id;
     const nameInput = document.getElementById(`s-name-${id}`);
@@ -2994,6 +3076,13 @@ document.addEventListener("click", async (e) => {
         if (p && p.evidence) p.evidence = p.evidence.filter(e=>e.id!==eid);
         return;
       }
+      if (kind === "compstage") {
+        const [compId, stageId] = id.split("::");
+        const c = d.competitions.find(x=>x.id===compId);
+        const stage = c && (c.stages||[]).find(s=>s.id===stageId);
+        if (stage && stage.evidence) stage.evidence = stage.evidence.filter(e=>e.id!==eid);
+        return;
+      }
       const arr = kind === "competition" ? d.competitions : d.tasks;
       const item = arr.find(x=>x.id===id);
       if (item && item.evidence) item.evidence = item.evidence.filter(e=>e.id!==eid);
@@ -3057,6 +3146,13 @@ document.addEventListener("change", async (e) => {
         if (p) { if (!p.evidence) p.evidence = []; p.evidence.push(...items); }
         return;
       }
+      if (kind === "compstage") {
+        const [compId, stageId] = id.split("::");
+        const c = d.competitions.find(x=>x.id===compId);
+        const stage = c && (c.stages||[]).find(s=>s.id===stageId);
+        if (stage) { if (!stage.evidence) stage.evidence = []; stage.evidence.push(...items); }
+        return;
+      }
       const arr = kind === "competition" ? d.competitions : d.tasks;
       const item = arr.find(x=>x.id===id);
       if (item) { if (!item.evidence) item.evidence = []; item.evidence.push(...items); }
@@ -3070,6 +3166,13 @@ document.addEventListener("change", async (e) => {
       if (kind === "planprogram") {
         const p = findPlanProgram(id);
         if (p && p.evidence) p.evidence = p.evidence.filter(x => !newItems.some(n=>n.id===x.id));
+        return;
+      }
+      if (kind === "compstage") {
+        const [compId, stageId] = id.split("::");
+        const c = d.competitions.find(x=>x.id===compId);
+        const stage = c && (c.stages||[]).find(s=>s.id===stageId);
+        if (stage && stage.evidence) stage.evidence = stage.evidence.filter(x => !newItems.some(n=>n.id===x.id));
         return;
       }
       const arr = kind === "competition" ? d.competitions : d.tasks;
@@ -3188,6 +3291,48 @@ document.addEventListener("change", async (e) => {
       DATA.weeklyPlan.push({id:"p1", startDate:"2026-08-30", endDate:"2026-09-03", domain:"المواطنة والحياة", program:"قيمنا حياة", focus:"الأسبوع التمهيدي: تزيين الأروقة بالملصقات وبوابة بالونات، إذاعة ترحيبية بكلمة المدير والوكيل، ضيافة ترحيبية بكل فصل (تمر وقهوة)، توزيع بطاقات تحفيزية، وجولة تعريفية بالأنشطة والمرافق للطلاب المستجدين.", done:false});
     }
     DATA.__restoredWeek1Plan = true;
+    await persist();
+  }
+  /* إضافة لمرة واحدة: مسابقتان استجدّتا (أولمبياد الموهبة الوطني — نسمو 2027، وبطولة الروبوت
+     السعودية) بناءً على ملفات أرسلها المستخدم — إضافة فقط، لا تُحذف ولا تُعدَّل أي مسابقة موجودة،
+     ولا تتكرر إن حذفها المستخدم لاحقًا */
+  if (!DATA.__addedFall2026Competitions) {
+    const already = new Set(DATA.competitions.map(c => c.name));
+    if (!already.has("أولمبياد الموهبة الوطني — المسار العلمي (نسمو) 2027")) {
+      DATA.competitions.push({
+        id: uid(), name: "أولمبياد الموهبة الوطني — المسار العلمي (نسمو) 2027",
+        organizer: "مؤسسة الملك عبدالعزيز ورجاله للموهبة والإبداع (موهبة)",
+        level: "وطني", status: "تسجيل مفتوح", deadline: "2026-09-30", result: "",
+        students: [], evidence: [], impact: "",
+        stages: [
+          {id:uid(), name:"اعتماد الإطار التنظيمي", start:"2026-06-21", end:"2026-07-21", location:"", evidence:[]},
+          {id:uid(), name:"ورشة لمنسقي الأولمبياد (عن بُعد)", start:"", end:"2026-09-16", location:"عن بُعد", evidence:[]},
+          {id:uid(), name:"فتح التسجيل", start:"2026-08-20", end:"2026-09-30", location:"موقع موهبة", evidence:[]},
+          {id:uid(), name:"تدريب الطالب عن بُعد (غير متزامن) 1", start:"2026-10-01", end:"2026-10-17", location:"موقع موهبة", evidence:[]},
+          {id:uid(), name:"اختبار مسابقة الإدارة العامة للتعليم (عن بُعد)", start:"2026-10-18", end:"2026-10-22", location:"الإدارة العامة للتعليم", evidence:[]},
+          {id:uid(), name:"إعلان نتائج مسابقة الإدارة العامة للتعليم", start:"", end:"2026-11-04", location:"موقع موهبة", evidence:[]},
+          {id:uid(), name:"تدريب الطالب عن بُعد (غير متزامن) 2", start:"2026-11-05", end:"2026-11-16", location:"موقع موهبة", evidence:[]},
+          {id:uid(), name:"اختبار مسابقة الفرق الوطنية (حضوري)", start:"", end:"2026-11-17", location:"الإدارة العامة للتعليم", evidence:[]},
+          {id:uid(), name:"إعلان نتائج مسابقة الفرق الوطنية", start:"", end:"2026-11-25", location:"موقع موهبة", evidence:[]},
+          {id:uid(), name:"تدريب الفرق الوطنية (حضوري)", start:"2026-11-29", end:"2026-12-03", location:"الإدارة العامة للتعليم", evidence:[]},
+          {id:uid(), name:"الاختبارات المركزية", start:"2026-12-08", end:"2026-12-21", location:"الدمام 1 - الدمام 2 - الرياض - جدة", evidence:[]},
+          {id:uid(), name:"نهائيات أولمبياد الموهبة الوطني", start:"2027-01-17", end:"2027-01-20", location:"الرياض", evidence:[]},
+        ],
+      });
+    }
+    if (!already.has("بطولة الروبوت السعودية — فئة رياضة الروبوت (WRO)")) {
+      DATA.competitions.push({
+        id: uid(), name: "بطولة الروبوت السعودية — فئة رياضة الروبوت (WRO)",
+        organizer: "WRO Saudi — بطولة الروبوت السعودية", level: "وطني", status: "تسجيل مفتوح",
+        deadline: "", result: "",
+        students: [{id:uid(), name:"مشاري حامد محمد العصيمي", grade:""}, {id:uid(), name:"خالد بن الوليد بن صالح الحسني", grade:""}],
+        evidence: [], impact: "",
+        stages: [
+          {id:uid(), name:"تسجيل الفريق والسداد الإلكتروني", start:"2026-09-14", end:"", location:"wrosaudi.com", evidence:[]},
+        ],
+      });
+    }
+    DATA.__addedFall2026Competitions = true;
     await persist();
   }
   render();
