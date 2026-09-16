@@ -395,7 +395,7 @@ function stripEvidenceLight(arr){
 function stripEvidenceForSync(data){
   const copy = JSON.parse(JSON.stringify(data));
   (copy.tasks||[]).forEach(t => { t.evidence = stripEvidenceLight(t.evidence); });
-  (copy.competitions||[]).forEach(c => { c.evidence = stripEvidenceLight(c.evidence); });
+  (copy.competitions||[]).forEach(c => { c.evidence = stripEvidenceLight(c.evidence); (c.stages||[]).forEach(s => { s.evidence = stripEvidenceLight(s.evidence); }); });
   if (copy.eventLog) {
     Object.keys(copy.eventLog).forEach(k => { if (copy.eventLog[k]) copy.eventLog[k].evidence = stripEvidenceLight(copy.eventLog[k].evidence); });
   }
@@ -473,6 +473,25 @@ function mergeEventLog(localLog, remoteLog){
   });
   return merged;
 }
+/* دمج خاص بالمسابقات: نفس فكرة mergeArrayById لكنه أيضًا يدمج مراحل التسجيل (stages) الخاصة بكل
+   مسابقة بحسب id — وإلا فإن الدمج العادي (الذي يستبدل كل حقل بقيمته من remote) كان سيستبدل مصفوفة
+   المراحل المحلية بكاملها بمصفوفة remote، فيضيع أي مرحلة أو شاهد مرحلة أُضيف على هذا الجهاز ولم يصل
+   بعد للجهاز الآخر الذي أتت منه هذه اللقطة */
+function mergeCompetitions(localArr, remoteArr){
+  const map = new Map((localArr||[]).map(x => [x.id, x]));
+  (remoteArr||[]).forEach(r => {
+    const local = map.get(r.id);
+    if (local) {
+      const merged = {...local, ...r};
+      merged.evidence = mergeEvidenceArray(local.evidence, r.evidence);
+      merged.stages = mergeArrayById(local.stages, r.stages);
+      map.set(r.id, merged);
+    } else {
+      map.set(r.id, r);
+    }
+  });
+  return Array.from(map.values());
+}
 /* دمج خاص بخطة رائد النشاط: الفئات نفسها ثابتة (18 فئة معرَّفة بـ key)، وما يُضاف فعليًا هو برامجها */
 function mergePlanCategories(localCats, remoteCats){
   const byKey = new Map((localCats||[]).map(c => [c.key, c]));
@@ -493,7 +512,7 @@ function mergePlanCategories(localCats, remoteCats){
    DATA = remote تستبدل البيانات المحلية بالكامل. */
 function mergeRemoteData(remote){
   DATA.tasks = mergeArrayById(DATA.tasks, remote.tasks);
-  DATA.competitions = mergeArrayById(DATA.competitions, remote.competitions);
+  DATA.competitions = mergeCompetitions(DATA.competitions, remote.competitions);
   DATA.weekly = mergeArrayById(DATA.weekly, remote.weekly);
   DATA.weeklyPlan = mergeArrayById(DATA.weeklyPlan, remote.weeklyPlan);
   DATA.eventLog = mergeEventLog(DATA.eventLog, remote.eventLog);
@@ -682,7 +701,7 @@ async function removeEvidenceBlob(id){ delete EVIDENCE_BLOBS[id]; return await s
 function allEvidenceIds(){
   const ids = [];
   DATA.tasks.forEach(t => (t.evidence||[]).forEach(e => ids.push(e.id)));
-  DATA.competitions.forEach(c => (c.evidence||[]).forEach(e => ids.push(e.id)));
+  DATA.competitions.forEach(c => { (c.evidence||[]).forEach(e => ids.push(e.id)); (c.stages||[]).forEach(s => (s.evidence||[]).forEach(e => ids.push(e.id))); });
   (DATA.activityPlan && DATA.activityPlan.categories || []).forEach(cat => (cat.programs||[]).forEach(p => (p.evidence||[]).forEach(e => ids.push(e.id))));
   Object.keys(DATA.eventLog||{}).forEach(k => (DATA.eventLog[k].evidence||[]).forEach(e => ids.push(e.id)));
   return ids;
@@ -703,7 +722,10 @@ function formatBytes(bytes){
 function collectAllEvidence(){
   const items = [];
   DATA.tasks.forEach(t => (t.evidence||[]).forEach(e => items.push({...hydrateEvidence(e), kind:"task", ownerId:t.id, ownerTitle:t.title})));
-  DATA.competitions.forEach(c => (c.evidence||[]).forEach(e => items.push({...hydrateEvidence(e), kind:"competition", ownerId:c.id, ownerTitle:c.name})));
+  DATA.competitions.forEach(c => {
+    (c.evidence||[]).forEach(e => items.push({...hydrateEvidence(e), kind:"competition", ownerId:c.id, ownerTitle:c.name}));
+    (c.stages||[]).forEach(s => (s.evidence||[]).forEach(e => items.push({...hydrateEvidence(e), kind:"compstage", ownerId:`${c.id}::${s.id}`, ownerTitle:`${c.name} · ${s.name}`})));
+  });
   (DATA.activityPlan && DATA.activityPlan.categories || []).forEach(cat => (cat.programs||[]).forEach(p =>
     (p.evidence||[]).forEach(e => items.push({...hydrateEvidence(e), kind:"planprogram", ownerId:p.id, ownerTitle:p.name}))));
   Object.keys(DATA.eventLog||{}).forEach(k => {
@@ -3333,6 +3355,36 @@ document.addEventListener("change", async (e) => {
       });
     }
     DATA.__addedFall2026Competitions = true;
+    await persist();
+  }
+  /* إضافة لمرة واحدة: مسابقة أولمبياد اللغة الإنجليزية (ELO 2026) بناءً على خطة التدريب اليومية
+     التي أرسلها المستخدم (PDF) — إضافة فقط، لا تُحذف ولا تُعدَّل أي مسابقة موجودة. الخطة الأصلية لا
+     تحمل تواريخ ميلادية (فقط "اليوم 1"، "اليوم 2"...)، فاعتُمد تاريخ اليوم كبداية لليوم الأول وحُسبت
+     بقية الأيام تتابعًا من عليه — قابلة للتعديل من زر التعديل إن اختلف تاريخ البدء الفعلي */
+  if (!DATA.__addedELO2026Competition) {
+    if (!DATA.competitions.some(c => c.name === "أولمبياد اللغة الإنجليزية (ELO) 2026")) {
+      DATA.competitions.push({
+        id: uid(), name: "أولمبياد اللغة الإنجليزية (ELO) 2026",
+        organizer: "ELO — أولمبياد اللغة الإنجليزية", level: "دولي", status: "جارية",
+        deadline: "2026-10-05", result: "", students: [], evidence: [], impact: "",
+        stages: [
+          {id:uid(), name:"اليوم 1: تشكيل فريق الطلاب وتوزيع أدوار التحدث بالتساوي بين جميع الأعضاء", start:"2026-09-16", end:"2026-09-16", location:"", evidence:[]},
+          {id:uid(), name:"اليوم 2: اختيار مشكلة مجتمعية محلية واحدة وجمع 3 مصادر معلومات (منها مصدر مهني/خبير واحد)", start:"2026-09-17", end:"2026-09-17", location:"", evidence:[]},
+          {id:uid(), name:"اليوم 3: تحليل المشكلة بعمق، مراجعة الحلول الموجودة، والتحقق من أصالة الحل المقترح", start:"2026-09-18", end:"2026-09-18", location:"", evidence:[]},
+          {id:uid(), name:"اليومان 4–5: كتابة المخطط العام ومسودات أقسام ورقة البحث الخاصة بالمشروع", start:"2026-09-19", end:"2026-09-20", location:"", evidence:[]},
+          {id:uid(), name:"اليومان 6–7: إنهاء ورقة البحث ورفعها على بوابة ELO الإلكترونية", start:"2026-09-21", end:"2026-09-22", location:"بوابة ELO الإلكترونية", evidence:[]},
+          {id:uid(), name:"اليومان 8–9: العمل على المنصة الخاصة بفكرة \"بدلها\"", start:"2026-09-23", end:"2026-09-24", location:"", evidence:[]},
+          {id:uid(), name:"اليوم 10: إعداد مخطط عرض الـ7 دقائق", start:"2026-09-25", end:"2026-09-25", location:"", evidence:[]},
+          {id:uid(), name:"اليومان 11–12: كتابة نص العرض مع توزيع وقت التحدث بالتساوي بين جميع الأعضاء", start:"2026-09-26", end:"2026-09-27", location:"", evidence:[]},
+          {id:uid(), name:"اليومان 13–14: تدريب عرض الـ7 دقائق والإجابة على أسئلة لجنة التحكيم", start:"2026-09-28", end:"2026-09-29", location:"", evidence:[]},
+          {id:uid(), name:"اليوم 15: حفظ جميع الشرائح والصور وملفات الوسائط على ذاكرة USB", start:"2026-09-30", end:"2026-09-30", location:"", evidence:[]},
+          {id:uid(), name:"اليوم 16: تنفيذ الخدمة المجتمعية (صور قبل/بعد) ورفع نص المسرحية (صفحة واحدة) على البوابة", start:"2026-10-01", end:"2026-10-01", location:"بوابة ELO الإلكترونية", evidence:[]},
+          {id:uid(), name:"اليوم 17: التخطيط للحصول على رعاية بقيمة 100 دولار أو أكثر", start:"2026-10-02", end:"2026-10-02", location:"", evidence:[]},
+          {id:uid(), name:"الأيام 18–20: إجراء بروفات كاملة بالوقت المحدد والتحقق من جميع ملفات USB", start:"2026-10-03", end:"2026-10-05", location:"", evidence:[]},
+        ],
+      });
+    }
+    DATA.__addedELO2026Competition = true;
     await persist();
   }
   render();
