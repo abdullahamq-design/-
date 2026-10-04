@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>شواهد زيارة هيئة تقويم التعليم والتدريب — مدارس الأندلس الأهلية</title>
+<meta name="description" content="صفحة اطلاع حيّة لفريق الزيارة على جاهزية بنود شواهد زيارة هيئة تقويم التعليم والتدريب.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --navy:#0F2771; --blue:#004D9F; --cyan:#0C96C5; --purple:#32146D;
+  --muted:#6B7690; --line:#E1E7F2; --paper:#F4F6FA;
+  --bg:#FFFFFF; --ink:#1B2333; --card:#FFFFFF;
+  --good:#1F8A4C; --good-bg:#EBF7F0; --prog-bg:#EAF6FB; --none:#C65B4E; --none-bg:#FBEBEB;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:'IBM Plex Sans Arabic', Tahoma, sans-serif;
+  direction:rtl; text-align:right; font-size:14.5px; line-height:1.7;
+}
+h1,h2,h3{font-family:'Cairo',sans-serif;}
+img,video{max-width:100%;}
+.wrap{max-width:980px; margin:0 auto; padding:0 20px 60px;}
+
+.cover{background:linear-gradient(155deg,#12306F 0%, #0F2771 52%, #32146D 100%); color:#fff; padding:36px 0 44px;}
+.cover-in{max-width:980px; margin:0 auto; padding:0 20px;}
+.cover-head{display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap;}
+.cover-head img{height:46px;}
+.cover-org{text-align:start; font-family:'Cairo',sans-serif;}
+.cover-org .a{font-weight:800; font-size:13.5px;}
+.cover-org .b{font-size:11px; opacity:.65; margin-top:3px;}
+.eyebrow-w{display:flex; align-items:center; gap:10px; font-size:12px; font-weight:700; color:#8FD4EA; margin-top:28px;}
+.eyebrow-w::before{content:""; width:22px; height:2px; background:#8FD4EA;}
+.cover-title{font-family:'Cairo',sans-serif; font-weight:800; font-size:clamp(24px,4vw,34px); line-height:1.25; margin:12px 0 4px;}
+.cover-sub{font-size:13px; opacity:.85; margin-bottom:20px;}
+.cover-meter{background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.18); border-radius:14px; padding:18px 20px; max-width:360px;}
+.cover-meter .hd{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:9px;}
+.cover-meter .hd span{font-size:12.5px; font-weight:700; opacity:.85;}
+.cover-meter .hd b{font-family:Georgia,serif; font-size:28px; color:#7FD3EC;}
+.cover-meter .br{height:11px; background:rgba(255,255,255,.15); border-radius:6px; overflow:hidden;}
+.cover-meter .br i{display:block; height:100%; background:linear-gradient(90deg,#0C96C5,#1F8A4C); border-radius:6px; min-width:3px;}
+.cover-updated{margin-top:16px; font-size:11.5px; opacity:.65;}
+.cover-print{margin-top:16px;}
+.cover-print button{background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.3); color:#fff; border-radius:10px; padding:9px 18px; font-family:'Cairo'; font-weight:700; font-size:12.5px; cursor:pointer;}
+
+#loading{padding:60px 20px; text-align:center; color:var(--muted); font-size:13.5px;}
+#errorbox{display:none; margin:20px; background:#FBEBEB; border:1px solid #F0D2D2; color:#8C3A3E; border-radius:10px; padding:16px 18px; font-size:13px; line-height:1.9;}
+
+section{padding:26px 0;}
+.stat-row{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:6px;}
+.stat-card{background:#fff; border:1px solid var(--line); border-radius:12px; padding:16px; text-align:center;}
+.stat-card .num{font-family:Georgia,serif; font-weight:700; font-size:24px; color:var(--navy);}
+.stat-card .lbl{font-size:11.5px; color:var(--muted); margin-top:4px;}
+@media (max-width:620px){.stat-row{grid-template-columns:repeat(2,1fr);}}
+
+.filter-row{display:flex; gap:8px; flex-wrap:wrap; margin:18px 0;}
+.filter-pill{border:1px solid var(--line); background:#fff; border-radius:20px; padding:7px 15px; font-size:12.5px; font-weight:700; color:var(--muted); cursor:pointer;}
+.filter-pill.active{background:var(--navy); border-color:var(--navy); color:#fff;}
+
+.etec-meter{background:#fff; border:1px solid var(--line); border-radius:14px; padding:16px 20px; margin-bottom:16px;}
+.etec-meter .hd{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:9px;}
+.etec-meter .hd span{font-family:'Cairo'; font-weight:800; font-size:13.5px; color:var(--navy);}
+.etec-meter .hd b{font-family:Georgia,serif; font-size:22px; color:var(--navy);}
+.etec-meter .br{height:11px; background:#EEF1F6; border-radius:6px; overflow:hidden;}
+.etec-meter .br i{display:block; height:100%; background:linear-gradient(90deg,var(--cyan),#1F8A4C); border-radius:6px; min-width:3px;}
+
+.etec-regs-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(175px,1fr)); gap:10px; margin-bottom:22px;}
+.etec-reg-card{background:#fff; border:1px solid var(--line); border-radius:11px; padding:12px 14px;}
+.etec-reg-card .n{font-family:'Cairo'; font-weight:800; font-size:11.5px; color:var(--navy); margin-bottom:8px;}
+.etec-reg-card .br{height:6px; background:#EEF1F6; border-radius:4px; overflow:hidden;}
+.etec-reg-card .br i{display:block; height:100%; border-radius:4px; min-width:3px;}
+.etec-reg-card .m{font-size:10.5px; color:var(--muted); margin-top:6px;}
+
+.etec-block{margin-bottom:14px;}
+.etec-ind{display:flex; justify-content:space-between; align-items:center; gap:14px; cursor:pointer;
+  background:var(--navy); color:#fff; border-radius:12px; padding:13px 17px;}
+.etec-ind .dm{font-size:10.5px; opacity:.72; margin-bottom:4px;}
+.etec-ind .ti{font-family:'Cairo'; font-weight:800; font-size:13px; line-height:1.6;}
+.etec-ind .cnt{border-radius:20px; padding:5px 13px; font-size:11.5px; font-weight:800; white-space:nowrap;}
+.etec-items{border:1px solid var(--line); border-top:none; border-radius:0 0 12px 12px; background:#fff;}
+.etec-row{border-bottom:1px solid var(--line); padding:14px 17px;}
+.etec-row:last-child{border-bottom:none;}
+.etec-txt{font-size:12.5px; color:var(--ink); line-height:1.8; font-weight:600;}
+.etec-regs{display:flex; gap:6px; flex-wrap:wrap; margin-top:7px;}
+.etec-reg{background:#EAF1FC; color:var(--navy); border-radius:20px; padding:3px 10px; font-size:10px; font-weight:700;}
+.etec-side{display:flex; align-items:center; gap:8px; margin-top:10px; flex-wrap:wrap;}
+.etec-status-badge{border-radius:20px; padding:4px 13px; font-size:11px; font-weight:800; font-family:'Cairo';}
+.etec-fmt-badge{background:var(--paper); border:1px solid var(--line); border-radius:20px; padding:3px 10px; font-size:10.5px; font-weight:700; color:var(--muted);}
+.etec-fmt-badge.on{background:var(--good-bg); border-color:#BFE3CE; color:var(--good);}
+.etec-none{margin-top:9px; font-size:11px; color:var(--muted); font-style:italic;}
+.etec-ev{background:#F7F9FC; border:1px dashed var(--line); border-radius:11px; padding:12px 14px; margin-top:11px;}
+.etec-ev .hd{font-size:11px; font-weight:800; color:var(--navy); margin-bottom:9px;}
+.etec-ev .grid{display:flex; gap:9px; flex-wrap:wrap;}
+.etec-ev figure{margin:0; width:104px; border-radius:9px; overflow:hidden; border:1px solid var(--line); background:#fff;}
+.etec-ev img,.etec-ev video{width:100%; height:74px; object-fit:cover; display:block;}
+.etec-ev figcaption{font-size:9px; color:var(--muted); padding:4px 5px; line-height:1.4;}
+
+.closing{background:#fff; border:1px solid var(--line); border-radius:14px; padding:22px; display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;}
+.closing .note{font-size:11.5px; color:var(--muted); max-width:56ch;}
+.closing .sign{text-align:end; flex-shrink:0;}
+.closing .sign .n{font-family:'Cairo'; font-weight:800; font-size:13.5px; color:var(--navy);}
+.closing .sign .r{font-size:11px; color:var(--muted); margin-top:2px;}
+
+@media print{
+  body{background:#fff;}
+  .cover-print, .filter-row{display:none !important;}
+  .etec-ind{background:#0F2771 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+}
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="cover-in">
+    <div class="cover-head">
+      <img src="assets/logo-week1-report.png" alt="مدارس الأندلس الأهلية" onerror="this.style.display='none'">
+      <div class="cover-org">
+        <div class="a">مدارس الأندلس الأهلية</div>
+        <div class="b">القسم الثانوي — بنين</div>
+      </div>
+    </div>
+    <div class="eyebrow-w">صفحة اطلاع لفريق الزيارة</div>
+    <div class="cover-title">شواهد زيارة هيئة تقويم<br>التعليم والتدريب</div>
+    <div class="cover-sub">عرض مباشر ومحدَّث لحالة البنود الـ48 وجاهزيتها وشواهدها — للاطلاع فقط</div>
+    <div class="cover-meter">
+      <div class="hd"><span>نسبة الجاهزية العامة</span><b id="overall-pct">—</b></div>
+      <div class="br"><i id="overall-bar" style="width:0%"></i></div>
+    </div>
+    <div class="cover-updated" id="updated-at">جاري تحميل البيانات...</div>
+    <div class="cover-print"><button onclick="window.print()">🖨 طباعة / حفظ PDF</button></div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div id="loading">⏳ جاري الاتصال بالمنصة وتحميل أحدث البيانات...</div>
+  <div id="errorbox"></div>
+  <div id="content" style="display:none;"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCTyZKuJlN9OPgRCxkhGRx-of9xfUX-hEE",
+  authDomain: "andalus-activity-leader.firebaseapp.com",
+  projectId: "andalus-activity-leader",
+  storageBucket: "andalus-activity-leader.firebasestorage.app",
+  messagingSenderId: "416715458646",
+  appId: "1:416715458646:web:6da24d5600bcaff38213f7"
+};
+const SYNC_COLLECTION = "andalus-activity-platform";
+const SYNC_DOC_ID = "shared-data";
+
+function esc(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+/* ===== شواهد زيارة هيئة تقويم التعليم والتدريب (ETEC) ===== */
+const ETEC_ITEMS = [{"id":"e1","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-1-2-1): تعزز المدرسة القيم الإسلامية والهوية الوطنية","text":"عينة من خطط المدرسة التي استهدفت تعزيز القيم الإسلامية والهوية الوطنية","regs":["سجل البرامج والأنشطة"]},{"id":"e2","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-1-2-1): تعزز المدرسة القيم الإسلامية والهوية الوطنية","text":"عينة من الأنشطة غير الصفية التي استهدفت تعزيز القيم الإسلامية والهوية الوطنية","regs":["سجل البرامج والأنشطة"]},{"id":"e3","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-1-2-1): تعزز المدرسة القيم الإسلامية والهوية الوطنية","text":"عينة من استهداف المناسبات لتعزيز القيم الإسلامية والهوية الوطنية في المجتمع المحلي","regs":["سجل البرامج والأنشطة"]},{"id":"e4","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-1-2-1): تعزز المدرسة القيم الإسلامية والهوية الوطنية","text":"عينة من أساليب متابعة تنفيذ الأنشطة والبرامج المعززة للقيم الإسلامية والهوية الوطنية","regs":["سجل البرامج والأنشطة"]},{"id":"e5","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-2-1-5): تنفذ المدرسة برامج وأنشطة إثرائية لتطوير مواهب المتعلمين وتتابعها","text":"خطة الأنشطة الإثرائية غير الصفية","regs":["سجل الأنشطة الإثرائية"]},{"id":"e6","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-2-1-5): تنفذ المدرسة برامج وأنشطة إثرائية لتطوير مواهب المتعلمين وتتابعها","text":"عينة من أساليب الكشف عن مواهب وقدرات المتعلمين","regs":["سجل الموهوبين"]},{"id":"e7","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-2-1-5): تنفذ المدرسة برامج وأنشطة إثرائية لتطوير مواهب المتعلمين وتتابعها","text":"عينة من أنشطة إثرائية غير صفية مرتبطة بنتائج تشخيص مواهب المتعلمين وقدراتهم","regs":["سجل الأنشطة الإثرائية"]},{"id":"e8","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-2-1-5): تنفذ المدرسة برامج وأنشطة إثرائية لتطوير مواهب المتعلمين وتتابعها","text":"إجراءات تنفيذ خطة الأنشطة الإثرائية غير الصفية","regs":["سجل الأنشطة الإثرائية"]},{"id":"e9","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-2-1-5): تنفذ المدرسة برامج وأنشطة إثرائية لتطوير مواهب المتعلمين وتتابعها","text":"عينة من أساليب متابعة تنفيذ الأنشطة الإثرائية غير الصفية والبرامج الإثرائية","regs":["سجل الأنشطة الإثرائية"]},{"id":"e10","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-2-1-5): تنفذ المدرسة برامج وأنشطة إثرائية لتطوير مواهب المتعلمين وتتابعها","text":"عينة من الطلاب المشاركين في مقاييس موهبة","regs":["سجل الموهوبين"]},{"id":"e11","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-2-1-5): تنفذ المدرسة برامج وأنشطة إثرائية لتطوير مواهب المتعلمين وتتابعها","text":"عينة من أساليب متابعة تنفيذ أنشطة وبرامج الموهوبين","regs":["سجل الموهوبين"]},{"id":"e12","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-2-1-5): تنفذ المدرسة برامج وأنشطة إثرائية لتطوير مواهب المتعلمين وتتابعها","text":"عينة من حوافز تشجيعية مقدمة للموهوبين","regs":["سجل التحفيز والتكريم"]},{"id":"e13","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-2-1-5): تنفذ المدرسة برامج وأنشطة إثرائية لتطوير مواهب المتعلمين وتتابعها","text":"عينة من برامج التوعية بالمسابقات الوطنية والدولية","regs":["سجل المسابقات"]},{"id":"e14","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-2-1-5): تنفذ المدرسة برامج وأنشطة إثرائية لتطوير مواهب المتعلمين وتتابعها","text":"عينة من الدعم المقدم للمتعلمين للمشاركة بالمسابقات الوطنية أو الدولية","regs":["سجل المسابقات"]},{"id":"e15","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-2-1-5): تنفذ المدرسة برامج وأنشطة إثرائية لتطوير مواهب المتعلمين وتتابعها","text":"عينة من الطلاب الفائزين في المسابقات الوطنية والدولية ومستوى تحقيق التقدم","regs":["سجل المسابقات"]},{"id":"e16","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-2-1-5): تنفذ المدرسة برامج وأنشطة إثرائية لتطوير مواهب المتعلمين وتتابعها","text":"عينة من أساليب متابعة مشاركة المتعلمين في المسابقات الوطنية والدولية","regs":["سجل المسابقات"]},{"id":"e17","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-2-1-5): تنفذ المدرسة برامج وأنشطة إثرائية لتطوير مواهب المتعلمين وتتابعها","text":"عينة من تكريم الفائزين والحاصلين على مراتب متقدمة في المسابقات","regs":["سجل المسابقات","سجل التحفيز والتكريم"]},{"id":"e18","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-2-1-5): تنفذ المدرسة برامج وأنشطة إثرائية لتطوير مواهب المتعلمين وتتابعها","text":"عينة من الحوافز التي تشجع المتعلمين على المشاركة في الأنشطة الإثرائية","regs":["سجل الأنشطة الإثرائية","سجل التحفيز والتكريم"]},{"id":"e19","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-1-1): تعزز المدرسة بناء العلاقات الإيجابية والتعاون في المجتمع المدرسي","text":"خطة تعزيز العمل التعاوني في المجتمع المدرسي","regs":["سجل البرامج والأنشطة"]},{"id":"e20","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-1-1): تعزز المدرسة بناء العلاقات الإيجابية والتعاون في المجتمع المدرسي","text":"عينة من الأنشطة التي تشجع التعاون والعمل بروح الفريق في المجتمع المدرسي","regs":["سجل البرامج والأنشطة"]},{"id":"e21","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-1-1): تعزز المدرسة بناء العلاقات الإيجابية والتعاون في المجتمع المدرسي","text":"عينة من الأنشطة التي تشجع التعاون والعمل بروح الفريق في المجتمع المحلي","regs":["سجل البرامج والأنشطة"]},{"id":"e22","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-1-1): تعزز المدرسة بناء العلاقات الإيجابية والتعاون في المجتمع المدرسي","text":"إجراءات تنفيذ الأنشطة والبرامج","regs":["سجل البرامج والأنشطة"]},{"id":"e23","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-1-1): تعزز المدرسة بناء العلاقات الإيجابية والتعاون في المجتمع المدرسي","text":"عينة من أساليب متابعة تنفيذ خطة تعزيز العمل التعاوني","regs":["سجل البرامج والأنشطة"]},{"id":"e24","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-3-1): تعزز المدرسة الشراكة المجتمعية لدعم التعلم والتأثير الإيجابي","text":"طرق تواصل المدرسة مع مؤسسات المجتمع المحلي","regs":["سجل الشراكة المجتمعية"]},{"id":"e25","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-3-1): تعزز المدرسة الشراكة المجتمعية لدعم التعلم والتأثير الإيجابي","text":"عينة من تواصل المدرسة مع مؤسسات المجتمع للمشاركة في أنشطة وبرامج أو تقديم خدمات","regs":["سجل الشراكة المجتمعية"]},{"id":"e26","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-3-1): تعزز المدرسة الشراكة المجتمعية لدعم التعلم والتأثير الإيجابي","text":"عينة من الشراكات التعليمية مع مؤسسات المجتمع المحلي لدعم تعلم المتعلمين","regs":["سجل الشراكة المجتمعية"]},{"id":"e27","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-3-1): تعزز المدرسة الشراكة المجتمعية لدعم التعلم والتأثير الإيجابي","text":"عينة من تكريم المجتمع المحلي على تقديم خدمات للمدرسة والمشاركة في برامجها","regs":["سجل الشراكة المجتمعية","سجل التحفيز والتكريم"]},{"id":"e28","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-3-1): تعزز المدرسة الشراكة المجتمعية لدعم التعلم والتأثير الإيجابي","text":"عينة من توثيق مشاركات مؤسسات المجتمع في تعزيز تعلم المتعلمين","regs":["سجل الشراكة المجتمعية"]},{"id":"e29","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-3-1): تعزز المدرسة الشراكة المجتمعية لدعم التعلم والتأثير الإيجابي","text":"عينة من الأنشطة التي تعرّف المجتمع المدرسي بخدمات المؤسسات الوطنية للموهوبين وذوي الإعاقة","regs":["سجل الشراكة المجتمعية","سجل الموهوبين"]},{"id":"e30","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-3-1): تعزز المدرسة الشراكة المجتمعية لدعم التعلم والتأثير الإيجابي","text":"عينة من تحفيز المتعلمين للمشاركة في برامج ومبادرات تقودها المؤسسات الوطنية","regs":["سجل الشراكة المجتمعية","سجل تطوير الخطة التشغيلية"]},{"id":"e31","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-3-1): تعزز المدرسة الشراكة المجتمعية لدعم التعلم والتأثير الإيجابي","text":"عينة من تكريم المشاركين من ذوي الإعاقة والموهوبين في المؤسسات الوطنية","regs":["سجل الشراكة المجتمعية","سجل الموهوبين"]},{"id":"e32","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-3-1): تعزز المدرسة الشراكة المجتمعية لدعم التعلم والتأثير الإيجابي","text":"عينة من الأنشطة والفعاليات التوعوية المقدمة للمجتمع المحلي","regs":["سجل الشراكة المجتمعية"]},{"id":"e33","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-3-1): تعزز المدرسة الشراكة المجتمعية لدعم التعلم والتأثير الإيجابي","text":"عينة من الأنشطة التي تقدمها المدرسة لخدمة المجتمع","regs":["سجل الشراكة المجتمعية"]},{"id":"e34","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-3-1): تعزز المدرسة الشراكة المجتمعية لدعم التعلم والتأثير الإيجابي","text":"عينة من الإمكانات التي أتاحتها المدرسة لخدمة المجتمع المحلي","regs":["سجل الشراكة المجتمعية"]},{"id":"e35","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-3-1): تعزز المدرسة الشراكة المجتمعية لدعم التعلم والتأثير الإيجابي","text":"عينة من حوافز للمشاركين من المجتمع المدرسي في خدمة المجتمع","regs":["سجل الشراكة المجتمعية","سجل التحفيز والتكريم"]},{"id":"e36","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-3-1): تعزز المدرسة الشراكة المجتمعية لدعم التعلم والتأثير الإيجابي","text":"عينة من توثيق المشاركات في خدمة المجتمع","regs":["سجل الشراكة المجتمعية"]},{"id":"e37","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-3-1): تعزز المدرسة الشراكة المجتمعية لدعم التعلم والتأثير الإيجابي","text":"شراكات مع مؤسسات وطنية متخصصة في الموهبة والإبداع","regs":["سجل الموهوبين","سجل الشراكة المجتمعية"]},{"id":"e38","domain":"مجال التعليم والتعلم","ind":"المؤشر (2-1-1-1): توفر المدرسة فرصاً متكافئة للتعلم تلبي احتياجات المتعلمين","text":"عينة من برامج إثرائية لسريعي التعلم والموهوبين","regs":["سجل الموهوبين","سجل الأنشطة الإثرائية"]},{"id":"e39","domain":"مجال التعليم والتعلم","ind":"المؤشر (2-1-1-5): تنفذ المدرسة أنشطة تعلم تطبيقية ترتبط بحياة المتعلمين","text":"عينة من زيارات ميدانية وتجارب عملية","regs":["سجل البرامج والأنشطة"]},{"id":"e40","domain":"مجال نواتج التعلم","ind":"المؤشر (3-2-1-1): يظهر المتعلمون الاعتزاز بالقيم والهوية الوطنية","text":"نسبة المشاركة في الأنشطة والمناسبات الوطنية","regs":["سجل البرامج والأنشطة"]},{"id":"e41","domain":"مجال نواتج التعلم","ind":"المؤشر (3-2-1-1): يظهر المتعلمون الاعتزاز بالقيم والهوية الوطنية","text":"عينة من مبادرات المتعلمين الوطنية والقيمية","regs":["سجل تطوير الخطة التشغيلية"]},{"id":"e42","domain":"مجال نواتج التعلم","ind":"المؤشر (3-2-1-4): يشارك المتعلمون في الأنشطة المجتمعية والأعمال التطوعية","text":"عينة من مشاركة المتعلمين في أعمال تطوعية تخدم المجتمع","regs":["سجل العمل التطوعي"]},{"id":"e43","domain":"مجال نواتج التعلم","ind":"المؤشر (3-2-1-4): يشارك المتعلمون في الأنشطة المجتمعية والأعمال التطوعية","text":"عينة من برامج وأنشطة توضح أهمية المشاركة في أعمال التطوع وتأثيرها الإيجابي","regs":["سجل العمل التطوعي"]},{"id":"e44","domain":"مجال نواتج التعلم","ind":"المؤشر (3-2-1-4): يشارك المتعلمون في الأنشطة المجتمعية والأعمال التطوعية","text":"عينة من الفرص التطوعية المتاحة للمتعلمين","regs":["سجل العمل التطوعي"]},{"id":"e45","domain":"مجال نواتج التعلم","ind":"المؤشر (3-2-1-4): يشارك المتعلمون في الأنشطة المجتمعية والأعمال التطوعية","text":"معلومات وإرشادات حول كيفية مشاركة المتعلمين في الأعمال التطوعية وتنظيم الوقت","regs":["سجل العمل التطوعي"]},{"id":"e46","domain":"مجال نواتج التعلم","ind":"المؤشر (3-2-1-4): يشارك المتعلمون في الأنشطة المجتمعية والأعمال التطوعية","text":"نسبة مشاركة المتعلمين في الأعمال المجتمعية والتطوعية داخل المدرسة وخارجها","regs":["سجل العمل التطوعي"]},{"id":"e47","domain":"مجال نواتج التعلم","ind":"المؤشر (3-2-1-4): يشارك المتعلمون في الأنشطة المجتمعية والأعمال التطوعية","text":"عينة من تشجيع المتعلمين المشاركين في الأعمال التطوعية وتكريمهم","regs":["سجل العمل التطوعي","سجل التحفيز والتكريم"]},{"id":"e48","domain":"مجال نواتج التعلم","ind":"المؤشر (3-2-1-7): يظهر المتعلمون اعتزازاً بثقافتهم واحتراماً للتنوع الثقافي","text":"عينة من برامج التراث الثقافي واللغة العربية","regs":["سجل البرامج والأنشطة"]}];
+const ETEC_STATUSES = ["لم يبدأ","قيد الإعداد","جاهز"];
+const ETEC_STATUS_COLOR = {"لم يبدأ":"var(--coral)","قيد الإعداد":"var(--cyan)","جاهز":"#1F8A4C"};
+const ETEC_FORMATS = [["paper","ورقية"],["digital","إلكترونية"],["audio","سمعية"],["visual","مرئية"]];
+const etecRec = (id) => (DATA.etec && DATA.etec[id]) || {status:"لم يبدأ", formats:{}, evidence:[], note:""};
+const ETEC_DOMAINS = [...new Set(ETEC_ITEMS.map(i=>i.domain))];
+
+let ETEC_FILTER = "الكل";
+let ETEC_OPEN_IND = null;
+let DATA = null;
+
+/* دمج أي مسابقات تحمل نفس الاسم (قد تظهر مكررة في البيانات قبل أن يفتح صاحب المنصة التطبيق نفسه
+   على جهازه ليُشغَّل تنظيف المطابقة هناك) — هنا فقط للعرض، لا نكتب شيئًا إلى القاعدة */
+function dedupeCompetitionsForDisplay(list){
+  const groups = new Map();
+  (list||[]).forEach(c => { if (!groups.has(c.name)) groups.set(c.name, []); groups.get(c.name).push(c); });
+  const out = [];
+  groups.forEach(group => {
+    if (group.length === 1) { out.push(group[0]); return; }
+    const base = JSON.parse(JSON.stringify(group[0]));
+    for (let i=1;i<group.length;i++){
+      const other = group[i];
+      base.evidence = (base.evidence||[]).concat(other.evidence||[]);
+    }
+    out.push(base);
+  });
+  return out;
+}
+
+function linkedEvidence(links){
+  const out = [];
+  (links||[]).forEach(L=>{
+    if (L.t==="task"){ const t=(DATA.tasks||[]).find(x=>x.id===L.id); (t&&t.evidence||[]).forEach(e=>out.push({...e,cap:t.title})); }
+    else if (L.t==="comp"){ const c=(DATA.competitions||[]).find(x=>x.id===L.id); (c&&c.evidence||[]).forEach(e=>out.push({...e,cap:c.name})); }
+    else if (L.t==="log"){ const lg=(DATA.eventLog||{})[L.id]; (lg&&lg.evidence||[]).forEach(e=>out.push({...e,cap:L.label||"فعالية"})); }
+  });
+  return out;
+}
+
+function etecStats(list){
+  const total = list.length;
+  const ready = list.filter(i=>etecRec(i.id).status==="جاهز").length;
+  const prog  = list.filter(i=>etecRec(i.id).status==="قيد الإعداد").length;
+  const withEv= list.filter(i=> (etecRec(i.id).evidence||[]).length>0 || linkedEvidence(etecRec(i.id).links).length>0).length;
+  return {total, ready, prog, none: total-ready-prog, withEv, pct: total? Math.round(ready/total*100):0};
+}
+
+function statusColor(st){ return st==="جاهز" ? "var(--good)" : st==="قيد الإعداد" ? "var(--cyan)" : "var(--none)"; }
+function statusBg(st){ return st==="جاهز" ? "var(--good-bg)" : st==="قيد الإعداد" ? "var(--prog-bg)" : "var(--none-bg)"; }
+
+function etecRow(it){
+  const r = etecRec(it.id);
+  const linkedEv = linkedEvidence(r.links);
+  const ownEv = r.evidence||[];
+  const allEv = ownEv.concat(linkedEv);
+  return `
+    <div class="etec-row">
+      <div class="etec-txt">${esc(it.text)}</div>
+      <div class="etec-regs">${it.regs.map(g=>`<span class="etec-reg">${esc(g)}</span>`).join("")}</div>
+      <div class="etec-side">
+        <span class="etec-status-badge" style="background:${statusBg(r.status)}; color:${statusColor(r.status)};">${esc(r.status)}</span>
+        ${ETEC_FORMATS.map(([k,lbl])=>`<span class="etec-fmt-badge ${r.formats&&r.formats[k]?'on':''}">${r.formats&&r.formats[k]?'✓ ':''}${lbl}</span>`).join("")}
+      </div>
+      ${allEv.length ? `<div class="etec-ev">
+        <div class="hd">الشواهد (${allEv.length})</div>
+        <div class="grid">${allEv.map(e=>{
+          const src = e.cloudUrl || e.dataUrl;
+          if (!src) return `<figure style="display:flex; align-items:center; justify-content:center; height:74px; font-size:18px;">⏳</figure>`;
+          return e.type==="video"
+            ? `<figure><video src="${src}" controls></video>${e.cap?`<figcaption>${esc(e.cap)}</figcaption>`:""}</figure>`
+            : `<figure><img src="${src}" alt="">${e.cap?`<figcaption>${esc(e.cap)}</figcaption>`:""}</figure>`;
+        }).join("")}</div>
+      </div>` : `<div class="etec-none">لا توجد شواهد مرفوعة لهذا البند بعد</div>`}
+    </div>`;
+}
+
+function render(){
+  const all = ETEC_ITEMS;
+  const list = ETEC_FILTER==="الكل" ? all
+             : ETEC_FILTER==="الناقصة" ? all.filter(i=>etecRec(i.id).status!=="جاهز")
+             : all.filter(i=>i.domain===ETEC_FILTER);
+  const S = etecStats(all);
+
+  document.getElementById("overall-pct").textContent = S.pct + "%";
+  document.getElementById("overall-bar").style.width = S.pct + "%";
+
+  const inds = [];
+  list.forEach(i=>{ if(!inds.some(x=>x.ind===i.ind)) inds.push({ind:i.ind, domain:i.domain, items:[]}); });
+  list.forEach(i=> inds.find(x=>x.ind===i.ind).items.push(i));
+
+  const regNames = [...new Set(all.flatMap(i=>i.regs))];
+  const regStats = regNames.map(g=>{
+    const sub = all.filter(i=>i.regs.includes(g));
+    return {name:g, ...etecStats(sub)};
+  }).sort((a,b)=>b.total-a.total);
+
+  const filters = ["الكل","الناقصة",...ETEC_DOMAINS];
+
+  document.getElementById("content").innerHTML = `
+    <section>
+      <div class="stat-row">
+        <div class="stat-card"><div class="num">${S.total}</div><div class="lbl">إجمالي البنود</div></div>
+        <div class="stat-card"><div class="num" style="color:var(--good)">${S.ready}</div><div class="lbl">جاهزة</div></div>
+        <div class="stat-card"><div class="num" style="color:var(--cyan)">${S.prog}</div><div class="lbl">قيد الإعداد</div></div>
+        <div class="stat-card"><div class="num" style="color:var(--none)">${S.none}</div><div class="lbl">لم تبدأ</div></div>
+      </div>
+      <div class="etec-regs-grid">
+        ${regStats.map(g=>`
+          <div class="etec-reg-card">
+            <div class="n">${esc(g.name)}</div>
+            <div class="br"><i style="width:${g.pct}%; background:${g.pct>=100?'#1F8A4C':g.pct>0?'var(--cyan)':'var(--none)'}"></i></div>
+            <div class="m">${g.ready} من ${g.total} جاهز</div>
+          </div>`).join("")}
+      </div>
+      <div class="filter-row">
+        ${filters.map(f=>`<button class="filter-pill ${ETEC_FILTER===f?"active":""}" data-f="${esc(f)}">${esc(f)}</button>`).join("")}
+      </div>
+      ${inds.map(gr=>{
+        const st = etecStats(gr.items);
+        const open = ETEC_OPEN_IND === gr.ind || ETEC_OPEN_IND === null;
+        return `
+        <div class="etec-block">
+          <div class="etec-ind" data-ind="${esc(gr.ind)}">
+            <div class="l">
+              <div class="dm">${esc(gr.domain)}</div>
+              <div class="ti">${esc(gr.ind)}</div>
+            </div>
+            <div class="r"><span class="cnt" style="background:${st.pct>=100?'#1F8A4C':st.pct>0?'var(--cyan)':'var(--none)'}; color:#fff;">${st.ready}/${st.total}</span></div>
+          </div>
+          ${open?`<div class="etec-items">${gr.items.map(etecRow).join("")}</div>`:""}
+        </div>`;
+      }).join("")}
+    </section>
+    <section>
+      <div class="closing">
+        <div class="note">هذه الصفحة للاطلاع فقط وتُحدَّث تلقائيًا من بيانات منصة رائد النشاط الفعلية لحظة فتحها — لا يمكن التعديل من هنا.</div>
+        <div class="sign">
+          <div class="n">عبدالله محمد القرني</div>
+          <div class="r">رائد النشاط الطلابي — القسم الثانوي</div>
+        </div>
+      </div>
+    </section>
+  `;
+
+  document.querySelectorAll("[data-f]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{ ETEC_FILTER = btn.dataset.f; ETEC_OPEN_IND = null; render(); });
+  });
+  document.querySelectorAll(".etec-ind").forEach(el=>{
+    el.addEventListener("click", ()=>{
+      const v = el.dataset.ind;
+      ETEC_OPEN_IND = (ETEC_OPEN_IND === v) ? null : v;
+      render();
+    });
+  });
+}
+
+function showError(msg){
+  document.getElementById("loading").style.display = "none";
+  const box = document.getElementById("errorbox");
+  box.style.display = "block";
+  box.textContent = msg;
+}
+
+/* استماع حيّ (onSnapshot) وليس قراءة لمرة واحدة — إن عدّل صاحب المنصة بندًا من جهازه بينما هذه
+   الصفحة مفتوحة عند فريق الزيارة، تتحدّث الصفحة نفسها تلقائيًا بدون أي حاجة لإعادة تحميلها يدويًا */
+try {
+  firebase.initializeApp(FIREBASE_CONFIG);
+  const db = firebase.firestore();
+  const ref = db.collection(SYNC_COLLECTION).doc(SYNC_DOC_ID);
+  ref.onSnapshot(snap => {
+    if (!snap.exists) { showError("لم يتم العثور على بيانات المنصة بعد."); return; }
+    const raw = snap.data();
+    let parsed;
+    try { parsed = JSON.parse(raw.payload); } catch(e) { showError("تعذّر قراءة بيانات المنصة."); return; }
+    DATA = parsed;
+    DATA.competitions = dedupeCompetitionsForDisplay(DATA.competitions);
+    if (!DATA.etec) DATA.etec = {};
+    const when = raw.updatedAt ? new Date(raw.updatedAt) : null;
+    document.getElementById("updated-at").textContent = when
+      ? "آخر تحديث: " + when.toLocaleDateString("ar-SA-u-ca-gregory", {year:"numeric", month:"long", day:"numeric"}) + " — " + when.toLocaleTimeString("ar-SA", {hour:"2-digit", minute:"2-digit"})
+      : "";
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("errorbox").style.display = "none";
+    document.getElementById("content").style.display = "block";
+    render();
+  }, err => {
+    showError("تعذّر الاتصال بقاعدة بيانات المنصة. تحقّق من اتصال الإنترنت وأعد تحميل الصفحة. (" + (err && err.message ? err.message : "") + ")");
+  });
+} catch(e) {
+  showError("تعذّر تحميل الصفحة بشكل صحيح. أعد تحميلها.");
+}
+</script>
+</body>
+</html>
