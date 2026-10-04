@@ -4407,6 +4407,54 @@ document.addEventListener("change", async (e) => {
     DATA.__addedELO2026Competition = true;
     await persist();
   }
+  /* تنظيف لمرة واحدة: المسابقات المضافة تلقائيًا أعلاه (نسمو 2027، الروبوت، ELO) تُضاف بفحص "هل
+     الاسم موجود محليًا؟" — فإذا فتح المستخدم المنصة على جهاز لم يُزامَن بعد مع جهاز آخر أضافها هو
+     أيضًا، يُنشئ كل جهاز نسخته الخاصة (بمعرّف id مختلف عشوائيًا)، ثم يدمجهما التزامن كمسابقتين
+     منفصلتين بدل واحدة لأن الدمج يقارن بالمعرّف لا بالاسم. هذا حدث فعليًا وأنتج تكرارات. هذا التنظيف
+     يدمج كل نسخ نفس الاسم في نسخة واحدة — يجمع كل الشواهد والمراحل والطلاب من كل النسخ (لا يُفقد
+     شيء، فقط تُوحَّد المراحل التي تحمل نفس الاسم عبر النسخ لأن معرّفاتها العشوائية تختلف بدورها)،
+     ويملأ الحقول النصية الفارغة من أي نسخة تحمل محتوى — ولا يتكرر لاحقًا. */
+  if (!DATA.__dedupedCompetitionsByName) {
+    const groups = new Map();
+    DATA.competitions.forEach(c => { if (!groups.has(c.name)) groups.set(c.name, []); groups.get(c.name).push(c); });
+    let changed = false;
+    const deduped = [];
+    groups.forEach(group => {
+      if (group.length === 1) { deduped.push(group[0]); return; }
+      changed = true;
+      const base = JSON.parse(JSON.stringify(group[0]));
+      for (let i = 1; i < group.length; i++) {
+        const other = group[i];
+        base.evidence = mergeEvidenceArray(base.evidence, other.evidence);
+        const stageMap = new Map((base.stages||[]).map(s => [s.name, s]));
+        (other.stages||[]).forEach(os => {
+          const existing = stageMap.get(os.name);
+          if (existing) {
+            existing.evidence = mergeEvidenceArray(existing.evidence, os.evidence);
+            if (!existing.start && os.start) existing.start = os.start;
+            if (!existing.end && os.end) existing.end = os.end;
+            if (!existing.location && os.location) existing.location = os.location;
+          } else {
+            stageMap.set(os.name, os);
+          }
+        });
+        base.stages = Array.from(stageMap.values());
+        const studentMap = new Map((base.students||[]).map(s => [s.name, s]));
+        (other.students||[]).forEach(os => { if (!studentMap.has(os.name)) studentMap.set(os.name, os); });
+        base.students = Array.from(studentMap.values());
+        ["result","impact","deadline","organizer","level","status"].forEach(key => {
+          const a = (base[key]||"").toString().trim();
+          const b = (other[key]||"").toString().trim();
+          if (!a && b) base[key] = other[key];
+          else if (a && b && a !== b) base[key] = a + " / " + b;
+        });
+      }
+      deduped.push(base);
+    });
+    if (changed) DATA.competitions = deduped;
+    DATA.__dedupedCompetitionsByName = true;
+    await persist();
+  }
   render();
   initSync();
 })();
