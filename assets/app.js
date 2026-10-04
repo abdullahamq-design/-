@@ -29,6 +29,7 @@ const ICONS = {
   report: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6a1 1 0 011 1v1h1a2 2 0 012 2v13a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h1V4a1 1 0 011-1z"/><path d="M8 12h8M8 16h8M8 8h3"/></svg>`,
   pencil: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>`,
   target: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg>`,
+  badge: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M12 3l7 4v5c0 4.4-3 8.3-7 9-4-0.7-7-4.6-7-9V7l7-4z"/></svg>`,
 };
 
 /* ============================================================ */
@@ -85,6 +86,14 @@ const MOE_PROGRAMS = {
   "الأيام والمناسبات": ["اليوم الوطني","يوم التأسيس","يوم السعودية الخضراء","يوم العلم","يوم الصحة العالمي","اليوم العالمي للتعليم","يوم اللغة العربية العالمي","يوم التسامح العالمي","اليوم العالمي للطفل","اليوم العالمي لذوي الإعاقة","يوم المعلم العالمي","اليوم الدولي للأسرة"],
   "الفترات اللاصفية": ["رحلة نجاح","صحتي مسؤوليتي","سفراء الاستدامة والوعي البيئي","مهارات المستقبل","كن واعيًا","النادي الثقافي","الإرث والأمجاد","صانع الأثر","القيم","النسك"],
 };
+
+/* ===== شواهد زيارة هيئة تقويم التعليم والتدريب (ETEC) ===== */
+const ETEC_ITEMS = [{"id":"e1","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-1-2-1): تعزز المدرسة القيم الإسلامية والهوية الوطنية","text":"عينة من خطط المدرسة التي استهدفت تعزيز القيم الإسلامية والهوية الوطنية","regs":["سجل البرامج والأنشطة"]},{"id":"e2","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-1-2-1): تعزز المدرسة القيم الإسلامية والهوية الوطنية","text":"عينة من الأنشطة غير الصفية التي استهدفت تعزيز القيم الإسلامية والهوية الوطنية","regs":["سجل البرامج والأنشطة"]},{"id":"e3","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-1-2-1): تعزز المدرسة القيم الإسلامية والهوية الوطنية","text":"عينة من استهداف المناسبات لتعزيز القيم الإسلامية والهوية الوطنية في المجتمع المحلي","regs":["سجل البرامج والأنشطة"]},{"id":"e4","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-1-2-1): تعزز المدرسة القيم الإسلامية والهوية الوطنية","text":"عينة من أساليب متابعة تنفيذ الأنشطة والبرامج المعززة للقيم الإسلامية والهوية الوطنية","regs":["سجل البرامج والأنشطة"]},{"id":"e5","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-2-1-5): تنفذ المدرسة برامج وأنشطة إثرائية لتطوير مواهب المتعلمين وتتابعها","text":"خطة الأنشطة الإثرائية غير الصفية","regs":["سجل الأنشطة الإثرائية"]},{"id":"e6","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-2-1-5): تنفذ المدرسة برامج وأنشطة إثرائية لتطوير مواهب المتعلمين وتتابعها","text":"عينة من أساليب الكشف عن مواهب وقدرات المتعلمين","regs":["سجل الموهوبين"]},{"id":"e7","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-2-1-5): تنفذ المدرسة برامج وأنشطة إثرائية لتطوير مواهب المتعلمين وتتابعها","text":"عينة من أنشطة إثرائية غير صفية مرتبطة بنتائج تشخيص مواهب المتعلمين وقدراتهم","regs":["سجل الأنشطة الإثرائية"]},{"id":"e8","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-2-1-5): تنفذ المدرسة برامج وأنشطة إثرائية لتطوير مواهب المتعلمين وتتابعها","text":"إجراءات تنفيذ خطة الأنشطة الإثرائية غير الصفية","regs":["سجل الأنشطة الإثرائية"]},{"id":"e9","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-2-1-5): تنفذ المدرسة برامج وأنشطة إثرائية لتطوير مواهب المتعلمين وتتابعها","text":"عينة من أساليب متابعة تنفيذ الأنشطة الإثرائية غير الصفية والبرامج الإثرائية","regs":["سجل الأنشطة الإثرائية"]},{"id":"e10","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-2-1-5): تنفذ المدرسة برامج وأنشطة إثرائية لتطوير مواهب المتعلمين وتتابعها","text":"عينة من الطلاب المشاركين في مقاييس موهبة","regs":["سجل الموهوبين"]},{"id":"e11","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-2-1-5): تنفذ المدرسة برامج وأنشطة إثرائية لتطوير مواهب المتعلمين وتتابعها","text":"عينة من أساليب متابعة تنفيذ أنشطة وبرامج الموهوبين","regs":["سجل الموهوبين"]},{"id":"e12","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-2-1-5): تنفذ المدرسة برامج وأنشطة إثرائية لتطوير مواهب المتعلمين وتتابعها","text":"عينة من حوافز تشجيعية مقدمة للموهوبين","regs":["سجل التحفيز والتكريم"]},{"id":"e13","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-2-1-5): تنفذ المدرسة برامج وأنشطة إثرائية لتطوير مواهب المتعلمين وتتابعها","text":"عينة من برامج التوعية بالمسابقات الوطنية والدولية","regs":["سجل المسابقات"]},{"id":"e14","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-2-1-5): تنفذ المدرسة برامج وأنشطة إثرائية لتطوير مواهب المتعلمين وتتابعها","text":"عينة من الدعم المقدم للمتعلمين للمشاركة بالمسابقات الوطنية أو الدولية","regs":["سجل المسابقات"]},{"id":"e15","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-2-1-5): تنفذ المدرسة برامج وأنشطة إثرائية لتطوير مواهب المتعلمين وتتابعها","text":"عينة من الطلاب الفائزين في المسابقات الوطنية والدولية ومستوى تحقيق التقدم","regs":["سجل المسابقات"]},{"id":"e16","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-2-1-5): تنفذ المدرسة برامج وأنشطة إثرائية لتطوير مواهب المتعلمين وتتابعها","text":"عينة من أساليب متابعة مشاركة المتعلمين في المسابقات الوطنية والدولية","regs":["سجل المسابقات"]},{"id":"e17","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-2-1-5): تنفذ المدرسة برامج وأنشطة إثرائية لتطوير مواهب المتعلمين وتتابعها","text":"عينة من تكريم الفائزين والحاصلين على مراتب متقدمة في المسابقات","regs":["سجل المسابقات","سجل التحفيز والتكريم"]},{"id":"e18","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-2-1-5): تنفذ المدرسة برامج وأنشطة إثرائية لتطوير مواهب المتعلمين وتتابعها","text":"عينة من الحوافز التي تشجع المتعلمين على المشاركة في الأنشطة الإثرائية","regs":["سجل الأنشطة الإثرائية","سجل التحفيز والتكريم"]},{"id":"e19","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-1-1): تعزز المدرسة بناء العلاقات الإيجابية والتعاون في المجتمع المدرسي","text":"خطة تعزيز العمل التعاوني في المجتمع المدرسي","regs":["سجل البرامج والأنشطة"]},{"id":"e20","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-1-1): تعزز المدرسة بناء العلاقات الإيجابية والتعاون في المجتمع المدرسي","text":"عينة من الأنشطة التي تشجع التعاون والعمل بروح الفريق في المجتمع المدرسي","regs":["سجل البرامج والأنشطة"]},{"id":"e21","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-1-1): تعزز المدرسة بناء العلاقات الإيجابية والتعاون في المجتمع المدرسي","text":"عينة من الأنشطة التي تشجع التعاون والعمل بروح الفريق في المجتمع المحلي","regs":["سجل البرامج والأنشطة"]},{"id":"e22","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-1-1): تعزز المدرسة بناء العلاقات الإيجابية والتعاون في المجتمع المدرسي","text":"إجراءات تنفيذ الأنشطة والبرامج","regs":["سجل البرامج والأنشطة"]},{"id":"e23","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-1-1): تعزز المدرسة بناء العلاقات الإيجابية والتعاون في المجتمع المدرسي","text":"عينة من أساليب متابعة تنفيذ خطة تعزيز العمل التعاوني","regs":["سجل البرامج والأنشطة"]},{"id":"e24","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-3-1): تعزز المدرسة الشراكة المجتمعية لدعم التعلم والتأثير الإيجابي","text":"طرق تواصل المدرسة مع مؤسسات المجتمع المحلي","regs":["سجل الشراكة المجتمعية"]},{"id":"e25","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-3-1): تعزز المدرسة الشراكة المجتمعية لدعم التعلم والتأثير الإيجابي","text":"عينة من تواصل المدرسة مع مؤسسات المجتمع للمشاركة في أنشطة وبرامج أو تقديم خدمات","regs":["سجل الشراكة المجتمعية"]},{"id":"e26","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-3-1): تعزز المدرسة الشراكة المجتمعية لدعم التعلم والتأثير الإيجابي","text":"عينة من الشراكات التعليمية مع مؤسسات المجتمع المحلي لدعم تعلم المتعلمين","regs":["سجل الشراكة المجتمعية"]},{"id":"e27","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-3-1): تعزز المدرسة الشراكة المجتمعية لدعم التعلم والتأثير الإيجابي","text":"عينة من تكريم المجتمع المحلي على تقديم خدمات للمدرسة والمشاركة في برامجها","regs":["سجل الشراكة المجتمعية","سجل التحفيز والتكريم"]},{"id":"e28","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-3-1): تعزز المدرسة الشراكة المجتمعية لدعم التعلم والتأثير الإيجابي","text":"عينة من توثيق مشاركات مؤسسات المجتمع في تعزيز تعلم المتعلمين","regs":["سجل الشراكة المجتمعية"]},{"id":"e29","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-3-1): تعزز المدرسة الشراكة المجتمعية لدعم التعلم والتأثير الإيجابي","text":"عينة من الأنشطة التي تعرّف المجتمع المدرسي بخدمات المؤسسات الوطنية للموهوبين وذوي الإعاقة","regs":["سجل الشراكة المجتمعية","سجل الموهوبين"]},{"id":"e30","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-3-1): تعزز المدرسة الشراكة المجتمعية لدعم التعلم والتأثير الإيجابي","text":"عينة من تحفيز المتعلمين للمشاركة في برامج ومبادرات تقودها المؤسسات الوطنية","regs":["سجل الشراكة المجتمعية","سجل تطوير الخطة التشغيلية"]},{"id":"e31","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-3-1): تعزز المدرسة الشراكة المجتمعية لدعم التعلم والتأثير الإيجابي","text":"عينة من تكريم المشاركين من ذوي الإعاقة والموهوبين في المؤسسات الوطنية","regs":["سجل الشراكة المجتمعية","سجل الموهوبين"]},{"id":"e32","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-3-1): تعزز المدرسة الشراكة المجتمعية لدعم التعلم والتأثير الإيجابي","text":"عينة من الأنشطة والفعاليات التوعوية المقدمة للمجتمع المحلي","regs":["سجل الشراكة المجتمعية"]},{"id":"e33","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-3-1): تعزز المدرسة الشراكة المجتمعية لدعم التعلم والتأثير الإيجابي","text":"عينة من الأنشطة التي تقدمها المدرسة لخدمة المجتمع","regs":["سجل الشراكة المجتمعية"]},{"id":"e34","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-3-1): تعزز المدرسة الشراكة المجتمعية لدعم التعلم والتأثير الإيجابي","text":"عينة من الإمكانات التي أتاحتها المدرسة لخدمة المجتمع المحلي","regs":["سجل الشراكة المجتمعية"]},{"id":"e35","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-3-1): تعزز المدرسة الشراكة المجتمعية لدعم التعلم والتأثير الإيجابي","text":"عينة من حوافز للمشاركين من المجتمع المدرسي في خدمة المجتمع","regs":["سجل الشراكة المجتمعية","سجل التحفيز والتكريم"]},{"id":"e36","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-3-1): تعزز المدرسة الشراكة المجتمعية لدعم التعلم والتأثير الإيجابي","text":"عينة من توثيق المشاركات في خدمة المجتمع","regs":["سجل الشراكة المجتمعية"]},{"id":"e37","domain":"مجال الإدارة المدرسية","ind":"المؤشر (1-3-3-1): تعزز المدرسة الشراكة المجتمعية لدعم التعلم والتأثير الإيجابي","text":"شراكات مع مؤسسات وطنية متخصصة في الموهبة والإبداع","regs":["سجل الموهوبين","سجل الشراكة المجتمعية"]},{"id":"e38","domain":"مجال التعليم والتعلم","ind":"المؤشر (2-1-1-1): توفر المدرسة فرصاً متكافئة للتعلم تلبي احتياجات المتعلمين","text":"عينة من برامج إثرائية لسريعي التعلم والموهوبين","regs":["سجل الموهوبين","سجل الأنشطة الإثرائية"]},{"id":"e39","domain":"مجال التعليم والتعلم","ind":"المؤشر (2-1-1-5): تنفذ المدرسة أنشطة تعلم تطبيقية ترتبط بحياة المتعلمين","text":"عينة من زيارات ميدانية وتجارب عملية","regs":["سجل البرامج والأنشطة"]},{"id":"e40","domain":"مجال نواتج التعلم","ind":"المؤشر (3-2-1-1): يظهر المتعلمون الاعتزاز بالقيم والهوية الوطنية","text":"نسبة المشاركة في الأنشطة والمناسبات الوطنية","regs":["سجل البرامج والأنشطة"]},{"id":"e41","domain":"مجال نواتج التعلم","ind":"المؤشر (3-2-1-1): يظهر المتعلمون الاعتزاز بالقيم والهوية الوطنية","text":"عينة من مبادرات المتعلمين الوطنية والقيمية","regs":["سجل تطوير الخطة التشغيلية"]},{"id":"e42","domain":"مجال نواتج التعلم","ind":"المؤشر (3-2-1-4): يشارك المتعلمون في الأنشطة المجتمعية والأعمال التطوعية","text":"عينة من مشاركة المتعلمين في أعمال تطوعية تخدم المجتمع","regs":["سجل العمل التطوعي"]},{"id":"e43","domain":"مجال نواتج التعلم","ind":"المؤشر (3-2-1-4): يشارك المتعلمون في الأنشطة المجتمعية والأعمال التطوعية","text":"عينة من برامج وأنشطة توضح أهمية المشاركة في أعمال التطوع وتأثيرها الإيجابي","regs":["سجل العمل التطوعي"]},{"id":"e44","domain":"مجال نواتج التعلم","ind":"المؤشر (3-2-1-4): يشارك المتعلمون في الأنشطة المجتمعية والأعمال التطوعية","text":"عينة من الفرص التطوعية المتاحة للمتعلمين","regs":["سجل العمل التطوعي"]},{"id":"e45","domain":"مجال نواتج التعلم","ind":"المؤشر (3-2-1-4): يشارك المتعلمون في الأنشطة المجتمعية والأعمال التطوعية","text":"معلومات وإرشادات حول كيفية مشاركة المتعلمين في الأعمال التطوعية وتنظيم الوقت","regs":["سجل العمل التطوعي"]},{"id":"e46","domain":"مجال نواتج التعلم","ind":"المؤشر (3-2-1-4): يشارك المتعلمون في الأنشطة المجتمعية والأعمال التطوعية","text":"نسبة مشاركة المتعلمين في الأعمال المجتمعية والتطوعية داخل المدرسة وخارجها","regs":["سجل العمل التطوعي"]},{"id":"e47","domain":"مجال نواتج التعلم","ind":"المؤشر (3-2-1-4): يشارك المتعلمون في الأنشطة المجتمعية والأعمال التطوعية","text":"عينة من تشجيع المتعلمين المشاركين في الأعمال التطوعية وتكريمهم","regs":["سجل العمل التطوعي","سجل التحفيز والتكريم"]},{"id":"e48","domain":"مجال نواتج التعلم","ind":"المؤشر (3-2-1-7): يظهر المتعلمون اعتزازاً بثقافتهم واحتراماً للتنوع الثقافي","text":"عينة من برامج التراث الثقافي واللغة العربية","regs":["سجل البرامج والأنشطة"]}];
+const ETEC_STATUSES = ["لم يبدأ","قيد الإعداد","جاهز"];
+const ETEC_STATUS_COLOR = {"لم يبدأ":"var(--coral)","قيد الإعداد":"var(--cyan)","جاهز":"#1F8A4C"};
+const ETEC_FORMATS = [["paper","ورقية"],["digital","إلكترونية"],["audio","سمعية"],["visual","مرئية"]];
+const etecRec = (id) => (DATA.etec && DATA.etec[id]) || {status:"لم يبدأ", formats:{}, evidence:[], note:""};
+const ETEC_DOMAINS = [...new Set(ETEC_ITEMS.map(i=>i.domain))];
 
 const COMP_LEVELS = ["مدرسي","تعليم المدينة","منطقة","مركز تنافسي","وطني","دولي","عالمي"];
 const COMP_STATUSES = ["تسجيل مفتوح","قيد التحضير","جارية","منتهية"];
@@ -402,6 +411,9 @@ function stripEvidenceForSync(data){
   if (copy.activityPlan && copy.activityPlan.categories) {
     copy.activityPlan.categories.forEach(cat => (cat.programs||[]).forEach(p => { p.evidence = stripEvidenceLight(p.evidence); }));
   }
+  if (copy.etec) {
+    Object.keys(copy.etec).forEach(k => { if (copy.etec[k]) copy.etec[k].evidence = stripEvidenceLight(copy.etec[k].evidence); });
+  }
   return copy;
 }
 
@@ -421,6 +433,7 @@ function ensureDataShape(){
   (DATA.weeklyPlan||[]).forEach(p => { if (p.done === undefined) p.done = false; });
   (DATA.activityPlan && DATA.activityPlan.categories || []).forEach(cat => (cat.programs||[]).forEach(p => { if (p.done === undefined) p.done = false; }));
   (DATA.competitions||[]).forEach(c => { if (c.impact === undefined) c.impact = ""; if (!c.stages) c.stages = []; });
+  if (!DATA.etec) DATA.etec = {};
 }
 
 /* دمج مصفوفة شواهد بحسب id: أي شاهد محلي يبقى بمحتواه الفعلي (dataUrl) كما هو دائمًا — لا يُستبدل
@@ -492,6 +505,24 @@ function mergeCompetitions(localArr, remoteArr){
   });
   return Array.from(map.values());
 }
+/* دمج خاص ببنود شواهد زيارة هيئة تقويم التعليم (DATA.etec) — كائن مفاتيحه معرّف البند (e1، e2...)
+   وليس مصفوفة، فنفس فكرة mergeEventLog بالضبط: كل بند يُدمَج بمفاتيحه مع remote، وشواهده بالذات
+   تُدمَج بمعرّفها (لا تُستبدل) حتى لا يضيع شاهد رُفع على هذا الجهاز قبل وصول آخر لقطة من جهاز آخر */
+function mergeEtec(localEtec, remoteEtec){
+  const merged = {...(localEtec||{})};
+  Object.keys(remoteEtec||{}).forEach(k => {
+    const localRec = merged[k];
+    const remoteRec = remoteEtec[k];
+    if (localRec) {
+      const combined = {...localRec, ...remoteRec};
+      combined.evidence = mergeEvidenceArray(localRec.evidence, remoteRec.evidence);
+      merged[k] = combined;
+    } else {
+      merged[k] = remoteRec;
+    }
+  });
+  return merged;
+}
 /* دمج خاص بخطة رائد النشاط: الفئات نفسها ثابتة (18 فئة معرَّفة بـ key)، وما يُضاف فعليًا هو برامجها */
 function mergePlanCategories(localCats, remoteCats){
   const byKey = new Map((localCats||[]).map(c => [c.key, c]));
@@ -521,6 +552,7 @@ function mergeRemoteData(remote){
     DATA.activityPlan.categories = mergePlanCategories(DATA.activityPlan.categories, remote.activityPlan.categories);
   }
   if (remote.vision) DATA.vision = {...DATA.vision, ...remote.vision};
+  if (remote.etec) DATA.etec = mergeEtec(DATA.etec, remote.etec);
   ensureDataShape();
 }
 
@@ -675,6 +707,9 @@ let EVIDENCE_OPEN_ID = null;
 let STUDENTS_OPEN_ID = null;
 let IMPACT_OPEN_ID = null;
 let STAGES_OPEN_ID = null;
+let ETEC_FILTER = "الكل";
+let ETEC_OPEN_IND = null;
+let ETEC_MSG = "";
 let EDIT_COMP_ID = null;
 let SHOW_PLAN_PROGRAM_FORM = null;
 let EDIT_PLAN_PROGRAM_ID = null;
@@ -704,6 +739,7 @@ function allEvidenceIds(){
   DATA.competitions.forEach(c => { (c.evidence||[]).forEach(e => ids.push(e.id)); (c.stages||[]).forEach(s => (s.evidence||[]).forEach(e => ids.push(e.id))); });
   (DATA.activityPlan && DATA.activityPlan.categories || []).forEach(cat => (cat.programs||[]).forEach(p => (p.evidence||[]).forEach(e => ids.push(e.id))));
   Object.keys(DATA.eventLog||{}).forEach(k => (DATA.eventLog[k].evidence||[]).forEach(e => ids.push(e.id)));
+  Object.keys(DATA.etec||{}).forEach(k => (DATA.etec[k].evidence||[]).forEach(e => ids.push(e.id)));
   return ids;
 }
 
@@ -733,6 +769,13 @@ function collectAllEvidence(){
     (lg.evidence||[]).forEach(e => {
       const ev = DATA.weekly.find(w => w.id === k.split("@")[0]);
       items.push({...hydrateEvidence(e), kind:"eventlog", ownerId:k, ownerTitle:(ev?ev.title:"فعالية") + " · " + (k.split("@")[1]||"")});
+    });
+  });
+  Object.keys(DATA.etec||{}).forEach(k => {
+    const rec = DATA.etec[k];
+    (rec.evidence||[]).forEach(e => {
+      const it = ETEC_ITEMS.find(x=>x.id===k);
+      items.push({...hydrateEvidence(e), kind:"etec", ownerId:"etec:"+k, ownerTitle: it ? it.text : k});
     });
   });
   items.forEach(e => { e.sizeBytes = e.dataUrl ? Math.round(e.dataUrl.length*0.75) : 0; });
@@ -1392,6 +1435,7 @@ function findEvidenceArray(kind, id){
   if (kind === "eventlog") return (DATA.eventLog && DATA.eventLog[id] && DATA.eventLog[id].evidence) || [];
   if (kind === "planprogram") { const p = findPlanProgram(id); return (p && p.evidence) || []; }
   if (kind === "compstage") { const {stage} = findCompStage(id); return (stage && stage.evidence) || []; }
+  if (kind === "etec") { const key = String(id).replace(/^etec:/,""); return (DATA.etec && DATA.etec[key] && DATA.etec[key].evidence) || []; }
   const arr = kind === "competition" ? DATA.competitions : DATA.tasks;
   const item = arr.find(x=>x.id===id);
   return (item && item.evidence) || [];
@@ -2029,6 +2073,243 @@ function viewCalendar(){
   `;
 }
 
+/* ===== محرّك الربط التلقائي: يقرأ ما في المنصة ويقترح شواهد لكل بند ===== */
+const ETEC_RULES = {"e1":{"s":["plan"],"d":["الأيام والمناسبات","المواطنة والحياة"]},"e2":{"s":["plan","task"],"d":["الأيام والمناسبات","المواطنة والحياة"]},"e3":{"s":["plan"],"d":["الأيام والمناسبات"]},"e4":{"s":["log","task"],"d":["الأيام والمناسبات","المواطنة والحياة"]},"e5":{"s":["plan"],"d":["العلوم والتقنية","الثقافة والفنون","الفترات اللاصفية"]},"e6":{"s":["comp","student"],"k":["موهبة","موهوب","أولمبياد","إبداع","نسمو"]},"e7":{"s":["plan"],"d":["العلوم والتقنية","الثقافة والفنون"]},"e8":{"s":["plan","log"],"d":["العلوم والتقنية","الثقافة والفنون","الفترات اللاصفية"]},"e9":{"s":["log"],"d":["العلوم والتقنية","الثقافة والفنون","الفترات اللاصفية"]},"e10":{"s":["student","comp"],"k":["موهبة","موهوب","أولمبياد"]},"e11":{"s":["comp","student"],"k":["موهبة","موهوب","أولمبياد","ابتكار"]},"e12":{"s":["task"],"k":["تكريم","تحفيز","حافز","جوائز","متفوق","تشجيع"]},"e13":{"s":["comp","plan"],"k":["مسابقة","أولمبياد","تسجيل","إبداع","نسمو","تحدي"]},"e14":{"s":["comp","student"]},"e15":{"s":["comp"],"r":true},"e16":{"s":["comp","log"]},"e17":{"s":["comp","task"],"k":["تكريم","تحفيز","حافز","جوائز","متفوق","تشجيع"],"r2":true},"e18":{"s":["task"],"k":["تكريم","تحفيز","حافز","جوائز","متفوق","تشجيع"]},"e19":{"s":["plan"],"k":["لجنة","لجان","مجلس","فريق","تعاون","دوري","انتخاب"]},"e20":{"s":["plan","weekly"],"k":["لجنة","لجان","مجلس","فريق","تعاون","دوري","انتخاب"]},"e21":{"s":["plan"],"k":["شراكة","جمعية","مجتمع","تطوع","عمرة","أولياء","بازار","خير"]},"e22":{"s":["log"]},"e23":{"s":["log","task"],"k":["لجنة","لجان","مجلس","فريق","تعاون","دوري","انتخاب"]},"e24":{"s":["plan"],"k":["شراكة","جمعية","مجتمع","تطوع","عمرة","أولياء","بازار","خير"]},"e25":{"s":["plan"],"k":["شراكة","جمعية","مجتمع","تطوع","عمرة","أولياء","بازار","خير"]},"e26":{"s":["plan"],"k":["شراكة","جمعية","ورشة","محاضرة","تعاون"]},"e27":{"s":["task"],"k":["تكريم","تحفيز","حافز","جوائز","متفوق","تشجيع"]},"e28":{"s":["plan","log"],"k":["شراكة","جمعية","مجتمع","تطوع","عمرة","أولياء","بازار","خير"]},"e29":{"s":["plan"],"k":["موهوب","إعاقة","توعوية","تعريفية"]},"e30":{"s":["plan","comp"],"k":["مبادرة","وطني","مؤسسة","موهبة"]},"e31":{"s":["task"],"k":["تكريم","تحفيز","حافز","جوائز","متفوق","تشجيع"]},"e32":{"s":["plan"],"k":["توعوية","توعية","محاضرة","ندوة","حملة"]},"e33":{"s":["plan"],"k":["شراكة","جمعية","مجتمع","تطوع","عمرة","أولياء","بازار","خير"]},"e34":{"s":["plan"],"k":["شراكة","جمعية","مجتمع","تطوع","عمرة","أولياء","بازار","خير"]},"e35":{"s":["task"],"k":["تكريم","تحفيز","حافز","جوائز","متفوق","تشجيع"]},"e36":{"s":["log","plan"],"k":["شراكة","جمعية","مجتمع","تطوع","عمرة","أولياء","بازار","خير"]},"e37":{"s":["comp"],"k":["موهبة","إبداع","ابتكار","موهوب"]},"e38":{"s":["comp","plan"],"d":["العلوم والتقنية"],"k":["موهوب","إثرائي","ابتكار"]},"e39":{"s":["plan"],"k":["رحلة","زيارة","ميداني","معرض","تجربة"]},"e40":{"s":["plan"],"d":["الأيام والمناسبات"]},"e41":{"s":["plan"],"k":["مبادرة","وطني","قيم"]},"e42":{"s":["plan"],"k":["تطوع","خير","مجتمع"]},"e43":{"s":["plan"],"k":["تطوع","خير","توعوية"]},"e44":{"s":["plan"],"k":["تطوع","فرص","خير"]},"e45":{"s":["plan","task"],"k":["تطوع","إرشاد","تنظيم الوقت"]},"e46":{"s":["plan","log"],"k":["تطوع","مجتمع"]},"e47":{"s":["task"],"k":["تكريم","تحفيز","حافز","جوائز","متفوق","تشجيع"]},"e48":{"s":["plan"],"d":["الثقافة والفنون"],"k":["لغة","تراث","خط","عربية","قراءة","شعر"]}};
+
+function _hit(txt, kws){
+  if (!kws || !kws.length) return true;
+  const t = (txt||"");
+  return kws.some(k => t.indexOf(k) !== -1);
+}
+function _domOk(dom, doms){ return !doms || !doms.length || doms.indexOf(dom) !== -1; }
+
+/* يرجع مصادر المنصة المطابقة لبند الزيارة */
+function etecMatches(itemId){
+  const r = ETEC_RULES[itemId]; if (!r) return [];
+  const src = r.s || [], out = [];
+
+  if (src.indexOf("plan") !== -1) {
+    (DATA.weeklyPlan||[]).forEach(w=>{
+      if (!_domOk(w.domain, r.d)) return;
+      if (!_hit((w.focus||"")+" "+(w.program||""), r.k)) return;
+      out.push({t:"plan", id:w.id, label:(w.program||"أسبوع الخطة"), sub:w.startDate+" — "+w.endDate, ev:0});
+    });
+  }
+  if (src.indexOf("weekly") !== -1) {
+    (DATA.weekly||[]).forEach(w=>{
+      if (!_hit(w.title, r.k)) return;
+      out.push({t:"weekly", id:w.id, label:w.title, sub:w.day+" · "+w.time, ev:0});
+    });
+  }
+  if (src.indexOf("task") !== -1) {
+    (DATA.tasks||[]).forEach(t=>{
+      if (!_domOk(t.domain, r.d)) return;
+      if (!_hit(t.title, r.k)) return;
+      out.push({t:"task", id:t.id, label:t.title, sub:(t.done?"منجزة":"قيد التنفيذ")+(t.doneDate?" · "+t.doneDate:""), ev:(t.evidence||[]).length});
+    });
+  }
+  if (src.indexOf("comp") !== -1) {
+    (DATA.competitions||[]).forEach(c=>{
+      if (r.r && !(c.result||"").trim()) return;
+      if (!_hit(c.name+" "+(c.organizer||""), r.k)) return;
+      out.push({t:"comp", id:c.id, label:c.name, sub:c.status+(c.result?" · 🏆 "+c.result:"")+((c.students||[]).length?" · "+c.students.length+" طالب":""), ev:(c.evidence||[]).length});
+    });
+  }
+  if (src.indexOf("student") !== -1) {
+    (DATA.competitions||[]).forEach(c=>{
+      if (!(c.students||[]).length) return;
+      if (!_hit(c.name, r.k)) return;
+      out.push({t:"students", id:c.id, label:"قائمة الطلاب — "+c.name, sub:c.students.length+" طالبًا مسجلًا", ev:0});
+    });
+  }
+  if (src.indexOf("log") !== -1) {
+    Object.keys(DATA.eventLog||{}).forEach(k=>{
+      const lg = DATA.eventLog[k]; if (!lg || !lg.done) return;
+      const parts = k.split("@"), ev = (DATA.weekly||[]).find(w=>w.id===parts[0]);
+      const title = ev ? ev.title : "فعالية مجدولة";
+      if (!_hit(title, r.k)) return;
+      out.push({t:"log", id:k, label:title, sub:"نُفّذت "+parts[1], ev:(lg.evidence||[]).length});
+    });
+  }
+  /* الأحدث أولاً، بحد أقصى 8 مصادر لكل بند */
+  return out.slice(0, 8);
+}
+
+/* شواهد مصوّرة من المصادر المرتبطة */
+function etecLinkedEvidence(links){
+  const out = [];
+  (links||[]).forEach(L=>{
+    if (L.t==="task"){ const t=(DATA.tasks||[]).find(x=>x.id===L.id); (t&&t.evidence||[]).forEach(e=>out.push({...hydrateEvidence(e),cap:t.title})); }
+    else if (L.t==="comp"){ const c=(DATA.competitions||[]).find(x=>x.id===L.id); (c&&c.evidence||[]).forEach(e=>out.push({...hydrateEvidence(e),cap:c.name})); }
+    else if (L.t==="log"){ const lg=(DATA.eventLog||{})[L.id]; (lg&&lg.evidence||[]).forEach(e=>out.push({...hydrateEvidence(e),cap:L.label||"فعالية"})); }
+  });
+  return out;
+}
+
+/* تعبئة تلقائية لكل البنود التي لها مطابقات */
+async function etecAutofill(){
+  let filled = 0, skipped = 0;
+  await mutate(d => {
+    if (!d.etec) d.etec = {};
+    ETEC_ITEMS.forEach(it=>{
+      const cur = d.etec[it.id] || {status:"لم يبدأ", formats:{}, evidence:[], note:"", links:[]};
+      if (cur.status === "جاهز" && (cur.links||[]).length) { skipped++; d.etec[it.id] = cur; return; }
+      const m = etecMatches(it.id);
+      if (!m.length) { d.etec[it.id] = cur; return; }
+      cur.links = m.map(x=>({t:x.t, id:x.id, label:x.label}));
+      const evN = etecLinkedEvidence(cur.links).length;
+      if (cur.status === "لم يبدأ") cur.status = evN ? "جاهز" : "قيد الإعداد";
+      if (!cur.formats) cur.formats = {};
+      cur.formats.digital = true;
+      if (evN) cur.formats.visual = true;
+      d.etec[it.id] = cur;
+      filled++;
+    });
+  });
+  ETEC_MSG = `تمت تعبئة ${filled} بندًا من بيانات منصتك. البنود المتبقية بلا مطابقة تحتاج تعبئة يدوية.`;
+  render();
+}
+
+/* ============================================================ */
+/* شواهد زيارة هيئة تقويم التعليم والتدريب */
+/* ============================================================ */
+function etecStats(list){
+  const total = list.length;
+  const ready = list.filter(i=>etecRec(i.id).status==="جاهز").length;
+  const prog  = list.filter(i=>etecRec(i.id).status==="قيد الإعداد").length;
+  const withEv= list.filter(i=>(etecRec(i.id).evidence||[]).length>0).length;
+  return {total, ready, prog, none: total-ready-prog, withEv,
+          pct: total? Math.round(ready/total*100):0};
+}
+
+function etecRow(it){
+  const r = etecRec(it.id);
+  const linked = r.links || [];
+  const linkedEv = etecLinkedEvidence(linked);
+  const evN = (r.evidence||[]).length + linkedEv.length;
+  const open = EVIDENCE_OPEN_ID === "etec:"+it.id;
+  const sugg = linked.length ? [] : etecMatches(it.id);
+  return `
+    <div class="etec-row">
+      <div class="etec-main">
+        <div class="etec-txt">${esc(it.text)}</div>
+        <div class="etec-regs">${it.regs.map(g=>`<span class="etec-reg">${esc(g)}</span>`).join("")}</div>
+        ${linked.length ? `
+          <div class="etec-links">
+            <div class="hd">✔ مربوط بـ ${linked.length} من أعمالك في المنصة${linkedEv.length?` · ${linkedEv.length} شاهد مصوّر`:""}</div>
+            <div class="bd">${linked.map(L=>`<span class="etec-link">${esc(L.label)}</span>`).join("")}</div>
+            <button class="etec-unlink" data-action="etecUnlink" data-id="${it.id}">فكّ الربط</button>
+          </div>` : (sugg.length ? `
+          <div class="etec-sugg">
+            <div class="hd">💡 وجدتُ ${sugg.length} عملًا مطابقًا في منصتك</div>
+            <div class="bd">${sugg.slice(0,4).map(x=>`<span class="etec-link">${esc(x.label)}</span>`).join("")}${sugg.length>4?`<span class="etec-link more">+${sugg.length-4}</span>`:""}</div>
+            <button class="etec-dolink" data-action="etecLink" data-id="${it.id}">اربطها بهذا البند</button>
+          </div>` : `<div class="etec-none">لا يوجد ما يطابقه في المنصة — يحتاج تعبئة يدوية</div>`)}
+        <div class="etec-fmt">
+          ${ETEC_FORMATS.map(([k,lbl])=>`
+            <label class="etec-chk ${r.formats&&r.formats[k]?'on':''}">
+              <input type="checkbox" class="etec-format" data-id="${it.id}" data-fmt="${k}" ${r.formats&&r.formats[k]?"checked":""}>
+              <span>${lbl}</span>
+            </label>`).join("")}
+        </div>
+      </div>
+      <div class="etec-side">
+        <select class="etec-status" data-id="${it.id}"
+          style="color:${ETEC_STATUS_COLOR[r.status]}; border-color:${ETEC_STATUS_COLOR[r.status]};">
+          ${ETEC_STATUSES.map(st=>`<option value="${st}" ${st===r.status?"selected":""}>${st}</option>`).join("")}
+        </select>
+        <button class="evidence-btn ${evN?'has':''}" data-action="toggleEvidence" data-id="etec:${it.id}">📎${evN?` ${evN}`:""}</button>
+      </div>
+      ${open?`<div class="etec-ev">
+        ${linkedEv.length?`<div class="etec-linkev">
+          <div class="hd">شواهد مرتبطة تلقائيًا من المنصة (${linkedEv.length})</div>
+          <div class="grid">${linkedEv.map(e=>{ const src=e.dataUrl||e.cloudUrl; return !src
+            ? `<figure class="etec-pending">⏳<figcaption>${esc(e.cap)}</figcaption></figure>`
+            : e.type==="video"
+            ? `<figure><video src="${src}"></video><figcaption>${esc(e.cap)}</figcaption></figure>`
+            : `<figure><img src="${src}" alt=""><figcaption>${esc(e.cap)}</figcaption></figure>`; }).join("")}</div>
+        </div>`:""}
+        ${evidencePanel({id:"etec:"+it.id, evidence:r.evidence||[]}, "etec")}
+      </div>`:""}
+    </div>`;
+}
+
+function viewEtec(){
+  const all = ETEC_ITEMS;
+  const list = ETEC_FILTER==="الكل" ? all
+             : ETEC_FILTER==="الناقصة" ? all.filter(i=>etecRec(i.id).status!=="جاهز")
+             : all.filter(i=>i.domain===ETEC_FILTER);
+  const S = etecStats(all);
+
+  /* تجميع حسب المؤشر */
+  const inds = [];
+  list.forEach(i=>{ if(!inds.some(x=>x.ind===i.ind)) inds.push({ind:i.ind, domain:i.domain, items:[]}); });
+  list.forEach(i=> inds.find(x=>x.ind===i.ind).items.push(i));
+
+  /* جاهزية السجلات */
+  const regNames = [...new Set(all.flatMap(i=>i.regs))];
+  const regStats = regNames.map(g=>{
+    const sub = all.filter(i=>i.regs.includes(g));
+    return {name:g, ...etecStats(sub)};
+  }).sort((a,b)=>b.total-a.total);
+
+  const filters = ["الكل","الناقصة",...ETEC_DOMAINS];
+
+  return `
+    <div class="topbar">
+      ${sectionTitle("الاعتماد المدرسي", "شواهد زيارة هيئة تقويم التعليم", "badge")}
+      <div style="display:flex; gap:9px; flex-wrap:wrap;">
+        <button class="btn accent" data-action="etecAutofill">⚡ تعبئة تلقائية من المنصة</button>
+        <button class="btn ghost" data-action="reportPrint">🖨️ طباعة كشف الحالة</button>
+      </div>
+    </div>
+    ${ETEC_MSG ? `<div class="etec-msg">${esc(ETEC_MSG)}</div>` : ""}
+
+    <div class="stat-row">
+      <div class="stat-card"><div class="num">${S.total}</div><div class="lbl">إجمالي الشواهد المطلوبة</div></div>
+      <div class="stat-card"><div class="num" style="color:#1F8A4C">${S.ready}</div><div class="lbl">جاهزة</div></div>
+      <div class="stat-card"><div class="num" style="color:var(--cyan)">${S.prog}</div><div class="lbl">قيد الإعداد</div></div>
+      <div class="stat-card"><div class="num" style="color:var(--coral)">${S.none}</div><div class="lbl">لم تبدأ</div></div>
+    </div>
+
+    <div class="etec-meter">
+      <div class="hd"><span>نسبة الجاهزية العامة</span><b>${S.pct}%</b></div>
+      <div class="br"><i style="width:${S.pct}%"></i></div>
+      <div class="ft">${S.withEv} من ${S.total} بندًا مرفوع له شاهد واحد على الأقل</div>
+    </div>
+
+    <div class="etec-regs-grid">
+      ${regStats.map(g=>`
+        <div class="etec-reg-card">
+          <div class="n">${esc(g.name)}</div>
+          <div class="br"><i style="width:${g.pct}%; background:${g.pct>=100?'#1F8A4C':g.pct>0?'var(--cyan)':'var(--coral)'}"></i></div>
+          <div class="m">${g.ready} من ${g.total} جاهز</div>
+        </div>`).join("")}
+    </div>
+
+    <div class="filter-row" style="margin-top:24px;">
+      ${filters.map(f=>`<button class="filter-pill ${ETEC_FILTER===f?"active":""}" data-action="etecFilter" data-f="${esc(f)}">${f}</button>`).join("")}
+    </div>
+
+    ${inds.map(gr=>{
+      const st = etecStats(gr.items);
+      const open = ETEC_OPEN_IND === gr.ind || ETEC_OPEN_IND === null;
+      return `
+      <div class="etec-block">
+        <div class="etec-ind" data-action="etecToggleInd" data-ind="${esc(gr.ind)}">
+          <div class="l">
+            <div class="dm">${esc(gr.domain)}</div>
+            <div class="ti">${esc(gr.ind)}</div>
+          </div>
+          <div class="r">
+            <span class="cnt" style="background:${st.pct>=100?'#1F8A4C':st.pct>0?'var(--cyan)':'var(--coral)'}">${st.ready}/${st.total}</span>
+          </div>
+        </div>
+        ${open?`<div class="etec-items">${gr.items.map(etecRow).join("")}</div>`:""}
+      </div>`;}).join("")}
+  `;
+}
+
 /* ============================================================ */
 /* التقارير الأسبوعية والشهرية */
 /* ============================================================ */
@@ -2551,6 +2832,7 @@ const TABS = [
   {key:"calendar", label:"التقويم", icon:"year"},
   {key:"competitions", label:"المسابقات", icon:"trophy"},
   {key:"reports", label:"التقارير", icon:"report"},
+  {key:"etec", label:"شواهد الزيارة", icon:"badge"},
   {key:"tasks", label:"المهام", icon:"list"},
   {key:"alerts", label:"التنبيهات", icon:"bell"},
 ];
@@ -2562,6 +2844,7 @@ const TAB_TITLES = {
   calendar:["العام الدراسي","التقويم السنوي"],
   competitions:["تثبيت الحضور والتميز","الابتكار والمسابقات"],
   reports:["الإنجاز والتوثيق","التقارير الأسبوعية والشهرية"],
+  etec:["الاعتماد المدرسي","شواهد زيارة هيئة تقويم التعليم"],
   tasks:["الإدارة","المهام"],
   alerts:["المتابعة","التنبيهات"],
 };
@@ -2614,10 +2897,11 @@ function render(){
     TAB === "calendar" ? viewCalendar() :
     TAB === "competitions" ? viewCompetitions() :
     TAB === "reports" ? viewReports() :
+    TAB === "etec" ? viewEtec() :
     TAB === "tasks" ? viewTasks() :
     viewAlerts();
 
-  const showTopbarDefault = TAB !== "weekly" && TAB !== "tasks" && TAB !== "calendar" && TAB !== "vision" && TAB !== "competitions" && TAB !== "reports" && TAB !== "plan";
+  const showTopbarDefault = TAB !== "weekly" && TAB !== "tasks" && TAB !== "calendar" && TAB !== "vision" && TAB !== "competitions" && TAB !== "reports" && TAB !== "plan" && TAB !== "etec";
 
   document.getElementById("app").innerHTML = `
     ${shouldShowInstallBanner() ? `
@@ -3081,6 +3365,38 @@ document.addEventListener("click", async (e) => {
   if (action === "openStoragePanel") { SHOW_STORAGE_PANEL = true; render(); return; }
   if (action === "closeStoragePanel") { SHOW_STORAGE_PANEL = false; render(); return; }
   if (action === "toggleEvidence") { EVIDENCE_OPEN_ID = (EVIDENCE_OPEN_ID === btn.dataset.id ? null : btn.dataset.id); render(); return; }
+  if (action === "etecAutofill") { await etecAutofill(); return; }
+  if (action === "etecLink") {
+    const id = btn.dataset.id;
+    const m = etecMatches(id);
+    if (!m.length) return;
+    await mutate(d => {
+      if (!d.etec) d.etec = {};
+      const cur = d.etec[id] || {status:"لم يبدأ", formats:{}, evidence:[], note:"", links:[]};
+      cur.links = m.map(x=>({t:x.t, id:x.id, label:x.label}));
+      if (!cur.formats) cur.formats = {};
+      cur.formats.digital = true;
+      const evN = etecLinkedEvidence(cur.links).length;
+      if (evN) cur.formats.visual = true;
+      if (cur.status === "لم يبدأ") cur.status = evN ? "جاهز" : "قيد الإعداد";
+      d.etec[id] = cur;
+    });
+    return;
+  }
+  if (action === "etecUnlink") {
+    const id = btn.dataset.id;
+    await mutate(d => {
+      if (!d.etec) d.etec = {};
+      const cur = d.etec[id]; if (cur) { cur.links = []; d.etec[id] = cur; }
+    });
+    return;
+  }
+  if (action === "etecFilter") { ETEC_FILTER = btn.dataset.f; ETEC_MSG=""; render(); return; }
+  if (action === "etecToggleInd") {
+    const v = btn.dataset.ind;
+    ETEC_OPEN_IND = (ETEC_OPEN_IND === v) ? null : v;
+    render(); return;
+  }
   if (action === "removeEvidence") {
     const id = btn.dataset.id, eid = btn.dataset.eid, kind = btn.dataset.kind || "task";
     if (VIDEO_LIGHTBOX && VIDEO_LIGHTBOX.kind === kind && VIDEO_LIGHTBOX.id === id && VIDEO_LIGHTBOX.eid === eid) {
@@ -3103,6 +3419,13 @@ document.addEventListener("click", async (e) => {
         const c = d.competitions.find(x=>x.id===compId);
         const stage = c && (c.stages||[]).find(s=>s.id===stageId);
         if (stage && stage.evidence) stage.evidence = stage.evidence.filter(e=>e.id!==eid);
+        return;
+      }
+      if (kind === "etec") {
+        if (!d.etec) d.etec = {};
+        const key = id.replace(/^etec:/,"");
+        const cur = d.etec[key];
+        if (cur && cur.evidence) cur.evidence = cur.evidence.filter(e=>e.id!==eid);
         return;
       }
       const arr = kind === "competition" ? d.competitions : d.tasks;
@@ -3175,6 +3498,15 @@ document.addEventListener("change", async (e) => {
         if (stage) { if (!stage.evidence) stage.evidence = []; stage.evidence.push(...items); }
         return;
       }
+      if (kind === "etec") {
+        if (!d.etec) d.etec = {};
+        const key = id.replace(/^etec:/,"");
+        const cur = d.etec[key] || {status:"لم يبدأ", formats:{}, evidence:[], note:"", links:[]};
+        if (!cur.evidence) cur.evidence = [];
+        cur.evidence.push(...items);
+        d.etec[key] = cur;
+        return;
+      }
       const arr = kind === "competition" ? d.competitions : d.tasks;
       const item = arr.find(x=>x.id===id);
       if (item) { if (!item.evidence) item.evidence = []; item.evidence.push(...items); }
@@ -3195,6 +3527,12 @@ document.addEventListener("change", async (e) => {
         const c = d.competitions.find(x=>x.id===compId);
         const stage = c && (c.stages||[]).find(s=>s.id===stageId);
         if (stage && stage.evidence) stage.evidence = stage.evidence.filter(x => !newItems.some(n=>n.id===x.id));
+        return;
+      }
+      if (kind === "etec") {
+        const key = id.replace(/^etec:/,"");
+        const cur = d.etec && d.etec[key];
+        if (cur && cur.evidence) cur.evidence = cur.evidence.filter(x => !newItems.some(n=>n.id===x.id));
         return;
       }
       const arr = kind === "competition" ? d.competitions : d.tasks;
@@ -3242,6 +3580,25 @@ document.addEventListener("change", async (e) => {
     const id = e.target.dataset.id;
     const status = e.target.value;
     await mutate(d => { const c = d.competitions.find(x=>x.id===id); if (c) c.status = status; });
+  }
+  if (e.target.classList.contains("etec-status")) {
+    const id = e.target.dataset.id, st = e.target.value;
+    await mutate(d => {
+      if (!d.etec) d.etec = {};
+      const cur = d.etec[id] || {status:"لم يبدأ", formats:{}, evidence:[], note:""};
+      cur.status = st; d.etec[id] = cur;
+    });
+    return;
+  }
+  if (e.target.classList.contains("etec-format")) {
+    const id = e.target.dataset.id, f = e.target.dataset.fmt, on = e.target.checked;
+    await mutate(d => {
+      if (!d.etec) d.etec = {};
+      const cur = d.etec[id] || {status:"لم يبدأ", formats:{}, evidence:[], note:""};
+      if (!cur.formats) cur.formats = {};
+      cur.formats[f] = on; d.etec[id] = cur;
+    });
+    return;
   }
 });
 
