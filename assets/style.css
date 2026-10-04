@@ -461,7 +461,8 @@
        فارغة تقريبًا بسبب انخفاض الارتفاع المتاح) بدل ما يعيد ترتيب نفسه تلقائيًا. */
     @page { size:A4 portrait; margin:0; }
     body{background:#fff;}
-    .sidebar, .topbar, .report-toolbar, .nav-item, .storage-overlay { display:none !important; }
+    .sidebar, .topbar, .report-toolbar, .nav-item, .storage-overlay, .evidence-btn, .filter-row, .etec-side { display:none !important; }
+    .etec-ind{background:#0F2771 !important;}
     .app, .main { display:block !important; padding:0 !important; margin:0 !important; }
     .plan-screen-only{display:none !important;}
     .plan-print-only{display:block !important;}
@@ -528,6 +529,68 @@
   .moe-prog-col .ft .btn svg{width:13px; height:13px;}
   .moe-note{margin-top:20px; background:#FBEBEB; border:1px solid #F0D2D2; border-radius:10px;
     padding:13px 16px; font-size:11.5px; color:#8C3A3E; line-height:1.85;}
+
+  /* ===== شواهد الزيارة (ETEC) ===== */
+  .etec-meter{background:#fff; border:1px solid var(--line); border-radius:14px; padding:18px 22px; margin-bottom:18px;}
+  .etec-meter .hd{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;}
+  .etec-meter .hd span{font-family:'Cairo'; font-weight:800; font-size:14px; color:var(--navy);}
+  .etec-meter .hd b{font-family:Georgia,serif; font-size:26px; color:var(--navy);}
+  .etec-meter .br{height:13px; background:#EEF1F6; border-radius:7px; overflow:hidden;}
+  .etec-meter .br i{display:block; height:100%; background:linear-gradient(90deg,var(--cyan),#1F8A4C); border-radius:7px; min-width:3px;}
+  .etec-meter .ft{font-size:11.5px; color:var(--muted); margin-top:9px;}
+
+  .etec-regs-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(185px,1fr)); gap:11px;}
+  .etec-reg-card{background:#fff; border:1px solid var(--line); border-radius:11px; padding:13px 15px;}
+  .etec-reg-card .n{font-family:'Cairo'; font-weight:800; font-size:12px; color:var(--navy); margin-bottom:9px;}
+  .etec-reg-card .br{height:7px; background:#EEF1F6; border-radius:5px; overflow:hidden;}
+  .etec-reg-card .br i{display:block; height:100%; border-radius:5px; min-width:3px;}
+  .etec-reg-card .m{font-size:11px; color:var(--muted); margin-top:7px;}
+
+  .etec-block{margin-top:16px;}
+  .etec-ind{display:flex; justify-content:space-between; align-items:center; gap:14px; cursor:pointer;
+    background:var(--navy); color:#fff; border-radius:12px; padding:14px 18px;}
+  .etec-ind .dm{font-size:11px; opacity:.72; margin-bottom:4px;}
+  .etec-ind .ti{font-family:'Cairo'; font-weight:800; font-size:13.5px; line-height:1.6;}
+  .etec-ind .cnt{border-radius:20px; padding:5px 13px; font-size:12px; font-weight:800; white-space:nowrap;}
+  .etec-items{border:1px solid var(--line); border-top:none; border-radius:0 0 12px 12px; background:#fff;}
+  .etec-row{border-bottom:1px solid var(--line); padding:14px 18px;}
+  .etec-row:last-child{border-bottom:none;}
+  .etec-main{display:block;}
+  .etec-txt{font-size:13px; color:var(--ink); line-height:1.8; font-weight:600;}
+  .etec-regs{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;}
+  .etec-reg{background:#EAF1FC; color:var(--navy); border-radius:20px; padding:3px 11px; font-size:10.5px; font-weight:700;}
+  .etec-fmt{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;}
+  .etec-chk{display:flex; align-items:center; gap:5px; border:1px solid var(--line); border-radius:20px;
+    padding:4px 11px; font-size:11px; font-weight:700; color:var(--muted); cursor:pointer;}
+  .etec-chk.on{border-color:#1F8A4C; color:#1F8A4C; background:#EBF7F0;}
+  .etec-chk input{width:13px; height:13px; accent-color:#1F8A4C;}
+  .etec-side{display:flex; gap:8px; align-items:center; margin-top:11px;}
+  .etec-status{border:1.5px solid var(--line); border-radius:9px; padding:6px 11px;
+    font-family:'Cairo'; font-size:12px; font-weight:800; background:#fff;}
+  .etec-ev{margin-top:12px;}
+  .etec-msg{background:#EBF7F0; border:1px solid #BFE3CE; color:#1F6B42; border-radius:11px;
+    padding:13px 17px; font-size:12.5px; margin-bottom:18px; line-height:1.8;}
+  .etec-links,.etec-sugg{margin-top:10px; border-radius:10px; padding:10px 13px;}
+  .etec-links{background:#EBF7F0; border:1px solid #CBE7D7;}
+  .etec-sugg{background:#FFF7E8; border:1px solid #F0DCB4;}
+  .etec-links .hd{font-size:11.5px; font-weight:800; color:#1F6B42; margin-bottom:7px;}
+  .etec-sugg .hd{font-size:11.5px; font-weight:800; color:#8A6D1F; margin-bottom:7px;}
+  .etec-links .bd,.etec-sugg .bd{display:flex; gap:5px; flex-wrap:wrap;}
+  .etec-link{background:#fff; border:1px solid var(--line); border-radius:16px;
+    padding:3px 10px; font-size:10.5px; color:#41506B;}
+  .etec-link.more{color:var(--muted); font-weight:700;}
+  .etec-unlink,.etec-dolink{margin-top:8px; border:none; border-radius:8px; padding:5px 13px;
+    font-family:'Cairo'; font-size:11px; font-weight:700; cursor:pointer;}
+  .etec-unlink{background:#fff; border:1px solid #CBE7D7; color:#1F6B42;}
+  .etec-dolink{background:#8A6D1F; color:#fff;}
+  .etec-none{margin-top:9px; font-size:11.5px; color:var(--muted); font-style:italic;}
+  .etec-linkev{background:#F7F9FC; border:1px dashed var(--line); border-radius:11px; padding:12px 14px; margin-bottom:11px;}
+  .etec-linkev .hd{font-size:11.5px; font-weight:800; color:var(--navy); margin-bottom:9px;}
+  .etec-linkev .grid{display:flex; gap:9px; flex-wrap:wrap;}
+  .etec-linkev figure{margin:0; width:96px; border-radius:9px; overflow:hidden; border:1px solid var(--line); background:#fff;}
+  .etec-linkev img,.etec-linkev video{width:100%; height:68px; object-fit:cover; display:block;}
+  .etec-linkev figcaption{font-size:9px; color:var(--muted); padding:4px 5px; line-height:1.4;}
+  .etec-linkev figure.etec-pending{display:flex; align-items:center; justify-content:center; height:68px; font-size:20px; background:#F7F9FC;}
 
   .hidden{display:none !important;}
 
