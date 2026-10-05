@@ -258,10 +258,10 @@ function render(){
   document.getElementById("content").innerHTML = `
     <section>
       <div class="stat-row">
-        <div class="stat-card"><div class="num">${S.total}</div><div class="lbl">إجمالي البنود</div></div>
-        <div class="stat-card"><div class="num" style="color:var(--good)">${S.ready}</div><div class="lbl">جاهزة</div></div>
-        <div class="stat-card"><div class="num" style="color:var(--cyan)">${S.prog}</div><div class="lbl">قيد الإعداد</div></div>
-        <div class="stat-card"><div class="num" style="color:var(--none)">${S.none}</div><div class="lbl">لم تبدأ</div></div>
+        <div class="stat-card"><div class="num">${S.total}</div><div class="lbl">البنود المستهدفة</div></div>
+        <div class="stat-card"><div class="num" style="color:var(--good)">${S.ready}</div><div class="lbl">مُنجزة</div></div>
+        <div class="stat-card"><div class="num" style="color:var(--cyan)">${S.prog}</div><div class="lbl">قيد العمل</div></div>
+        <div class="stat-card"><div class="num" style="color:var(--none)">${S.none}</div><div class="lbl">متبقية</div></div>
       </div>
       <div class="etec-regs-grid">
         ${regStats.map(g=>`
@@ -276,7 +276,6 @@ function render(){
       </div>
       ${inds.map(gr=>{
         const st = etecStats(gr.items);
-        const open = ETEC_OPEN_IND === gr.ind || ETEC_OPEN_IND === null;
         return `
         <div class="etec-block">
           <div class="etec-ind" data-ind="${esc(gr.ind)}">
@@ -286,7 +285,7 @@ function render(){
             </div>
             <div class="r"><span class="cnt" style="background:${st.pct>=100?'#1F8A4C':st.pct>0?'var(--cyan)':'var(--none)'}; color:#fff;">${st.ready}/${st.total}</span></div>
           </div>
-          ${open?`<div class="etec-items">${gr.items.map(etecRow).join("")}</div>`:""}
+          ${ETEC_OPEN_IND===gr.ind?`<div class="etec-items">${gr.items.map(etecRow).join("")}</div>`:""}
         </div>`;
       }).join("")}
     </section>

@@ -3792,6 +3792,31 @@ document.addEventListener("change", async (e) => {
     DATA.__dedupedCompetitionsByName = true;
     await persist();
   }
+  /* إضافة لمرة واحدة: شواهد أرسلها المستخدم مباشرة (ملصقات حملة "بدلها" للتدوير وتوثيق فريق رعاية
+     الموهوبين). الملفات مستضافة كأصول ثابتة على نفس موقع المنصة (لا سحابة خارجية)، فتُضاف هنا بروابط
+     cloudUrl مباشرة بلا محتوى محلي (نفس شكل شاهد وصل من جهاز آخر) — إضافة فقط، لا تُستبدل أي شواهد
+     أو روابط موجودة مسبقًا على نفس البند. */
+  if (!DATA.__addedOct2026UserEvidence) {
+    if (!DATA.etec) DATA.etec = {};
+    const addEtecEvidence = (itemId, items) => {
+      const cur = DATA.etec[itemId] || {status:"لم يبدأ", formats:{}, evidence:[], note:"", links:[]};
+      if (!cur.evidence) cur.evidence = [];
+      cur.evidence = cur.evidence.concat(items);
+      DATA.etec[itemId] = cur;
+    };
+    addEtecEvidence("e39", [
+      {id: uid(), type:"image", name:"بدلها 1", cloudUrl:"https://mauve-zeta-26.vercel.app/assets/evidence/badelaha-1.jpg"},
+      {id: uid(), type:"image", name:"بدلها 2", cloudUrl:"https://mauve-zeta-26.vercel.app/assets/evidence/badelaha-2.jpg"},
+      {id: uid(), type:"image", name:"بدلها 3", cloudUrl:"https://mauve-zeta-26.vercel.app/assets/evidence/badelaha-3.jpg"},
+      {id: uid(), type:"image", name:"بدلها 4", cloudUrl:"https://mauve-zeta-26.vercel.app/assets/evidence/badelaha-4.jpg"},
+      {id: uid(), type:"video", name:"عرض مشروع بدلها", cloudUrl:"https://mauve-zeta-26.vercel.app/assets/evidence/badelaha-presentation.mov"},
+    ]);
+    addEtecEvidence("e6", [
+      {id: uid(), type:"image", name:"فريق رعاية الموهوبين بالمدرسة", cloudUrl:"https://mauve-zeta-26.vercel.app/assets/evidence/gifted-team-committee.jpg"},
+    ]);
+    DATA.__addedOct2026UserEvidence = true;
+    await persist();
+  }
   render();
   initSync();
 })();
