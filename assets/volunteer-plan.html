@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>خطة تأسيس الفريق التطوعي – ثانوية الأندلس</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* خط سومار: ضع ملفات الخط في مجلد fonts بجانب الصفحة، أو عدّل المسار حسب منصتك */
+@font-face { font-family: "Somar"; src: local("Somar"), local("Somar-Regular"), url("fonts/Somar-Regular.otf") format("opentype"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Somar"; src: local("Somar Medium"), local("Somar-Medium"), url("fonts/Somar-Medium.otf") format("opentype"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "Somar"; src: local("Somar Bold"), local("Somar-Bold"), url("fonts/Somar-Bold.otf") format("opentype"); font-weight: 700; font-display: swap; }
+
+:root {
+  --navy: #1E2B5E; --blue: #2E5FA8; --sky: #5BB8E3; --purple: #6B4FA0; --mauve: #B27BA6; --coral: #EE7B6A;
+  --ink: #1B2236; --muted: #5B6478; --line: #D9E0EB; --tint: #F3F7FC; --paper: #FFFFFF;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Somar", "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif; font-size: 17px; line-height: 1.85; }
+
+.hero { background: var(--navy); color: #fff; padding: 56px 24px 40px; }
+.hero .in { max-width: 1040px; margin: 0 auto; }
+.hero .school { color: var(--sky); font-weight: 500; font-size: 15px; margin: 0 0 6px; }
+.hero h1 { font-size: clamp(30px, 4.6vw, 52px); line-height: 1.25; margin: 0 0 10px; font-weight: 700; }
+.hero .motto { font-size: 19px; color: #DCE6F7; margin: 0 0 36px; }
+.cyc { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(7, 1fr); position: relative; }
+.cyc::before { content: ""; position: absolute; top: 22px; right: 7%; left: 7%; height: 2px; background: rgba(255,255,255,.28); }
+.cyc li { position: relative; text-align: center; }
+.cyc a { color: #fff; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0 4px; border-radius: 10px; }
+.cyc b { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: var(--navy); border: 2px solid var(--sky); font-size: 18px; transition: background .15s; }
+.cyc li:last-child b { background: var(--coral); border-color: var(--coral); }
+.cyc a:hover b, .cyc a:focus-visible b { background: var(--sky); color: var(--navy); }
+.cyc span { font-size: 15px; line-height: 1.4; }
+.cyc-note { font-size: 13.5px; color: #B8C6E3; margin: 18px 0 0; }
+
+nav.top { position: sticky; top: 0; z-index: 5; background: rgba(255,255,255,.96); backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); }
+nav.top .in { max-width: 1040px; margin: 0 auto; display: flex; gap: 4px; overflow-x: auto; padding: 10px 16px; scrollbar-width: none; align-items: center; }
+nav.top a { white-space: nowrap; color: var(--navy); text-decoration: none; font-size: 15px; padding: 6px 12px; border-radius: 999px; }
+nav.top a:hover, nav.top a.on { background: var(--navy); color: #fff; }
+nav.top button { margin-inline-start: auto; font: inherit; font-size: 14px; border: 1px solid var(--navy); color: var(--navy); background: none; padding: 5px 14px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
+
+main { max-width: 880px; margin: 0 auto; padding: 8px 24px 80px; }
+section { padding-top: 40px; }
+h2 { font-size: 30px; line-height: 1.35; color: var(--navy); margin: 0 0 16px; padding-right: 16px; border-right: 6px solid var(--sky); }
+h3 { font-size: 21px; color: var(--blue); margin: 34px 0 10px; }
+p { margin: 0 0 14px; max-width: 72ch; }
+strong { color: var(--navy); }
+ol, ul { padding-right: 24px; margin: 0 0 16px; }
+li { margin-bottom: 6px; }
+a { color: var(--blue); }
+:focus-visible { outline: 3px solid var(--coral); outline-offset: 2px; }
+
+.tw { overflow-x: auto; margin: 6px 0 22px; border: 1px solid var(--line); border-radius: 12px; }
+table { width: 100%; border-collapse: collapse; font-size: 15.5px; min-width: 520px; }
+th { background: var(--navy); color: #fff; font-weight: 500; text-align: right; padding: 10px 14px; }
+td { padding: 10px 14px; border-top: 1px solid var(--line); vertical-align: top; }
+tbody tr:nth-child(even) td { background: var(--tint); }
+td:first-child { font-weight: 500; color: var(--navy); }
+
+.fig { margin: 18px 0 22px; padding: 18px; background: var(--tint); border-radius: 14px; }
+.fig svg { width: 100%; height: auto; display: block; font-family: inherit; }
+.fig figcaption { text-align: center; color: var(--muted); font-size: 14.5px; margin-top: 8px; }
+.conn path { fill: none; stroke: #9AA6BC; stroke-width: 1.4; }
+.arrowhead { fill: #9AA6BC; }
+.bx { fill: #fff; stroke: #B9C3D6; stroke-width: 1.3; }
+.bx.acc { fill: var(--navy); stroke: var(--navy); }
+.bx.lead { stroke: var(--sky); stroke-width: 2; }
+.band { fill: #E6EEF8; stroke: #C7D3E6; }
+.bx.c1 { stroke: var(--blue); } .bx.c2 { stroke: var(--purple); } .bx.c3 { stroke: var(--sky); } .bx.c4 { stroke: var(--mauve); } .bx.c5 { stroke: var(--coral); }
+.bx.c1, .bx.c2, .bx.c3, .bx.c4, .bx.c5 { stroke-width: 2; }
+svg text { text-anchor: middle; direction: rtl; }
+.nm { font-size: 14px; font-weight: 700; fill: var(--ink); }
+.sb { font-size: 12px; fill: var(--muted); }
+.on { fill: #fff; }
+
+.road { list-style: none; padding: 0; margin: 18px 0 22px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; counter-reset: ph; }
+.road > li { background: var(--tint); border-radius: 14px; padding: 16px; border-top: 5px solid var(--sky); margin: 0; }
+.road > li.p1 { border-color: var(--blue); } .road > li.p2 { border-color: var(--sky); } .road > li.p3 { border-color: var(--purple); } .road > li.p4 { border-color: var(--coral); }
+.road .ph { display: block; font-weight: 700; color: var(--navy); font-size: 18px; }
+.road .when { display: block; color: var(--muted); font-size: 14px; margin-bottom: 8px; }
+.road ul { padding-right: 18px; margin: 0; font-size: 15px; }
+
+ul.tasks { list-style: none; padding: 0; }
+.task label { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; padding: 8px 12px; border-radius: 10px; }
+.task label:hover { background: var(--tint); }
+.task input { width: 20px; height: 20px; margin-top: 6px; accent-color: var(--navy); flex: none; }
+.task input:checked + span { color: var(--muted); text-decoration: line-through; }
+.progress { font-size: 14px; color: var(--muted); margin: -6px 0 10px; }
+
+footer { border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; text-align: center; padding: 24px; }
+
+@media (max-width: 760px) {
+  body { font-size: 16px; }
+  .cyc { grid-template-columns: repeat(4, 1fr); row-gap: 18px; }
+  .cyc::before { display: none; }
+  .road { grid-template-columns: 1fr 1fr; }
+  h2 { font-size: 25px; }
+  .fig { padding: 8px; }
+}
+@media (max-width: 460px) { .road { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+@media print {
+  nav.top, .cyc-note { display: none; }
+  .hero { -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 24px; }
+  th, .bx.acc, .fig, .road > li { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  section { break-inside: auto; } h2, h3 { break-after: avoid; } .tw, .fig { break-inside: avoid; }
+  body { font-size: 13pt; }
+}
+</style>
+</head>
+<body>
+<header class="hero"><div class="in">
+  <p class="school">مدارس الأندلس الأهلية · القسم الثانوي بنين</p>
+  <h1>خطة تأسيس الفريق التطوعي</h1>
+  <p class="motto">فريق «أثر» التطوعي: نترك أثراً… قبل أن نتخرج</p>
+  <ol class="cyc" aria-label="مراحل دورة التطوع"><li><a href="#s1"><b>1</b><span>تصميم الفرص</span></a></li><li><a href="#s2"><b>2</b><span>الاستقطاب</span></a></li><li><a href="#s3"><b>3</b><span>الفرز والتنسيب</span></a></li><li><a href="#s4"><b>4</b><span>التوجيه</span></a></li><li><a href="#s5"><b>5</b><span>التدريب</span></a></li><li><a href="#s6"><b>6</b><span>السجلات</span></a></li><li><a href="#s7"><b>7</b><span>التكريم</span></a></li></ol>
+  <p class="cyc-note">مراحل دورة التطوع حسب برنامج رشيد، اضغط أي مرحلة للانتقال إليها</p>
+</div></header>
+<nav class="top" aria-label="أقسام الخطة"><div class="in"><a href="#vision">الرؤية</a><a href="#structure">الهيكل</a><a href="#roles">الأدوار</a><a href="#cycle">دورة التطوع</a><a href="#samples">نماذج معبأة</a><a href="#timeline">الخطة الزمنية</a><a href="#kpi">الساعات والتقييم</a><a href="#forms">نماذج رشيد</a><a href="#rules">اللائحة والبدء</a><button type="button" onclick="window.print()">طباعة</button></div></nav>
+<main>
+<section><h2 id="vision">الهوية والرؤية والأهداف</h2>
+<p>يتأسس فريق تطوعي طلابي بثانوية الأندلس من <strong>39 عضواً</strong>، يغطي 13 فصلاً على دورين، ويعمل وفق دورة التطوع المعتمدة في برنامج رشيد.</p>
+<p><strong>الاسم المقترح:</strong> فريق «أثر» التطوعي — وبدائل: «سواعد الأندلس»، «نبض الأندلس».</p>
+<p><strong>الشعار:</strong> «نترك أثراً… قبل أن نتخرج».</p>
+<p><strong>الرؤية:</strong> مدرسة يقودها طلابها بالمبادرة والمسؤولية، ويخرج منها كل طالب وفي سجله أثر تطوعي موثق.</p>
+<p><strong>الرسالة:</strong> تصميم فرص تطوعية آمنة ومنظمة داخل المدرسة وخارجها، تُكسب الطالب المهارات وتخدم المدرسة والمجتمع، وتُوثَّق بالساعات والشواهد.</p>
+<p><strong>الأهداف (قابلة للقياس):</strong></p>
+<ol>
+<li>إشراك 50% على الأقل من طلاب المدرسة في فرصة تطوعية واحدة خلال العام.</li>
+<li>تحقيق كل عضو أساسي 40 ساعة تطوعية موثقة في العام الدراسي.</li>
+<li>تنفيذ 8 فرص تطوعية جماعية و20 فرصة فردية على الأقل خلال العام.</li>
+<li>بناء مهارات القيادة والتواصل والعمل الجماعي وإدارة الوقت لدى الأعضاء.</li>
+<li>دعم انضباط المدرسة ونظافتها وفعالياتها بسواعد طلابية.</li>
+<li>توفير ملف شواهد جاهز للنشاط الطلابي وزيارات التقويم والاعتماد.</li>
+</ol>
+<p><strong>القيم:</strong> المبادرة، الأمانة، الانضباط، الاحترام، روح الفريق.</p>
+</section><section><h2 id="structure">الهيكل التنظيمي وعدد الأعضاء</h2>
+<p>العدد المقترح <strong>39 طالباً = 3 من كل فصل × 13 فصلاً</strong>: سفير للفصل، وعضوان في اللجان، مع قائمة انتظار من 10 طلاب احتياطاً.</p>
+<figure class="fig"><svg viewBox="0 0 760 528" role="img" aria-label="الهيكل التنظيمي للفريق التطوعي">
+<defs><marker id="org-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrowhead"/></marker></defs>
+<g class="conn"><path d="M224 92H270" stroke-dasharray="4 4"/><path d="M490 92H536" stroke-dasharray="4 4"/><path d="M380 120V152" marker-end="url(#org-arrow)"/><path d="M380 216V376" marker-end="url(#org-arrow)"/><path d="M194 240H566"/><path d="M194 240V256" marker-end="url(#org-arrow)"/><path d="M566 240V256" marker-end="url(#org-arrow)"/></g>
+<rect class="bx" x="24" y="64" width="200" height="56" rx="10"/><text class="nm" x="124" y="88">المنسق الإداري</text><text class="sb" x="124" y="108">وكيل شؤون الطلاب</text>
+<rect class="bx acc" x="270" y="64" width="220" height="56" rx="10"/><text class="nm on" x="380" y="88">المشرف العام</text><text class="sb on" x="380" y="108">رائد النشاط</text>
+<rect class="bx" x="536" y="64" width="200" height="56" rx="10"/><text class="nm" x="636" y="88">المشرف الفني</text><text class="sb" x="636" y="108">معلم مهتم بالتطوع</text>
+<rect class="bx lead" x="210" y="152" width="340" height="64" rx="10"/><text class="nm" x="380" y="178">قيادة الفريق · 3 طلاب</text><text class="sb" x="380" y="200">القائد · النائب · أمين السجلات</text>
+<rect class="bx" x="396" y="256" width="340" height="80" rx="10"/><text class="nm" x="566" y="280">الدور الأول</text><text class="sb" x="566" y="300">منسق طلابي + معلم مشرف</text><text class="sb" x="566" y="318">سفير لكل فصل في الدور</text>
+<rect class="bx" x="24" y="256" width="340" height="80" rx="10"/><text class="nm" x="194" y="280">الدور الثاني</text><text class="sb" x="194" y="300">منسق طلابي + معلم مشرف</text><text class="sb" x="194" y="318">سفير لكل فصل في الدور</text>
+<rect class="band" x="24" y="376" width="712" height="128" rx="12"/><text class="nm" x="380" y="400">اللجان التنفيذية · 21 عضواً</text>
+<rect class="bx c1" x="596" y="416" width="124" height="72" rx="10"/><text class="nm" x="658" y="436">التنظيم</text><text class="nm" x="658" y="454">والانضباط</text><text class="sb" x="658" y="476">6 أعضاء</text>
+<rect class="bx c2" x="457" y="416" width="124" height="72" rx="10"/><text class="nm" x="519" y="436">الفرص</text><text class="nm" x="519" y="454">والمبادرات</text><text class="sb" x="519" y="476">4 أعضاء</text>
+<rect class="bx c3" x="318" y="416" width="124" height="72" rx="10"/><text class="nm" x="380" y="436">البيئة</text><text class="nm" x="380" y="454">والاستدامة</text><text class="sb" x="380" y="476">4 أعضاء</text>
+<rect class="bx c4" x="179" y="416" width="124" height="72" rx="10"/><text class="nm" x="241" y="436">الإعلام</text><text class="nm" x="241" y="454">والتوثيق</text><text class="sb" x="241" y="476">4 أعضاء</text>
+<rect class="bx c5" x="40" y="416" width="124" height="72" rx="10"/><text class="nm" x="102" y="436">الاستقبال</text><text class="nm" x="102" y="454">والخدمات</text><text class="sb" x="102" y="476">3 أعضاء</text>
+</svg><figcaption dir="rtl">الفريق 39 طالباً: 3 في القيادة، و15 في الدورين، و21 في اللجان</figcaption></figure>
+<p>المشرف العام يقود، والمنسق الإداري والمشرف الفني يساندانه، والقيادة الطلابية تدير سفراء الدورين واللجان الخمس.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>الفئة</th>
+<th>العدد</th>
+<th>طريقة الاختيار</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>القيادة (قائد، نائب، أمين سجلات)</td>
+<td>3</td>
+<td>ترشيح من الأعضاء + مقابلة مع المشرف العام</td>
+</tr>
+<tr>
+<td>منسقا الدورين</td>
+<td>2</td>
+<td>منسق من كل دور يختاره سفراء دوره</td>
+</tr>
+<tr>
+<td>سفراء الفصول</td>
+<td>13</td>
+<td>سفير لكل فصل يختاره رائد الفصل مع زملائه</td>
+</tr>
+<tr>
+<td>أعضاء اللجان</td>
+<td>21</td>
+<td>حسب الرغبة والمهارة بعد الفرز</td>
+</tr>
+<tr>
+<td><strong>المجموع</strong></td>
+<td><strong>39</strong></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>توزيع الصفوف المقترح:</strong> القائد من ثالث ثانوي لخبرته، والنائب من ثاني ثانوي ليكون قائد العام القادم، ويُراعى أن يكون نصف الأعضاء على الأقل من أول وثاني ثانوي لضمان استمرار الفريق بعد تخرج طلاب الثالث.</p>
+<p><strong>توزيع الدورين:</strong> كل دور يغطي فصوله بسفرائها ومنسق طلابي ومعلم مشرف، وتتوزع لجنة التنظيم بالتساوي على الدورين (3 أعضاء لكل دور) في الفسحة والطابور.</p>
+</section><section><h2 id="roles">الأدوار والمهام</h2>
+<p>لكل منصب مهام مكتوبة يوقّع عليها العضو عند التنسيب، حتى يعرف كل طالب ما المطلوب منه بالضبط ومن يرجع إليه.</p>
+<h3>الإشراف (من المعلمين)</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>المنصب</th>
+<th>من يشغله</th>
+<th>أبرز المهام</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>المشرف العام</td>
+<td>رائد النشاط</td>
+<td>اعتماد الخطة والفرص، التنسيق مع القيادة، اعتماد الساعات والشهادات، رفع التقارير</td>
+</tr>
+<tr>
+<td>المنسق الإداري للتطوع</td>
+<td>وكيل شؤون الطلاب أو من يكلفه القائد</td>
+<td>الموافقات الرسمية، خطابات الجهات الخارجية، أذونات أولياء الأمور، توقيع نماذج الفرص</td>
+</tr>
+<tr>
+<td>المشرف الفني للتطوع</td>
+<td>معلم مهتم بالتطوع</td>
+<td>تدريب الأعضاء، متابعة جودة التنفيذ، توقيع نماذج الفرص فنياً</td>
+</tr>
+<tr>
+<td>مشرف الدور الأول</td>
+<td>معلم من الدور الأول</td>
+<td>متابعة سفراء فصول الدور الأول ومنسقه الطلابي يومياً</td>
+</tr>
+<tr>
+<td>مشرف الدور الثاني</td>
+<td>معلم من الدور الثاني</td>
+<td>متابعة سفراء فصول الدور الثاني ومنسقه الطلابي يومياً</td>
+</tr>
+</tbody>
+</table></div>
+<h3>القيادة الطلابية</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>المنصب</th>
+<th>العدد</th>
+<th>أبرز المهام</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>قائد الفريق</td>
+<td>1 (ثالث ثانوي)</td>
+<td>يدير الاجتماع الأسبوعي، يوزع المهام على اللجان، يمثل الفريق أمام الإدارة والطابور</td>
+</tr>
+<tr>
+<td>نائب القائد</td>
+<td>1 (ثاني ثانوي)</td>
+<td>ينوب عن القائد، يتابع رؤساء اللجان، ويُعَدّ ليكون قائد العام القادم</td>
+</tr>
+<tr>
+<td>أمين السجلات</td>
+<td>1</td>
+<td>يدير سجل المتطوعين والساعات، يحدّث لوحة الإنجاز، يجهز ملف الشواهد</td>
+</tr>
+<tr>
+<td>منسق الدور الأول</td>
+<td>1</td>
+<td>حلقة الوصل بين سفراء فصول الدور الأول والقيادة، ويرفع الاحتياجات الميدانية</td>
+</tr>
+<tr>
+<td>منسق الدور الثاني</td>
+<td>1</td>
+<td>المهمة نفسها للدور الثاني</td>
+</tr>
+</tbody>
+</table></div>
+<h3>سفراء الفصول (13 سفيراً — سفير لكل فصل)</h3>
+<ul>
+<li>ينشر الفرص التطوعية في فصله ويجمع طلبات الراغبين.</li>
+<li>يتابع نظافة الفصل وترتيبه وسلامة محتوياته.</li>
+<li>يرصد احتياجات زملائه (طالب متعثر يحتاج دعماً، طالب جديد يحتاج تعريفاً).</li>
+<li>يرفع ساعات متطوعي فصله لأمين السجلات أسبوعياً.</li>
+</ul>
+<h3>اللجان التنفيذية (21 عضواً)</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>اللجنة</th>
+<th>العدد</th>
+<th>أبرز المهام</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>لجنة التنظيم والانضباط</td>
+<td>6</td>
+<td>تنظيم الطابور والفسحة والممرات والصلاة، تنظيم الدخول والخروج في الفعاليات، الإرشاد عند الإخلاء</td>
+</tr>
+<tr>
+<td>لجنة الفرص والمبادرات</td>
+<td>4</td>
+<td>ابتكار الفرص التطوعية، تعبئة نماذج تصميم الفرص، التنسيق مع الجهات الخارجية</td>
+</tr>
+<tr>
+<td>لجنة البيئة والاستدامة</td>
+<td>4</td>
+<td>حملات النظافة والتشجير، إعادة التدوير، العناية بالمصلى والساحات</td>
+</tr>
+<tr>
+<td>لجنة الإعلام والتوثيق</td>
+<td>4</td>
+<td>التصوير، تصميم الإعلانات بهوية المدرسة، النشر، إعداد التقارير المصورة</td>
+</tr>
+<tr>
+<td>لجنة الاستقبال والخدمات</td>
+<td>3</td>
+<td>استقبال الضيوف وأولياء الأمور، الضيافة في الفعاليات، دعم المكتبة والمختبرات</td>
+</tr>
+</tbody>
+</table></div>
+<p>لكل لجنة رئيس يُختار من أعضائها، ويحضر الاجتماع الأسبوعي مع القيادة.</p>
+</section><section><h2 id="cycle">دورة حياة المتطوع</h2>
+<p>كل متطوع يمر بسبع مراحل بالترتيب نفسه الذي في كراسة رشيد، ولا ينتقل لمرحلة قبل إغلاق التي قبلها.</p>
+<h3 id="s1">1. تحديد الأولويات وتصميم الفرص — نشاط (1-9) و(2-1)</h3>
+<ul>
+<li>يحدد المشرف العام مهامه الحالية والمؤجلة: ما يباشره بنفسه، وما يفوضه للقائد أو للجان.</li>
+<li>تصمم لجنة الفرص كل فرصة على النموذج الفردي (2-1) أو الجماعي (2-2)، ولا تُعلَن فرصة دون نموذج موقّع من المنسق الإداري والمشرف الفني.</li>
+</ul>
+<h3 id="s2">2. الاستقطاب — نشاط (2-2)</h3>
+<p><strong>ما يجب مراعاته عند الإعلان:</strong></p>
+<ul>
+<li>مسمى واضح للفرصة، ومهامها، ومكانها، ووقتها، وعدد المطلوبين، والمرحلة الدراسية.</li>
+<li>المهارات المطلوبة والعائد على المتطوع (ساعات، شهادة، مهارة).</li>
+<li>آخر موعد للتقديم وطريقة التقديم (رابط نموذج أو عبر سفير الفصل).</li>
+<li>تصميم الإعلان بهوية المدرسة وبخط سومار، ونشره في الطابور والفصول وقنوات المدرسة.</li>
+</ul>
+<p><strong>عوامل نجاح الاستقطاب:</strong> إعلان مبكر قبل أسبوع على الأقل، قصص نجاح من متطوعين سابقين، دعوة شخصية من سفير الفصل، سهولة التقديم في دقيقة واحدة، وضوح العائد.</p>
+<p><strong>دوافع الطلاب واحتياجاتهم:</strong> إثبات الذات، الصحبة، الساعات التطوعية للسيرة الذاتية والقبول الجامعي، التقدير أمام الزملاء، تعلّم مهارة. يُسأل المتقدم في الاستمارة: «لماذا تريد التطوع؟» لمعرفة دافعه وتسكينه في المكان المناسب.</p>
+<h3 id="s3">3. الفرز والتنسيب — نشاط (2-3)</h3>
+<ol>
+<li>استلام الطلبات في موعدها وتسجيلها في كشف موحد.</li>
+<li>التحقق من اكتمال بيانات الطالب وفصله ورقم ولي أمره.</li>
+<li>التحقق من موافقة ولي الأمر (إلزامية للفرص خارج المدرسة).</li>
+<li>مراجعة سلوك الطالب ومستواه الدراسي مع الموجه الطلابي (التطوع لا يكون على حساب دراسته).</li>
+<li>مطابقة مهارات المتقدم واهتماماته مع متطلبات الفرصة.</li>
+<li>مقابلة قصيرة (5 دقائق) لمعرفة الدافع والوقت المتاح.</li>
+<li>فرز المتقدمين إلى: مقبول / قائمة انتظار / يُوجَّه لفرصة أخرى.</li>
+<li>توزيع المقبولين على اللجان والأدوار مع مراعاة التوازن بين الفصول والدورين.</li>
+<li>إبلاغ المقبولين رسمياً، وشكر غير المقبولين ودعوتهم للفرص القادمة.</li>
+<li>توقيع المتطوع وولي أمره على اتفاقية التطوع (نموذج 2-3) وميثاق الفريق، واستلام بطاقة وصف دوره.</li>
+<li>فتح ملف للمتطوع في سجل المتطوعين.</li>
+</ol>
+<h3 id="s4">4. التوجيه واللقاء التعريفي — نشاط (2-4)</h3>
+<p>لقاء تعريفي مدته 45 دقيقة في أول أسبوع بعد التنسيب، محاوره:</p>
+<ol>
+<li>التعريف بأهداف التطوع في المدرسة وكيف يحقق الدور رسالة المدرسة وتطلعات الطالب.</li>
+<li>التعريف بالفرصة التطوعية والأشخاص المرتبطين بها (المشرفون، القائد، رؤساء اللجان).</li>
+<li>جولة في البيئة التي سيُنفَّذ فيها التطوع (الدوران، المصلى، الساحات، نقاط التجمع).</li>
+<li>التحقق من المعارف والمهارات الضرورية قبل التنفيذ (نشاط سريع أو أسئلة).</li>
+</ol>
+<p>يُسلَّم كل متطوع في اللقاء: بطاقة دوره، الميثاق، جدول الاجتماعات، وأرقام التواصل.</p>
+<h3 id="s5">5. التدريب — نشاط (2-5)</h3>
+<p><strong>ما يُراعى عند التدريب:</strong> قصر المدة (لا تتجاوز حصة واحدة)، الارتباط المباشر بالمهمة، التطبيق العملي، عدم تعارضه مع الحصص الأساسية.</p>
+<p><strong>الأساليب الممكنة:</strong> ورشة قصيرة، محاكاة ميدانية (مثل تمرين الإخلاء)، تعلم بالمرافقة (يرافق الجديد عضواً قديماً)، مقطع مرئي قصير، دعوة جهة متخصصة (الهلال الأحمر، الدفاع المدني).</p>
+<p><strong>أساس اختيار الأسلوب:</strong> طبيعة المهمة، عدد المتدربين، الوقت المتاح، وتوفر المدرب.</p>
+<p><strong>المسؤول عن الخطة التدريبية:</strong> المشرف الفني بالتنسيق مع المشرف العام، ويُعبَّأ لكل متطوع «نموذج تدريب المتطوعين» (2-4): اسمه، المهارات المطلوبة، المهارات التي تحتاج تحسيناً، الدورات المقترحة.</p>
+<p><strong>حقيبة تدريب مقترحة للعام:</strong> الإسعافات الأولية، فن التعامل والتواصل، القيادة والعمل بروح الفريق، التصوير والتوثيق، إدارة الحشود والإخلاء، إدارة الوقت.</p>
+<h3 id="s6">6. السجلات والتوثيق — نشاط (3-5)</h3>
+<p><strong>محتويات سجل المتطوعين:</strong> بيانات المتطوع والتواصل مع ولي أمره، موافقة ولي الأمر، اللجنة والدور، الفرص التي شارك فيها بتاريخها، الساعات المعتمدة، الدورات التي حضرها، التقييم، الملاحظات، الشهادات.</p>
+<p><strong>كيفية الاحتفاظ بها:</strong> ملف رقمي موحد (جدول إلكتروني) يحدثه أمين السجلات أسبوعياً، وملف ورقي احتياطي عند المشرف العام، ومجلد صور لكل فرصة.</p>
+<p><strong>أهمية التوثيق:</strong> إثبات الساعات للطالب، شواهد للنشاط والزيارات الإشرافية والاعتماد، قياس الأثر، وتحسين الفرص في العام التالي.</p>
+<h3 id="s7">7. التكريم — نشاط (3-2)</h3>
+<p><strong>بنود شهادة الشكر والتقدير:</strong> حسب نموذج رشيد (2-9): اسم المدرسة، اسم المتطوع ورقم هويته، اسم المبادرة، صفته في التطوع، مجال مساهمته، عدد الساعات، الفترة بالتاريخ الهجري، عبارة الدعاء، الرقم التسلسلي، الختم، وتوقيع قائد المدرسة.</p>
+<p><strong>مستويات التكريم:</strong></p>
+<ul>
+<li><strong>شهري:</strong> «متطوع الشهر» يُعلن في الطابور وفي قنوات المدرسة.</li>
+<li><strong>فصلي:</strong> شهادات لكل من أتم 20 ساعة.</li>
+<li><strong>سنوي:</strong> حفل ختام الفريق، ودرع لأفضل متطوع وأفضل لجنة وأفضل سفير فصل.</li>
+<li><strong>معنوي يومي:</strong> شكر علني، صورة في لوحة الإنجاز، رسالة شكر لولي الأمر.</li>
+</ul>
+</section><section><h2 id="samples">نماذج تصميم الفرص معبأة</h2>
+<p>هذان مثالان جاهزان على نموذجي رشيد، يُنسخ منهما لكل فرصة جديدة.</p>
+<h3>نموذج (2-1): فرصة تطوعية فردية — «سفير الفصل»</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>البند</th>
+<th>المحتوى</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>اسم المدرسة</td>
+<td>ثانوية مدارس الأندلس الأهلية</td>
+</tr>
+<tr>
+<td>مسؤول الفرصة / جواله</td>
+<td>رائد النشاط / ............</td>
+</tr>
+<tr>
+<td>مسمى الفرصة</td>
+<td>سفير التطوع في الفصل</td>
+</tr>
+<tr>
+<td>مجال الفرصة</td>
+<td>تنظيمي</td>
+</tr>
+<tr>
+<td>وصف الفرصة</td>
+<td>طالب يمثل فريق التطوع في فصله، ينشر الفرص ويتابع نظافة الفصل ويرفع ساعات زملائه</td>
+</tr>
+<tr>
+<td>نطاق التنفيذ</td>
+<td>داخل المدرسة</td>
+</tr>
+<tr>
+<td>موقع الفرصة</td>
+<td>الفصل الدراسي والدور التابع له</td>
+</tr>
+<tr>
+<td>الإطار الزمني</td>
+<td>طويلة (فصل دراسي كامل)</td>
+</tr>
+<tr>
+<td>أيام الالتزام</td>
+<td>الأحد إلى الخميس</td>
+</tr>
+<tr>
+<td>أوقات التطوع</td>
+<td>مقيد: 10 دقائق بداية اليوم + 10 دقائق في الفسحة</td>
+</tr>
+<tr>
+<td>إجمالي الساعات</td>
+<td>30 ساعة في الفصل الدراسي تقريباً</td>
+</tr>
+<tr>
+<td>المهام</td>
+<td>نشر الإعلانات، متابعة نظافة الفصل، جمع طلبات التطوع، تسليم كشف الساعات أسبوعياً</td>
+</tr>
+<tr>
+<td>المهارات المطلوبة</td>
+<td>التواصل، الالتزام، قبول زملائه له</td>
+</tr>
+<tr>
+<td>الدعم المقدم</td>
+<td>لقاء تعريفي، بطاقة سفير، متابعة من مشرف الدور</td>
+</tr>
+<tr>
+<td>العائد على المتطوع</td>
+<td>ساعات معتمدة، شهادة، مهارة قيادية، أولوية في رحلات الفريق</td>
+</tr>
+<tr>
+<td>المنسق الإداري / المشرف الفني</td>
+<td>التوقيع ............ / ............</td>
+</tr>
+</tbody>
+</table></div>
+<h3>نموذج (2-2): فرصة تطوعية جماعية — «يوم الأندلس الأخضر»</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>البند</th>
+<th>المحتوى</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>مسمى الفعالية</td>
+<td>يوم الأندلس الأخضر</td>
+</tr>
+<tr>
+<td>وصف الفعالية</td>
+<td>حملة تشجير وتنظيف لساحات المدرسة ومحيطها، مع ركن توعوي عن إعادة التدوير</td>
+</tr>
+<tr>
+<td>موقع الفعالية</td>
+<td>ساحات المدرسة والمدخل الرئيسي</td>
+</tr>
+<tr>
+<td>أهداف الفعالية</td>
+<td>تحسين بيئة المدرسة، غرس قيمة المحافظة على المكان، إشراك 60 طالباً على الأقل</td>
+</tr>
+<tr>
+<td>الإطار الزمني</td>
+<td>قصيرة (يوم واحد)</td>
+</tr>
+<tr>
+<td>أوقات التطوع</td>
+<td>مقيد: من الحصة الخامسة حتى نهاية الدوام</td>
+</tr>
+<tr>
+<td>إجمالي الساعات</td>
+<td>3 ساعات لكل متطوع</td>
+</tr>
+<tr>
+<td>الفرص التطوعية داخلها</td>
+<td>فريق الزراعة، فريق التنظيف، فريق الركن التوعوي، فريق التوثيق</td>
+</tr>
+<tr>
+<td>المهام</td>
+<td>زراعة الشتلات، جمع المخلفات وفرزها، شرح أهمية التدوير للزوار، التصوير</td>
+</tr>
+<tr>
+<td>العدد والمرحلة</td>
+<td>60 طالباً من الصفوف الثلاثة</td>
+</tr>
+<tr>
+<td>متطلبات التقدم</td>
+<td>موافقة ولي الأمر، عدم وجود ملاحظات سلوكية</td>
+</tr>
+<tr>
+<td>المهارات المطلوبة</td>
+<td>العمل الجماعي، الالتزام بتعليمات السلامة</td>
+</tr>
+<tr>
+<td>الدعم المقدم</td>
+<td>قفازات، أدوات، مياه، تدريب قصير 15 دقيقة قبل البدء</td>
+</tr>
+<tr>
+<td>العائد على المتطوعين</td>
+<td>3 ساعات معتمدة، شهادة مشاركة، نشر صور الإنجاز</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>بنك فرص مقترح للعام:</strong> تنظيم الطابور والفسحة، الإرشاد في الاختبارات، مساعد المكتبة، مساعد المختبر، الزميل الداعم (طالب يساعد زميله المتعثر)، استقبال الطلاب الجدد، تنظيم فعاليات اليوم الوطني ويوم المعلم، زيارة دار المسنين أو مستشفى، سقيا الماء في المساجد، المشاركة مع جمعيات خيرية شريكة.</p>
+</section><section><h2 id="timeline">الخطة الزمنية للعام الدراسي</h2>
+<p>يبدأ التأسيس في أكتوبر وينتهي العام بحفل التكريم وتسليم القيادة للنائب.</p>
+<ol class="road"><li class="p1"><span class="ph">التأسيس</span><span class="when">أكتوبر</span><ul><li>اعتماد الخطة والمشرفين</li><li>الاستقطاب والفرز</li><li>اللقاء التعريفي</li></ul></li><li class="p2"><span class="ph">الانطلاق</span><span class="when">نوفمبر – ديسمبر</span><ul><li>فرص داخل المدرسة</li><li>تدريب الأعضاء</li><li>أول فرصة جماعية</li></ul></li><li class="p3"><span class="ph">التمكين</span><span class="when">يناير – مارس</span><ul><li>فرص خارج المدرسة</li><li>شراكة مع جمعية</li><li>تقييم منتصف العام</li></ul></li><li class="p4"><span class="ph">الحصاد والتكريم</span><span class="when">أبريل – يونيو</span><ul><li>تقرير الأثر والشواهد</li><li>حفل التكريم السنوي</li><li>تسليم القيادة للنائب</li></ul></li></ol>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>الشهر</th>
+<th>الفرصة أو المناسبة</th>
+<th>اللجنة المسؤولة</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>أكتوبر</td>
+<td>الاستقطاب والفرز واللقاء التعريفي، تنظيم الفسحة كأول فرصة</td>
+<td>القيادة + التنظيم</td>
+</tr>
+<tr>
+<td>نوفمبر</td>
+<td>دورة الإسعافات الأولية، تمرين الإخلاء، الزميل الداعم</td>
+<td>التنظيم + الفرص</td>
+</tr>
+<tr>
+<td>ديسمبر</td>
+<td>اليوم العالمي للتطوع (5 ديسمبر): يوم الأندلس الأخضر</td>
+<td>البيئة + الإعلام</td>
+</tr>
+<tr>
+<td>يناير</td>
+<td>الإرشاد في الاختبارات، تكريم نهاية الفصل الأول</td>
+<td>التنظيم + القيادة</td>
+</tr>
+<tr>
+<td>فبراير</td>
+<td>يوم التأسيس (22 فبراير)، سقيا الماء وإفطار صائم في رمضان</td>
+<td>الاستقبال + الفرص</td>
+</tr>
+<tr>
+<td>مارس</td>
+<td>زيارة دار مسنين أو مستشفى مع جمعية شريكة، تقييم منتصف العام</td>
+<td>الفرص + القيادة</td>
+</tr>
+<tr>
+<td>أبريل</td>
+<td>استقبال أولياء الأمور في اللقاءات، حملة المكتبة المتنقلة</td>
+<td>الاستقبال + الخدمات</td>
+</tr>
+<tr>
+<td>مايو</td>
+<td>تقرير الأثر السنوي وملف الشواهد، حفل التكريم</td>
+<td>الإعلام + أمين السجلات</td>
+</tr>
+<tr>
+<td>يونيو</td>
+<td>الإرشاد في الاختبارات، تسليم القيادة واختيار نواة العام القادم</td>
+<td>القيادة</td>
+</tr>
+</tbody>
+</table></div>
+<p>الفرص الدائمة طوال العام: تنظيم الطابور والفسحة والصلاة، سفراء الفصول، مساعد المكتبة والمختبر. تواريخ الاختبارات ورمضان تقريبية، تُضبط على التقويم الدراسي المعتمد.</p>
+</section><section><h2 id="kpi">الساعات والحوافز والتقييم</h2>
+<p>تُحتسب الساعة التطوعية فقط إذا وُثّقت بتوقيع مسؤول الفرصة خلال أسبوع من تنفيذها.</p>
+<h3>نظام الساعات والمستويات</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>المستوى</th>
+<th>الساعات المعتمدة</th>
+<th>المزايا</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>متطوع برونزي</td>
+<td>10 – 19 ساعة</td>
+<td>شهادة مشاركة</td>
+</tr>
+<tr>
+<td>متطوع فضي</td>
+<td>20 – 39 ساعة</td>
+<td>شهادة + نشر الاسم في لوحة الإنجاز</td>
+</tr>
+<tr>
+<td>متطوع ذهبي</td>
+<td>40 – 59 ساعة</td>
+<td>شهادة + أولوية في الرحلات والمناصب</td>
+</tr>
+<tr>
+<td>متطوع ماسي</td>
+<td>60 ساعة فأكثر</td>
+<td>درع في حفل الختام + خطاب توصية للجامعة</td>
+</tr>
+</tbody>
+</table></div>
+<h3>مؤشرات قياس الأداء</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>المؤشر</th>
+<th>المستهدف السنوي</th>
+<th>طريقة القياس</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>نسبة الطلاب المشاركين في التطوع</td>
+<td>50% من طلاب المدرسة</td>
+<td>كشوف الفرص</td>
+</tr>
+<tr>
+<td>متوسط ساعات العضو الأساسي</td>
+<td>40 ساعة</td>
+<td>سجل المتطوعين</td>
+</tr>
+<tr>
+<td>عدد الفرص الجماعية المنفذة</td>
+<td>8 فرص</td>
+<td>نماذج الفرص المعتمدة</td>
+</tr>
+<tr>
+<td>عدد الفرص الفردية المنفذة</td>
+<td>20 فرصة</td>
+<td>نماذج الفرص المعتمدة</td>
+</tr>
+<tr>
+<td>نسبة الالتزام بالحضور</td>
+<td>90%</td>
+<td>كشف الحضور الأسبوعي</td>
+</tr>
+<tr>
+<td>رضا المتطوعين</td>
+<td>85% «ممتاز» أو «جيد»</td>
+<td>نموذج (2-8)</td>
+</tr>
+<tr>
+<td>عدد الشراكات الخارجية</td>
+<td>شراكتان</td>
+<td>خطابات واتفاقيات</td>
+</tr>
+</tbody>
+</table></div>
+<h3>تقييم المتطوع</h3>
+<p>يُقيَّم كل عضو على نموذج رشيد (2-7) في نهاية كل فرصة ونهاية كل فصل، ويقيّم هو تجربته على نموذج (2-8). من حصل على «تحتاج إلى تحسين» في 3 بنود أو أكثر يُعطى فرصة تحسين بمتابعة من مشرف الدور، ومن حصل على «ممتاز» في 7 بنود فأكثر يُرشَّح لمتطوع الشهر.</p>
+<h3>ملف الشواهد</h3>
+<p>لكل فرصة تُحفظ في ملف الشواهد: نموذج تصميم الفرصة الموقع، الإعلان، كشف أسماء المتطوعين والساعات، صور قبل وبعد، تقرير مختصر بصفحة واحدة، ونسخ من الشهادات.</p>
+</section><section><h2 id="forms">نماذج برنامج رشيد المعتمدة</h2>
+<p>يعتمد الفريق نماذج رشيد التسعة كما هي، وكل نموذج مربوط بمرحلة ومسؤول ومكان حفظ.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>الرقم</th>
+<th>النموذج</th>
+<th>متى يُستخدم</th>
+<th>من يعبئه</th>
+<th>يُحفظ في</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>(2-1)</td>
+<td>تصميم فرصة تطوعية فردية</td>
+<td>قبل إعلان أي فرصة فردية</td>
+<td>لجنة الفرص، ويوقعه المنسق الإداري والمشرف الفني</td>
+<td>ملف الفرصة</td>
+</tr>
+<tr>
+<td>(2-2)</td>
+<td>تصميم فرصة تطوعية جماعية (مبادرة)</td>
+<td>قبل إعلان أي مبادرة</td>
+<td>مدير الفعالية مع لجنة الفرص، ويوقعه المنسق الإداري والمشرف الفني</td>
+<td>ملف الفرصة</td>
+</tr>
+<tr>
+<td>(2-3)</td>
+<td>اتفاقية تطوع</td>
+<td>عند التنسيب وقبل أول مهمة</td>
+<td>المتطوع وولي أمره، والمكلف بإدارة التطوع</td>
+<td>ملف المتطوع</td>
+</tr>
+<tr>
+<td>(2-4)</td>
+<td>تدريب المتطوعين</td>
+<td>بعد اللقاء التعريفي، ويُراجع كل فصل</td>
+<td>المشرف الفني</td>
+<td>سجل المتطوعين</td>
+</tr>
+<tr>
+<td>(2-5)</td>
+<td>رفع شكوى</td>
+<td>عند ملاحظة على الفرصة أو البيئة الداخلية أو الخارجية أو الخدمات</td>
+<td>المتطوع، ثم قائد المدرسة والمسؤول</td>
+<td>ملف الشكاوى (سري)</td>
+</tr>
+<tr>
+<td>(2-6)</td>
+<td>رفع تظلم</td>
+<td>عند وقوع موقف على المتطوع من شخص</td>
+<td>المتطوع، ثم قائد المدرسة والمسؤول</td>
+<td>ملف الشكاوى (سري)</td>
+</tr>
+<tr>
+<td>(2-7)</td>
+<td>تقييم أداء طالب متطوع</td>
+<td>نهاية كل فرصة ونهاية كل فصل</td>
+<td>مسؤول الفرصة أو مشرف الدور</td>
+<td>سجل المتطوعين</td>
+</tr>
+<tr>
+<td>(2-8)</td>
+<td>تقييم المتطوع لتجربته التطوعية</td>
+<td>نهاية كل فرصة</td>
+<td>المتطوع نفسه</td>
+<td>ملف تحسين الفرص</td>
+</tr>
+<tr>
+<td>(2-9)</td>
+<td>شهادة شكر وتقدير</td>
+<td>بعد اعتماد الساعات</td>
+<td>المشرف العام، ويوقعها قائد المدرسة ويختمها</td>
+<td>نسخة في ملف الشواهد</td>
+</tr>
+</tbody>
+</table></div>
+<p>نموذج (2-1) فيه بند «مجال الفرصة التطوعية» يُعبأ بأحد المجالات: تنظيمي، بيئي، اجتماعي، تعليمي، إعلامي، صحي.</p>
+<h3>اتفاقية التطوع (2-3)</h3>
+<p>تُوقَّع قبل أول مهمة، والمكلف بإدارة التطوع المدرسي فيها هو رائد النشاط بصفته المرجع الإداري المباشر. تُكمَل الفراغات في الاتفاقية بما يخص المدرسة:</p>
+<ul>
+<li><strong>ما تتوقعه المدرسة منكم (إضافات):</strong> الالتزام بميثاق الفريق، عدم الخروج من الحصة إلا بإذن مكتوب، المحافظة على العهد المستلمة.</li>
+<li><strong>ما يمكن أن تتوقعوه من المدرسة (إضافات):</strong> بطاقة عضوية، رسالة شكر لولي الأمر، أولوية في رحلات الفريق ومناصبه.</li>
+</ul>
+<h3>مسار الشكوى والتظلم (2-5) و(2-6)</h3>
+<p>الشكوى تخص الفرصة أو البيئة أو الخدمات، والتظلم يخص موقفاً وقع على المتطوع من شخص، ويُذكر فيه تاريخه ووقته ومكانه واسم المتطوع إجبارياً. كلاهما يمر بخمس خطوات:</p>
+<ol>
+<li>المتطوع يعبئ بياناته ومحتوى الشكوى أو التظلم والأطراف المعنية.</li>
+<li>قائد المدرسة يوجهها للمعلم المكلف بإدارة التطوع أو لشخص آخر، ويكتب محتوى التوجيه.</li>
+<li>المسؤول الموجهة إليه يكتب الرد.</li>
+<li>قائد المدرسة يكتب توجيه الإغلاق والتغذية الراجعة لمقدم الشكوى.</li>
+<li>المتطوع يغلقها بتحديد رضاه: راضٍ جداً، راضٍ، غير راضٍ، غير راضٍ جداً.</li>
+</ol>
+<p>يُقترح أن يصل الرد للمتطوع خلال 3 أيام عمل، وأن يُعرَّف الأعضاء بهذا المسار في اللقاء التعريفي.</p>
+<h3>نموذجا التقييم (2-7) و(2-8)</h3>
+<ul>
+<li><strong>(2-7) تقييم الأداء:</strong> 9 بنود بمقياس ممتاز / جيد / تحتاج إلى تحسين، تشمل الأداء والانضباط والأخلاقيات والتواصل والالتزام بالتعليمات والمحافظة على العهد والتعامل مع المواقف الصعبة والمبادرة.</li>
+<li><strong>(2-8) تقييم التجربة:</strong> 10 بنود يقيّم فيها المتطوع سرعة التعامل مع طلبه، ووضوح مهامه، والتهيئة والتدريب، والدعم، وما أضافته له الفرصة، ورغبته في التكرار والتوصية.</li>
+<li>نتائج (2-8) هي مصدر مؤشر الرضا: المستهدف أن تكون 85% من الإجابات «ممتاز» أو «جيد»، وأي بند يقل عن ذلك يُعالج في الفرصة التالية.</li>
+</ul>
+</section><section><h2 id="rules">اللائحة الداخلية وخطوات البدء</h2>
+<h3>ميثاق الفريق (يوقعه كل عضو)</h3>
+<ol>
+<li>العضوية تطوعية، ولا تُقبل إلا بموافقة ولي الأمر.</li>
+<li>التطوع لا يكون على حساب الحصص؛ لا يخرج عضو من حصة إلا بإذن مكتوب من المشرف العام والمعلم.</li>
+<li>الالتزام بالزي والسلوك اللائق، فالعضو قدوة لزملائه.</li>
+<li>الاعتذار عن أي مهمة يكون قبل 24 ساعة لرئيس اللجنة.</li>
+<li>الغياب عن 3 اجتماعات أو مهام دون عذر يستوجب إنذاراً، والإنذار الثاني ينهي العضوية.</li>
+<li>عضو التنظيم يوجّه زملاءه بلطف ولا يعاقب أحداً؛ أي مخالفة تُرفع للمشرف.</li>
+<li>لا يُنشر أي محتوى باسم الفريق إلا بعد اعتماد المشرف العام.</li>
+<li>لا تُنفَّذ أي فرصة خارج المدرسة إلا بخطاب رسمي وإشراف معلم.</li>
+</ol>
+<h3>نظام الاجتماعات</h3>
+<ul>
+<li><strong>اجتماع أسبوعي</strong> (15 دقيقة في الفسحة أو حصة النشاط): المشرف العام + القائد + النائب + رؤساء اللجان + منسقا الدورين.</li>
+<li><strong>اجتماع شهري عام</strong> لكل الأعضاء: عرض الإنجاز وإعلان متطوع الشهر.</li>
+<li><strong>محضر</strong> مختصر لكل اجتماع يكتبه أمين السجلات.</li>
+</ul>
+<h3>النماذج المرفقة</h3>
+<ul class="tasks">
+<li class="task"><label><input type="checkbox" data-k="t1"><span>استمارة الانضمام للفريق (البيانات، الدافع، المهارات، اللجنة المفضلة)</span></label></li>
+<li class="task"><label><input type="checkbox" data-k="t2"><span>نموذج موافقة ولي الأمر</span></label></li>
+<li class="task"><label><input type="checkbox" data-k="t3"><span>بطاقة وصف الدور (لكل منصب)</span></label></li>
+<li class="task"><label><input type="checkbox" data-k="t4"><span>ميثاق الفريق للتوقيع</span></label></li>
+<li class="task"><label><input type="checkbox" data-k="t5"><span>(2-1) تصميم فرصة تطوعية فردية</span></label></li>
+<li class="task"><label><input type="checkbox" data-k="t6"><span>(2-2) تصميم فرصة تطوعية جماعية (مبادرة)</span></label></li>
+<li class="task"><label><input type="checkbox" data-k="t7"><span>(2-3) اتفاقية تطوع</span></label></li>
+<li class="task"><label><input type="checkbox" data-k="t8"><span>(2-4) تدريب المتطوعين</span></label></li>
+<li class="task"><label><input type="checkbox" data-k="t9"><span>(2-5) رفع شكوى</span></label></li>
+<li class="task"><label><input type="checkbox" data-k="t10"><span>(2-6) رفع تظلم</span></label></li>
+<li class="task"><label><input type="checkbox" data-k="t11"><span>(2-7) تقييم أداء طالب متطوع</span></label></li>
+<li class="task"><label><input type="checkbox" data-k="t12"><span>(2-8) تقييم المتطوع لتجربته التطوعية</span></label></li>
+<li class="task"><label><input type="checkbox" data-k="t13"><span>(2-9) شهادة شكر وتقدير</span></label></li>
+<li class="task"><label><input type="checkbox" data-k="t14"><span>كشف الحضور والساعات الأسبوعي</span></label></li>
+<li class="task"><label><input type="checkbox" data-k="t15"><span>سجل المتطوعين الرقمي</span></label></li>
+<li class="task"><label><input type="checkbox" data-k="t16"><span>قالب تقرير الفرصة (صفحة واحدة)</span></label></li>
+</ul>
+<h3>خطوات البدء خلال أسبوعين</h3>
+<ul class="tasks">
+<li class="task"><label><input type="checkbox" data-k="t17"><span>اعتماد الخطة من قائد القسم الثانوي</span></label></li>
+<li class="task"><label><input type="checkbox" data-k="t18"><span>تكليف المنسق الإداري والمشرف الفني ومشرفي الدورين</span></label></li>
+<li class="task"><label><input type="checkbox" data-k="t19"><span>اعتماد اسم الفريق وشعاره وتصميم هويته</span></label></li>
+<li class="task"><label><input type="checkbox" data-k="t20"><span>إعلان الاستقطاب في الطابور والفصول</span></label></li>
+<li class="task"><label><input type="checkbox" data-k="t21"><span>استلام الطلبات وفرزها وإعلان الأعضاء الـ39</span></label></li>
+<li class="task"><label><input type="checkbox" data-k="t22"><span>اختيار القائد والنائب ورؤساء اللجان</span></label></li>
+<li class="task"><label><input type="checkbox" data-k="t23"><span>عقد اللقاء التعريفي وتوقيع الميثاق</span></label></li>
+<li class="task"><label><input type="checkbox" data-k="t24"><span>إطلاق أول فرصة سريعة لكسر الجمود (مثل تنظيم الفسحة لمدة أسبوع)</span></label></li>
+</ul></section>
+</main>
+<footer>إعداد رائد النشاط · ثانوية مدارس الأندلس الأهلية · مبنية على برنامج رشيد للتطوع المدرسي</footer>
+<script>
+(function () {
+  var KEY = 'andalus-volunteer-plan-tasks';
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { saved = {}; }
+  var boxes = document.querySelectorAll('.task input');
+  function progress() {
+    document.querySelectorAll('ul.tasks').forEach(function (ul) {
+      var all = ul.querySelectorAll('input'), done = ul.querySelectorAll('input:checked').length;
+      var p = ul.previousElementSibling;
+      if (!p || !p.classList.contains('progress')) { p = document.createElement('p'); p.className = 'progress'; ul.parentNode.insertBefore(p, ul); }
+      p.textContent = 'أُنجز ' + done + ' من ' + all.length;
+    });
+  }
+  boxes.forEach(function (b) {
+    b.checked = !!saved[b.dataset.k];
+    b.addEventListener('change', function () {
+      saved[b.dataset.k] = b.checked;
+      try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {}
+      progress();
+    });
+  });
+  progress();
+  var links = document.querySelectorAll('nav.top a');
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (e.isIntersecting) links.forEach(function (a) { a.classList.toggle('on', a.getAttribute('href') === '#' + e.target.id); });
+      });
+    }, { rootMargin: '-40% 0px -55% 0px' });
+    document.querySelectorAll('main h2[id]').forEach(function (h) { io.observe(h); });
+  }
+})();
+</script>
+</body>
+</html>

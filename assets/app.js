@@ -30,6 +30,7 @@ const ICONS = {
   pencil: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>`,
   target: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg>`,
   badge: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M12 3l7 4v5c0 4.4-3 8.3-7 9-4-0.7-7-4.6-7-9V7l7-4z"/></svg>`,
+  heart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 10-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg>`,
 };
 
 /* ============================================================ */
@@ -2311,6 +2312,21 @@ function viewEtec(){
 }
 
 /* ============================================================ */
+/* العمل التطوعي — خطة جاهزة مستقلة (ملف HTML كامل بتصميمه وتفاعله
+   الخاص: فهرس قابل للطي، نماذج قابلة للتعليم تُحفظ محليًا في متصفح
+   الزائر، زر طباعة). تُعرض داخل iframe لأنها صفحة ذات بنية وأنماط
+   مستقلة تمامًا عن باقي المنصة، ولا تشارك أي بيانات مع DATA */
+function viewVolunteer(){
+  return `
+    <div class="topbar">
+      ${sectionTitle("النشاط الطلابي", "العمل التطوعي", "heart")}
+    </div>
+    <iframe src="assets/volunteer-plan.html" title="خطة تأسيس الفريق التطوعي"
+      style="width:100%; height:calc(100vh - 170px); min-height:520px; border:1px solid var(--line); border-radius:14px; background:#fff;"></iframe>
+  `;
+}
+
+/* ============================================================ */
 /* التقارير الأسبوعية والشهرية */
 /* ============================================================ */
 function buildReportData(startDate, endDate){
@@ -2834,6 +2850,7 @@ const TABS = [
   {key:"reports", label:"التقارير", icon:"report"},
   {key:"etec", label:"شواهد الزيارة", icon:"badge"},
   {key:"tasks", label:"المهام", icon:"list"},
+  {key:"volunteer", label:"العمل التطوعي", icon:"heart"},
   {key:"alerts", label:"التنبيهات", icon:"bell"},
 ];
 const TAB_TITLES = {
@@ -2846,6 +2863,7 @@ const TAB_TITLES = {
   reports:["الإنجاز والتوثيق","التقارير الأسبوعية والشهرية"],
   etec:["الاعتماد المدرسي","شواهد زيارة هيئة تقويم التعليم"],
   tasks:["الإدارة","المهام"],
+  volunteer:["النشاط الطلابي","العمل التطوعي"],
   alerts:["المتابعة","التنبيهات"],
 };
 
@@ -2899,9 +2917,10 @@ function render(){
     TAB === "reports" ? viewReports() :
     TAB === "etec" ? viewEtec() :
     TAB === "tasks" ? viewTasks() :
+    TAB === "volunteer" ? viewVolunteer() :
     viewAlerts();
 
-  const showTopbarDefault = TAB !== "weekly" && TAB !== "tasks" && TAB !== "calendar" && TAB !== "vision" && TAB !== "competitions" && TAB !== "reports" && TAB !== "plan" && TAB !== "etec";
+  const showTopbarDefault = TAB !== "weekly" && TAB !== "tasks" && TAB !== "calendar" && TAB !== "vision" && TAB !== "competitions" && TAB !== "reports" && TAB !== "plan" && TAB !== "etec" && TAB !== "volunteer";
 
   document.getElementById("app").innerHTML = `
     ${shouldShowInstallBanner() ? `
