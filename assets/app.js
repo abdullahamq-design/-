@@ -96,6 +96,23 @@ const ETEC_FORMATS = [["paper","ورقية"],["digital","إلكترونية"],["
 const etecRec = (id) => (DATA.etec && DATA.etec[id]) || {status:"لم يبدأ", formats:{}, evidence:[], note:""};
 const ETEC_DOMAINS = [...new Set(ETEC_ITEMS.map(i=>i.domain))];
 
+/* ===== العمل التطوعي: فريق التطوع ونماذج برنامج رشيد التسعة ===== */
+const VOLUNTEER_FORMS = [
+  {id:"f21", code:"2-1", name:"تصميم فرصة تطوعية فردية"},
+  {id:"f22", code:"2-2", name:"تصميم فرصة تطوعية جماعية (مبادرة)"},
+  {id:"f23", code:"2-3", name:"اتفاقية تطوع"},
+  {id:"f24", code:"2-4", name:"تدريب المتطوعين"},
+  {id:"f25", code:"2-5", name:"رفع شكوى"},
+  {id:"f26", code:"2-6", name:"رفع تظلم"},
+  {id:"f27", code:"2-7", name:"تقييم أداء طالب متطوع"},
+  {id:"f28", code:"2-8", name:"تقييم المتطوع لتجربته التطوعية"},
+  {id:"f29", code:"2-9", name:"شهادة شكر وتقدير"},
+];
+const VOLUNTEER_ROLES = ["قائد الفريق","نائب القائد","أمين السجلات","منسق الدور الأول","منسق الدور الثاني","سفير فصل","عضو لجنة"];
+const VOLUNTEER_COMMITTEES = ["القيادة","التنظيم والانضباط","الفرص والمبادرات","البيئة والاستدامة","الإعلام والتوثيق","الاستقبال والخدمات"];
+const VOLUNTEER_STATUSES = ["لم يبدأ","قيد الإعداد","جاهز"];
+const volFormRec = (id) => (DATA.volunteer.forms && DATA.volunteer.forms[id]) || {status:"لم يبدأ", note:"", evidence:[]};
+
 const COMP_LEVELS = ["مدرسي","تعليم المدينة","منطقة","مركز تنافسي","وطني","دولي","عالمي"];
 const COMP_STATUSES = ["تسجيل مفتوح","قيد التحضير","جارية","منتهية"];
 const COMP_STATUS_COLOR = {
@@ -415,6 +432,9 @@ function stripEvidenceForSync(data){
   if (copy.etec) {
     Object.keys(copy.etec).forEach(k => { if (copy.etec[k]) copy.etec[k].evidence = stripEvidenceLight(copy.etec[k].evidence); });
   }
+  if (copy.volunteer && copy.volunteer.forms) {
+    Object.keys(copy.volunteer.forms).forEach(k => { if (copy.volunteer.forms[k]) copy.volunteer.forms[k].evidence = stripEvidenceLight(copy.volunteer.forms[k].evidence); });
+  }
   return copy;
 }
 
@@ -435,6 +455,9 @@ function ensureDataShape(){
   (DATA.activityPlan && DATA.activityPlan.categories || []).forEach(cat => (cat.programs||[]).forEach(p => { if (p.done === undefined) p.done = false; }));
   (DATA.competitions||[]).forEach(c => { if (c.impact === undefined) c.impact = ""; if (!c.stages) c.stages = []; });
   if (!DATA.etec) DATA.etec = {};
+  if (!DATA.volunteer) DATA.volunteer = {team:[], forms:{}};
+  if (!DATA.volunteer.team) DATA.volunteer.team = [];
+  if (!DATA.volunteer.forms) DATA.volunteer.forms = {};
 }
 
 /* دمج مصفوفة شواهد بحسب id: أي شاهد محلي يبقى بمحتواه الفعلي (dataUrl) كما هو دائمًا — لا يُستبدل
@@ -524,6 +547,10 @@ function mergeEtec(localEtec, remoteEtec){
   });
   return merged;
 }
+/* نفس فكرة mergeEtec بالضبط لكن لنماذج العمل التطوعي (DATA.volunteer.forms) */
+function mergeVolunteerForms(localForms, remoteForms){
+  return mergeEtec(localForms, remoteForms);
+}
 /* دمج خاص بخطة رائد النشاط: الفئات نفسها ثابتة (18 فئة معرَّفة بـ key)، وما يُضاف فعليًا هو برامجها */
 function mergePlanCategories(localCats, remoteCats){
   const byKey = new Map((localCats||[]).map(c => [c.key, c]));
@@ -554,6 +581,11 @@ function mergeRemoteData(remote){
   }
   if (remote.vision) DATA.vision = {...DATA.vision, ...remote.vision};
   if (remote.etec) DATA.etec = mergeEtec(DATA.etec, remote.etec);
+  if (remote.volunteer) {
+    if (!DATA.volunteer) DATA.volunteer = {team:[], forms:{}};
+    DATA.volunteer.team = mergeArrayById(DATA.volunteer.team, remote.volunteer.team);
+    DATA.volunteer.forms = mergeVolunteerForms(DATA.volunteer.forms, remote.volunteer.forms);
+  }
   ensureDataShape();
 }
 
@@ -711,6 +743,9 @@ let STAGES_OPEN_ID = null;
 let ETEC_FILTER = "الكل";
 let ETEC_OPEN_IND = null;
 let ETEC_MSG = "";
+let VOL_SHOW_MEMBER_FORM = false;
+let VOL_EDIT_MEMBER_ID = null;
+let VOL_EDIT_FORM_ID = null;
 let EDIT_COMP_ID = null;
 let SHOW_PLAN_PROGRAM_FORM = null;
 let EDIT_PLAN_PROGRAM_ID = null;
@@ -741,6 +776,7 @@ function allEvidenceIds(){
   (DATA.activityPlan && DATA.activityPlan.categories || []).forEach(cat => (cat.programs||[]).forEach(p => (p.evidence||[]).forEach(e => ids.push(e.id))));
   Object.keys(DATA.eventLog||{}).forEach(k => (DATA.eventLog[k].evidence||[]).forEach(e => ids.push(e.id)));
   Object.keys(DATA.etec||{}).forEach(k => (DATA.etec[k].evidence||[]).forEach(e => ids.push(e.id)));
+  Object.keys((DATA.volunteer && DATA.volunteer.forms)||{}).forEach(k => (DATA.volunteer.forms[k].evidence||[]).forEach(e => ids.push(e.id)));
   return ids;
 }
 
@@ -777,6 +813,13 @@ function collectAllEvidence(){
     (rec.evidence||[]).forEach(e => {
       const it = ETEC_ITEMS.find(x=>x.id===k);
       items.push({...hydrateEvidence(e), kind:"etec", ownerId:"etec:"+k, ownerTitle: it ? it.text : k});
+    });
+  });
+  Object.keys((DATA.volunteer && DATA.volunteer.forms)||{}).forEach(k => {
+    const rec = DATA.volunteer.forms[k];
+    (rec.evidence||[]).forEach(e => {
+      const f = VOLUNTEER_FORMS.find(x=>x.id===k);
+      items.push({...hydrateEvidence(e), kind:"volform", ownerId:"volform:"+k, ownerTitle: f ? `(${f.code}) ${f.name}` : k});
     });
   });
   items.forEach(e => { e.sizeBytes = e.dataUrl ? Math.round(e.dataUrl.length*0.75) : 0; });
@@ -1437,6 +1480,7 @@ function findEvidenceArray(kind, id){
   if (kind === "planprogram") { const p = findPlanProgram(id); return (p && p.evidence) || []; }
   if (kind === "compstage") { const {stage} = findCompStage(id); return (stage && stage.evidence) || []; }
   if (kind === "etec") { const key = String(id).replace(/^etec:/,""); return (DATA.etec && DATA.etec[key] && DATA.etec[key].evidence) || []; }
+  if (kind === "volform") { const key = String(id).replace(/^volform:/,""); return (DATA.volunteer && DATA.volunteer.forms[key] && DATA.volunteer.forms[key].evidence) || []; }
   const arr = kind === "competition" ? DATA.competitions : DATA.tasks;
   const item = arr.find(x=>x.id===id);
   return (item && item.evidence) || [];
@@ -2312,17 +2356,107 @@ function viewEtec(){
 }
 
 /* ============================================================ */
-/* العمل التطوعي — خطة جاهزة مستقلة (ملف HTML كامل بتصميمه وتفاعله
-   الخاص: فهرس قابل للطي، نماذج قابلة للتعليم تُحفظ محليًا في متصفح
-   الزائر، زر طباعة). تُعرض داخل iframe لأنها صفحة ذات بنية وأنماط
-   مستقلة تمامًا عن باقي المنصة، ولا تشارك أي بيانات مع DATA */
+/* العمل التطوعي — فريق التطوع (أعضاء) ونماذج برنامج رشيد (تعديل،
+   شواهد، حذف، طباعة)، وتحتها خطة تأسيس الفريق كمرجع (iframe مستقل
+   بتصميمه وتفاعله الخاص، لا يشارك أي بيانات مع DATA) */
+function volMemberFormPanel(editing){
+  return `
+    <div class="panel">
+      <div class="field"><label>اسم المتطوع</label><input id="vm-name" type="text" placeholder="اسم الطالب" value="${editing?esc(editing.name):""}"></div>
+      <div class="field"><label>الصف</label><input id="vm-grade" type="text" placeholder="مثال: ثاني ثانوي" value="${editing?esc(editing.grade||""):""}"></div>
+      <div class="field"><label>المنصب</label>
+        <select id="vm-role">${VOLUNTEER_ROLES.map(r=>`<option value="${r}" ${editing&&editing.role===r?"selected":""}>${r}</option>`).join("")}</select>
+      </div>
+      <div class="field"><label>اللجنة</label>
+        <select id="vm-committee">${VOLUNTEER_COMMITTEES.map(c=>`<option value="${c}" ${editing&&editing.committee===c?"selected":""}>${c}</option>`).join("")}</select>
+      </div>
+      <div class="field"><label>ساعات التطوع</label><input id="vm-hours" type="number" min="0" value="${editing?(editing.hours||0):0}"></div>
+      <div class="actions">
+        <button class="btn ghost" data-action="closeVolMemberForm">إلغاء</button>
+        <button class="btn" data-action="${editing?"saveVolMember":"addVolMember"}" ${editing?`data-id="${editing.id}"`:""}>${editing?"حفظ التعديل":"إضافة متطوع"}</button>
+      </div>
+    </div>`;
+}
+function volTeamTable(){
+  const team = DATA.volunteer.team || [];
+  const rows = team.map(m => {
+    if (VOL_EDIT_MEMBER_ID === m.id) return `<tr><td colspan="5">${volMemberFormPanel(m)}</td></tr>`;
+    return `<tr>
+      <td><div class="tt">${esc(m.name)}</div><div class="meta">${esc(m.grade||"")}</div></td>
+      <td>${chip(m.role||"عضو لجنة", "var(--blue)")}</td>
+      <td>${chip(m.committee||"—", "var(--purple)")}</td>
+      <td style="text-align:center; font-weight:700; color:var(--navy);">${m.hours||0}</td>
+      <td style="width:90px; white-space:nowrap;">
+        <button class="icon-btn" data-action="editVolMember" data-id="${m.id}" title="تعديل">${ICONS.pencil}</button>
+        <button class="trash-btn" data-action="removeVolMember" data-id="${m.id}" title="حذف">${ICONS.trash}</button>
+      </td>
+    </tr>`;
+  }).join("");
+  return `
+    <table class="tasks-table">
+      <thead><tr><th>الاسم</th><th>المنصب</th><th>اللجنة</th><th>الساعات</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+function volFormRow(f){
+  const r = volFormRec(f.id);
+  const evN = (r.evidence||[]).length;
+  const open = EVIDENCE_OPEN_ID === "volform:"+f.id;
+  const editingNote = VOL_EDIT_FORM_ID === f.id;
+  return `
+    <div class="etec-row">
+      <div class="etec-main">
+        <div class="etec-txt">(${esc(f.code)}) ${esc(f.name)}</div>
+        ${editingNote ? `
+          <textarea id="vf-note-${f.id}" rows="4" style="width:100%; margin-top:10px; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-family:'IBM Plex Sans Arabic'; font-size:13px;">${esc(r.note)}</textarea>
+          <div style="margin-top:8px; display:flex; gap:8px;">
+            <button class="btn ghost" data-action="cancelVolFormEdit">إلغاء</button>
+            <button class="btn small" data-action="saveVolFormNote" data-id="${f.id}">حفظ</button>
+          </div>
+        ` : `
+          <div style="font-size:12.5px; color:var(--muted); margin-top:8px; white-space:pre-wrap;">${r.note ? esc(r.note) : "لا يوجد محتوى مُدوَّن بعد"}</div>
+        `}
+      </div>
+      <div class="etec-side">
+        <select class="vol-form-status" data-id="${f.id}" style="color:${r.status==="جاهز"?"var(--good)":r.status==="قيد الإعداد"?"var(--cyan)":"var(--muted)"}; border:1.5px solid var(--line); border-radius:9px; padding:6px 11px; font-family:'Cairo'; font-size:12px; font-weight:800; background:#fff;">
+          ${VOLUNTEER_STATUSES.map(s=>`<option value="${s}" ${s===r.status?"selected":""}>${s}</option>`).join("")}
+        </select>
+        <button class="icon-btn" data-action="editVolFormNote" data-id="${f.id}" title="تعديل المحتوى">${ICONS.pencil}</button>
+        <button class="evidence-btn ${evN?'has':''}" data-action="toggleEvidence" data-id="volform:${f.id}">📎${evN?` ${evN}`:""}</button>
+      </div>
+      ${open?`<div class="etec-ev">${evidencePanel({id:"volform:"+f.id, evidence:r.evidence||[]}, "volform")}</div>`:""}
+    </div>`;
+}
 function viewVolunteer(){
+  const team = DATA.volunteer.team || [];
+  const totalHours = team.reduce((n,m)=>n+(Number(m.hours)||0), 0);
+  const formPanel = (VOL_SHOW_MEMBER_FORM && !VOL_EDIT_MEMBER_ID) ? volMemberFormPanel(null) : "";
   return `
     <div class="topbar">
       ${sectionTitle("النشاط الطلابي", "العمل التطوعي", "heart")}
+      <button class="btn ghost" data-action="reportPrint">🖨️ طباعة النماذج</button>
     </div>
-    <iframe src="assets/volunteer-plan.html" title="خطة تأسيس الفريق التطوعي"
-      style="width:100%; height:calc(100vh - 170px); min-height:520px; border:1px solid var(--line); border-radius:14px; background:#fff;"></iframe>
+
+    <div class="stat-row">
+      <div class="stat-card"><div class="num">${team.length}</div><div class="lbl">متطوعون مسجَّلون</div></div>
+      <div class="stat-card"><div class="num">39</div><div class="lbl">العدد المستهدف</div></div>
+      <div class="stat-card"><div class="num">${totalHours}</div><div class="lbl">إجمالي ساعات التطوع</div></div>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin:26px 0 12px;">
+      <h3 style="margin:0; color:var(--navy); font-family:'Cairo'; font-size:17px;">فريق التطوع</h3>
+      <button class="btn accent vol-no-print" data-action="toggleVolMemberForm">${VOL_SHOW_MEMBER_FORM ? ICONS.x : ICONS.plus}<span>إضافة متطوع</span></button>
+    </div>
+    ${formPanel}
+    ${team.length ? volTeamTable() : emptyState("لم يُضف أي متطوع بعد — ابدأ بإضافة أعضاء القيادة والسفراء")}
+
+    <h3 style="margin:34px 0 4px; color:var(--navy); font-family:'Cairo'; font-size:17px;">نماذج برنامج رشيد</h3>
+    <div style="font-size:12.5px; color:var(--muted); margin-bottom:14px;">لكل نموذج: حالته، محتواه (تعديل)، وشواهده (رفع/حذف) — وزر الطباعة أعلى الصفحة يطبع هذا القسم.</div>
+    <div class="etec-items">${VOLUNTEER_FORMS.map(volFormRow).join("")}</div>
+
+    <h3 class="vol-no-print" style="margin:34px 0 12px; color:var(--navy); font-family:'Cairo'; font-size:17px;">خطة تأسيس الفريق (مرجع)</h3>
+    <iframe class="vol-no-print" src="assets/volunteer-plan.html" title="خطة تأسيس الفريق التطوعي"
+      style="width:100%; height:700px; border:1px solid var(--line); border-radius:14px; background:#fff;"></iframe>
   `;
 }
 
@@ -3416,6 +3550,58 @@ document.addEventListener("click", async (e) => {
     ETEC_OPEN_IND = (ETEC_OPEN_IND === v) ? null : v;
     render(); return;
   }
+
+  if (action === "toggleVolMemberForm") { VOL_SHOW_MEMBER_FORM = !VOL_SHOW_MEMBER_FORM; VOL_EDIT_MEMBER_ID = null; render(); return; }
+  if (action === "closeVolMemberForm") { VOL_SHOW_MEMBER_FORM = false; VOL_EDIT_MEMBER_ID = null; render(); return; }
+  if (action === "addVolMember") {
+    const name = document.getElementById("vm-name").value.trim();
+    if (!name) return;
+    const grade = document.getElementById("vm-grade").value.trim();
+    const role = document.getElementById("vm-role").value;
+    const committee = document.getElementById("vm-committee").value;
+    const hours = parseInt(document.getElementById("vm-hours").value, 10) || 0;
+    await mutate(d => {
+      if (!d.volunteer) d.volunteer = {team:[], forms:{}};
+      d.volunteer.team.push({id: uid(), name, grade, role, committee, hours});
+    });
+    VOL_SHOW_MEMBER_FORM = false; render();
+    return;
+  }
+  if (action === "editVolMember") { VOL_EDIT_MEMBER_ID = btn.dataset.id; VOL_SHOW_MEMBER_FORM = false; render(); return; }
+  if (action === "saveVolMember") {
+    const id = btn.dataset.id;
+    const name = document.getElementById("vm-name").value.trim();
+    if (!name) return;
+    const grade = document.getElementById("vm-grade").value.trim();
+    const role = document.getElementById("vm-role").value;
+    const committee = document.getElementById("vm-committee").value;
+    const hours = parseInt(document.getElementById("vm-hours").value, 10) || 0;
+    await mutate(d => {
+      const m = d.volunteer.team.find(x=>x.id===id);
+      if (m) { m.name=name; m.grade=grade; m.role=role; m.committee=committee; m.hours=hours; }
+    });
+    VOL_EDIT_MEMBER_ID = null; render();
+    return;
+  }
+  if (action === "removeVolMember") {
+    const id = btn.dataset.id;
+    await mutate(d => { d.volunteer.team = d.volunteer.team.filter(x=>x.id!==id); });
+    return;
+  }
+  if (action === "editVolFormNote") { VOL_EDIT_FORM_ID = btn.dataset.id; render(); return; }
+  if (action === "cancelVolFormEdit") { VOL_EDIT_FORM_ID = null; render(); return; }
+  if (action === "saveVolFormNote") {
+    const id = btn.dataset.id;
+    const note = document.getElementById(`vf-note-${id}`).value;
+    await mutate(d => {
+      if (!d.volunteer) d.volunteer = {team:[], forms:{}};
+      const cur = d.volunteer.forms[id] || {status:"لم يبدأ", note:"", evidence:[]};
+      cur.note = note;
+      d.volunteer.forms[id] = cur;
+    });
+    VOL_EDIT_FORM_ID = null; render();
+    return;
+  }
   if (action === "removeEvidence") {
     const id = btn.dataset.id, eid = btn.dataset.eid, kind = btn.dataset.kind || "task";
     if (VIDEO_LIGHTBOX && VIDEO_LIGHTBOX.kind === kind && VIDEO_LIGHTBOX.id === id && VIDEO_LIGHTBOX.eid === eid) {
@@ -3444,6 +3630,13 @@ document.addEventListener("click", async (e) => {
         if (!d.etec) d.etec = {};
         const key = id.replace(/^etec:/,"");
         const cur = d.etec[key];
+        if (cur && cur.evidence) cur.evidence = cur.evidence.filter(e=>e.id!==eid);
+        return;
+      }
+      if (kind === "volform") {
+        if (!d.volunteer) d.volunteer = {team:[], forms:{}};
+        const key = id.replace(/^volform:/,"");
+        const cur = d.volunteer.forms[key];
         if (cur && cur.evidence) cur.evidence = cur.evidence.filter(e=>e.id!==eid);
         return;
       }
@@ -3526,6 +3719,15 @@ document.addEventListener("change", async (e) => {
         d.etec[key] = cur;
         return;
       }
+      if (kind === "volform") {
+        if (!d.volunteer) d.volunteer = {team:[], forms:{}};
+        const key = id.replace(/^volform:/,"");
+        const cur = d.volunteer.forms[key] || {status:"لم يبدأ", note:"", evidence:[]};
+        if (!cur.evidence) cur.evidence = [];
+        cur.evidence.push(...items);
+        d.volunteer.forms[key] = cur;
+        return;
+      }
       const arr = kind === "competition" ? d.competitions : d.tasks;
       const item = arr.find(x=>x.id===id);
       if (item) { if (!item.evidence) item.evidence = []; item.evidence.push(...items); }
@@ -3551,6 +3753,12 @@ document.addEventListener("change", async (e) => {
       if (kind === "etec") {
         const key = id.replace(/^etec:/,"");
         const cur = d.etec && d.etec[key];
+        if (cur && cur.evidence) cur.evidence = cur.evidence.filter(x => !newItems.some(n=>n.id===x.id));
+        return;
+      }
+      if (kind === "volform") {
+        const key = id.replace(/^volform:/,"");
+        const cur = d.volunteer && d.volunteer.forms && d.volunteer.forms[key];
         if (cur && cur.evidence) cur.evidence = cur.evidence.filter(x => !newItems.some(n=>n.id===x.id));
         return;
       }
@@ -3606,6 +3814,15 @@ document.addEventListener("change", async (e) => {
       if (!d.etec) d.etec = {};
       const cur = d.etec[id] || {status:"لم يبدأ", formats:{}, evidence:[], note:""};
       cur.status = st; d.etec[id] = cur;
+    });
+    return;
+  }
+  if (e.target.classList.contains("vol-form-status")) {
+    const id = e.target.dataset.id, st = e.target.value;
+    await mutate(d => {
+      if (!d.volunteer) d.volunteer = {team:[], forms:{}};
+      const cur = d.volunteer.forms[id] || {status:"لم يبدأ", note:"", evidence:[]};
+      cur.status = st; d.volunteer.forms[id] = cur;
     });
     return;
   }
