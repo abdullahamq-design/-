@@ -1354,6 +1354,20 @@ function compressImageDataUrl(dataUrl, maxDim=700, quality=0.5){
 /* ============================================================ */
 let DATA = JSON.parse(JSON.stringify(DEFAULT_DATA));
 let AUTHED = false;
+/* وضع "عرض فقط": رابط يُفتح برقم مرور ?view=1 بلا تسجيل دخول، تُعطَّل فيه كل إجراءات الإضافة
+   والتعديل والحذف ورفع الشواهد (حظر افتراضي: يُسمح فقط بإجراءات العرض والتنقّل الصريحة المذكورة
+   أدناه، وأي إجراء جديد يُضاف مستقبلاً يُحظَر تلقائيًا ما لم يُضَف صراحة للقائمة) — لمشاركة المنصة
+   للاطلاع فقط دون كشف كلمة المرور الحقيقية أو خطر تعديل البيانات من قِبل من يحمل الرابط */
+let VIEW_ONLY = false;
+try { VIEW_ONLY = new URLSearchParams(location.search).get("view") === "1"; } catch(e){ VIEW_ONLY = false; }
+const VIEWONLY_ALLOWED_CLICK = new Set([
+  "setTab","toggleEvidence","toggleStudents","togglePlanStudents","toggleImpact","toggleStages",
+  "etecFilter","etecToggleInd","reportSetMode","reportNextMonth","reportPrevMonth","reportPrint",
+  "reportCopy","calNextMonth","calPrevMonth","calToday","calStart","calSetView","calSelectDay",
+  "playVideoEvidence","closeVideoLightbox","dismissInstallBanner","setFilter",
+  "openStoragePanel","closeStoragePanel","printPlan","cancelVolFormEdit",
+]);
+const VIEWONLY_ALLOWED_CHANGE_ID = new Set(["report-week-select"]);
 let LOGIN_ERROR = "";
 let TAB = "dashboard";
 let TASK_FILTER = "الكل";
@@ -3720,6 +3734,10 @@ function render(){
   const showTopbarDefault = TAB !== "weekly" && TAB !== "tasks" && TAB !== "calendar" && TAB !== "vision" && TAB !== "competitions" && TAB !== "reports" && TAB !== "plan" && TAB !== "etec" && TAB !== "volunteer";
 
   document.getElementById("app").innerHTML = `
+    ${VIEW_ONLY ? `
+      <div class="install-banner" style="background:var(--navy); color:#fff;">
+        <span>👁️ وضع العرض فقط — هذا رابط اطلاع بلا تسجيل دخول ولا يمكن من خلاله إضافة أو تعديل أو حذف أي بيانات.</span>
+      </div>` : ""}
     ${shouldShowInstallBanner() ? `
       <div class="install-banner">
         <span>📌 لحماية الشواهد من حذف الجوال التلقائي لمساحة التخزين بعد فترة عدم استخدام: افتح زر المشاركة في سفاري ثم اختر "إضافة إلى الشاشة الرئيسية" — بعدها افتح المنصة من أيقونتها الجديدة بدل سفاري.</span>
@@ -3738,7 +3756,7 @@ function render(){
         <div class="sidebar-footer">
           ${SYNC_ENABLED ? `<div class="sync-badge sync-${SYNC_STATUS}">${SYNC_STATUS==="synced"?"🔄 متزامن مع كل الأجهزة":SYNC_STATUS==="error"?"⚠️ خطأ في المزامنة":"⏳ جاري الاتصال بالمزامنة"}</div>` : ""}
           <button class="storage-btn" data-action="openStoragePanel">🗄️ إدارة التخزين</button>
-          <button class="logout-btn" data-action="logout">تسجيل الخروج</button>
+          ${VIEW_ONLY ? "" : `<button class="logout-btn" data-action="logout">تسجيل الخروج</button>`}
           <div>مدارس الأندلس الأهلية · 1984</div>
         </div>
       </aside>
@@ -3811,6 +3829,7 @@ document.addEventListener("click", async (e) => {
   const btn = e.target.closest("[data-action]");
   if (!btn) return;
   const action = btn.dataset.action;
+  if (VIEW_ONLY && !VIEWONLY_ALLOWED_CLICK.has(action)) return;
 
   if (action === "setTab") { TAB = btn.dataset.tab; SHOW_WEEKLY_FORM=false; EDIT_WEEKLY_ID=null; NEW_WEEKLY_DAY=null; SHOW_TASK_FORM=false; REPORT_COPIED=false; render(); return; }
 
@@ -4313,6 +4332,7 @@ document.addEventListener("click", async (e) => {
 });
 
 document.addEventListener("change", async (e) => {
+  if (VIEW_ONLY && !(e.target.id && VIEWONLY_ALLOWED_CHANGE_ID.has(e.target.id))) return;
   if (e.target.classList.contains("evidence-input")) {
     const id = e.target.dataset.id;
     const kind = e.target.dataset.kind || "task";
@@ -4509,7 +4529,9 @@ document.addEventListener("change", async (e) => {
      مساحة على الجهاز بعد فترة من عدم الاستخدام، خصوصًا في متصفح آيفون) — دعم هذا الطلب متفاوت
      بين المتصفحات فيُفشَل بصمت حيث لا يُدعم، لذا هو إجراء احترازي إضافي وليس الحل الوحيد */
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch(e){}
-  try { AUTHED = sessionStorage.getItem(AUTH_KEY) === "1"; } catch(e){ AUTHED = false; }
+  if (VIEW_ONLY) { AUTHED = true; } else {
+    try { AUTHED = sessionStorage.getItem(AUTH_KEY) === "1"; } catch(e){ AUTHED = false; }
+  }
   const saved = await storageGet(STORAGE_KEY);
   if (saved) {
     try { DATA = JSON.parse(saved); } catch(e) { DATA = JSON.parse(JSON.stringify(DEFAULT_DATA)); }
