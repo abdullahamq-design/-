@@ -4075,6 +4075,36 @@ document.addEventListener("change", async (e) => {
     DATA.__addedOct2026UserEvidence = true;
     await persist();
   }
+  /* إضافة لمرة واحدة: رحلات العمرة لطلاب المرحلة الثانوية للعام الدراسي 1448هـ (2026-2027)، بناءً على
+     الخطة الزمنية التي أرسلها المستخدم (PDF) — تُضاف كفعاليات "لمرة واحدة" في الجدول/التقويم، فصل واحد
+     لكل رحلة. إضافة فقط، لا تُحذف ولا تُعدَّل أي فعالية موجودة مسبقًا. المصدر لا يحدد وقت ساعة للرحلات
+     فيُترك حقل الوقت فارغًا ليُستكمل لاحقًا عند الحاجة. محمية بفحص عنوان+تاريخ حتى لا تتكرر إن أضافها
+     جهاز آخر أيضًا قبل التزامن. */
+  if (!DATA.__addedUmrahTrips2026) {
+    const already = new Set(DATA.weekly.map(w => w.title + "@" + w.date));
+    const umrahTrips = [
+      {date:"2026-11-17", cls:1,  count:24},
+      {date:"2026-12-01", cls:2,  count:24},
+      {date:"2026-12-15", cls:3,  count:24},
+      {date:"2026-12-29", cls:4,  count:24},
+      {date:"2027-01-19", cls:5,  count:24},
+      {date:"2027-02-02", cls:6,  count:25},
+      {date:"2027-03-16", cls:7,  count:24},
+      {date:"2027-03-30", cls:8,  count:24},
+      {date:"2027-04-06", cls:9,  count:24},
+      {date:"2027-04-20", cls:10, count:24},
+      {date:"2027-06-01", cls:11, count:24},
+      {date:"2027-06-08", cls:12, count:25},
+    ];
+    umrahTrips.forEach(t => {
+      const title = `رحلة عمرة — الفصل ${t.cls} (${t.count} طالبًا)`;
+      if (!already.has(title + "@" + t.date)) {
+        DATA.weekly.push({id:uid(), recurring:false, day:"", date:t.date, time:"", title, location:"مكة المكرمة"});
+      }
+    });
+    DATA.__addedUmrahTrips2026 = true;
+    await persist();
+  }
   render();
   initSync();
 })();
