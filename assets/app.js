@@ -4105,6 +4105,34 @@ document.addEventListener("change", async (e) => {
     DATA.__addedUmrahTrips2026 = true;
     await persist();
   }
+  /* ترحيل تصحيحي لمرة واحدة: فعاليات الجدول/التقويم (DATA.weekly) قد تتكرر بنفس الآلية التي سببت
+     تكرار المسابقات سابقًا (راجع __dedupedCompetitionsByName أعلاه) — إذا فتح المستخدم المنصة على
+     جهازين قبل أول مزامنة بينهما، يضيف كل جهاز فعالياته (كرحلات العمرة أعلاه) بمعرّف id عشوائي خاص به،
+     فيدمجهما التزامن كفعاليتين منفصلتين بدل واحدة لأن الدمج يقارن بالمعرّف لا بالمحتوى. هذا التنظيف
+     يوحّد كل نسخ نفس الفعالية (نفس العنوان ونفس التاريخ للفعاليات لمرة واحدة، أو نفس العنوان ونفس اليوم
+     للمتكررة) في نسخة واحدة، ويملأ أي حقل فارغ (الوقت أو المكان) من أي نسخة تحمل محتوى — لا يُفقد شيء،
+     ولا يتكرر لاحقًا. */
+  if (!DATA.__dedupedWeeklyByKey) {
+    const keyOf = w => w.recurring ? `R@${w.title}@${w.day}` : `O@${w.title}@${w.date}`;
+    const groups = new Map();
+    DATA.weekly.forEach(w => { const k = keyOf(w); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(w); });
+    let changed = false;
+    const deduped = [];
+    groups.forEach(group => {
+      if (group.length === 1) { deduped.push(group[0]); return; }
+      changed = true;
+      const base = JSON.parse(JSON.stringify(group[0]));
+      for (let i = 1; i < group.length; i++) {
+        const other = group[i];
+        if (!base.time && other.time) base.time = other.time;
+        if (!base.location && other.location) base.location = other.location;
+      }
+      deduped.push(base);
+    });
+    if (changed) DATA.weekly = deduped;
+    DATA.__dedupedWeeklyByKey = true;
+    await persist();
+  }
   render();
   initSync();
 })();
