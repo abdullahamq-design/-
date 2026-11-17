@@ -747,6 +747,23 @@ let CAL_SELECTED = _inSY ? isoDate(_now.getFullYear(), _now.getMonth(), _now.get
 let CAL_VIEW = "grid";
 let REPORT_MODE = "weekly";
 let REPORT_WEEK_ID = null;
+/* الأرباع: كل فصل دراسي (18 أسبوعًا) يُقسَّم إلى ربعين متساويين من 9 أسابيع — الفصل الأول من 30 أغسطس
+   إلى اليوم السابق لبداية الفصل الثاني، والفصل الثاني من بدايته إلى نهاية العام الدراسي */
+const REPORT_QUARTERS = (() => {
+  const addDays = (iso, n) => { const d = new Date(iso+"T00:00:00"); d.setDate(d.getDate()+n); return isoDate(d.getFullYear(), d.getMonth(), d.getDate()); };
+  const s1Mid = addDays(SY_START, 63), s2Mid = addDays(PLAN_S2_START, 63);
+  return [
+    {name:"الربع الأول",  from:SY_START,        to:addDays(s1Mid,-1)},
+    {name:"الربع الثاني", from:s1Mid,           to:addDays(PLAN_S2_START,-1)},
+    {name:"الربع الثالث", from:PLAN_S2_START,   to:addDays(s2Mid,-1)},
+    {name:"الربع الرابع", from:s2Mid,           to:SY_END},
+  ];
+})();
+const _todayIsoQ = isoDate(_now.getFullYear(), _now.getMonth(), _now.getDate());
+let REPORT_QUARTER = (() => {
+  const i = REPORT_QUARTERS.findIndex(q => _todayIsoQ >= q.from && _todayIsoQ <= q.to);
+  return i >= 0 ? i : (_todayIsoQ > SY_END ? 3 : 0);
+})();
 let REPORT_YEAR = _inSY ? _now.getFullYear() : _syS.getFullYear();
 let REPORT_MONTH = _inSY ? _now.getMonth() : _syS.getMonth();
 let REPORT_COPIED = false;
@@ -2556,7 +2573,8 @@ function reportEvidenceMedia(e){
   return `<img src="${src}" alt="">`;
 }
 
-function reportHtml(title, rangeLabel, data){
+function reportHtml(title, rangeLabel, data, opts){
+  const quarterly = !!(opts && opts.quarterly);
   const done = data.tasksInRange.filter(t=>t.done);
   const notDone = data.tasksInRange.filter(t=>!t.done);
   /* كل شاهد مرفوع يظهر — سواء كانت المهمة مؤرّخة أو متكررة */
@@ -2572,6 +2590,22 @@ function reportHtml(title, rangeLabel, data){
     const ev = DATA.weekly.find(w => w.id === k.split("@")[0]);
     (lg.evidence||[]).forEach(e => evidence.push({...hydrateEvidence(e), cap:(ev?ev.title:"فعالية مجدولة")+" · "+iso}));
   });
+  /* التقرير الربعي فقط: برامج خطة رائد النشاط (activityPlan) المنفذة داخل الربع وشواهدها — لا تظهر في
+     الأسبوعي والشهري. يُعدّ البرنامج منفذًا إن عُلّم منتهيًا أو رُفع له شاهد؛ ويُنسب للربع بتاريخه المسجَّل. */
+  const planGroups = [], planPending = [], planEv = [];
+  let planExecuted = 0;
+  if (quarterly) {
+    ((DATA.activityPlan && DATA.activityPlan.categories) || []).forEach(cat => {
+      const inRange = (cat.programs||[]).filter(p => p.date >= data.range0 && p.date <= data.range1).sort((a,b)=>a.date.localeCompare(b.date));
+      const executed = inRange.filter(p => p.done || (p.evidence||[]).length);
+      inRange.filter(p => !executed.includes(p)).forEach(p => planPending.push(p));
+      if (!executed.length) return;
+      planGroups.push({cat, programs: executed});
+      planExecuted += executed.length;
+      executed.forEach(p => (p.evidence||[]).forEach(e => planEv.push({...hydrateEvidence(e), cap:p.name})));
+    });
+    evidence.unshift(...planEv);
+  }
   /* نسبة الإنجاز العامة (تظهر في الغلاف) يجب أن تعكس العمل الفعلي كله في الفترة — لا المهام فقط،
      بل الفعاليات المتكررة المنفَّذة أيضًا (زي الطابور واستقبال الطلاب)، وإلا تظهر 0% في الغلاف رغم
      تنفيذ عدة فعاليات فعليًا بشواهد. نبقي أيضًا نسبة إنجاز المهام وحدها منفصلة لعرضها في سياقها الخاص. */
@@ -2602,6 +2636,7 @@ function reportHtml(title, rangeLabel, data){
         <div class="rpt-chip">${data.weeklyEvents.length} فعالية منفذة</div>
         <div class="rpt-chip">${done.length} مهمة منجزة</div>
         <div class="rpt-chip">${comps.length} مسابقة متابَعة</div>
+        ${quarterly ? `<div class="rpt-chip">${planExecuted} برنامجًا منفذًا من الخطة</div>` : ""}
       </div>
       <div class="rpt-signbox">
         <div class="bar"></div>
@@ -2627,6 +2662,7 @@ function reportHtml(title, rangeLabel, data){
         <p>شهدت هذه الفترة تنفيذ <b>${data.weeklyEvents.length} فعالية وبرنامجًا</b> وإنجاز <b>${done.length} مهمة</b>
         من أصل ${data.tasksInRange.length}، إلى جانب متابعة <b>${comps.length} مسابقة وأولمبياد</b> على المستويين
         المحلي والوطني، بما يخدم توجّه الإدارة نحو تعزيز الابتكار والمراكز التنافسية.</p>
+        ${quarterly ? `<p>كما نُفّذ خلال هذا الربع <b>${planExecuted} برنامجًا</b> من برامج خطة رائد النشاط، موثّقة بـ<b>${planEv.length} شاهدًا</b>.</p>` : ""}
         <p>سائلًا الله أن يجعل هذه الجهود في ميزان الحسنات، وأن يوفقنا لما فيه خير أبنائنا الطلاب ونماء وطننا الغالي.</p>
       </div>
       <div class="rpt-stats">
@@ -2681,6 +2717,33 @@ function reportHtml(title, rangeLabel, data){
         </div>` : ""}
       ${rptFoot(pg)}
     </div>`;
+
+  /* ---- 3.5) برامج خطة رائد النشاط المنفذة (التقرير الربعي فقط) ---- */
+  let planPage = "";
+  if (quarterly) {
+    pg++;
+    const planTotal = planExecuted + planPending.length;
+    planPage = `
+    <div class="rpt-page">
+      <div class="rpt-eyebrow">خطة رائد النشاط</div>
+      <div class="rpt-h1">برامج الخطة المنفذة</div>
+      <div class="rpt-lead">البرامج المنفذة والموثّقة خلال ${esc(rangeLabel)}</div>
+      <div class="rpt-domain" style="background:var(--navy);">
+        <div><div class="n">${planExecuted}</div><div class="l">برنامجًا منفذًا من ${planTotal} برنامجًا في الفترة</div></div>
+        <div class="pill">${planEv.length} شاهد</div>
+      </div>
+      ${planGroups.length ? planGroups.map(g => `
+        <div style="font-weight:800; color:var(--navy); margin:18px 0 8px; font-size:14px;">${esc(g.cat.name)} <span style="color:var(--muted); font-weight:600;">· ${g.programs.length}</span></div>
+        <div class="rpt-cards two">
+          ${g.programs.map(p => { const ne = (p.evidence||[]).length, ns = (p.students||[]).length;
+            return `<div class="rpt-cardx" style="border-inline-end-color:var(--cyan);">
+              <div class="t">✔ ${esc(p.name)}<span class="rpt-datepill" style="background:var(--cyan);">${esc(p.date)}</span></div>
+              <div class="d">${esc(p.desc||"")}${p.location?` · ${esc(p.location)}`:""}${ns?` · 👥 ${ns} طالبًا`:""}${ne?` · 📎 ${ne} شاهد`:""}</div></div>`; }).join("")}
+        </div>`).join("") : `<div class="rpt-empty2">لا توجد برامج منفذة ضمن هذه الفترة</div>`}
+      ${planPending.length ? `<div class="rpt-body" style="margin-top:22px; font-size:12.5px; color:var(--muted);"><b>مخطط لها ضمن الفترة ولم يُوثَّق تنفيذها بعد (${planPending.length}):</b> ${planPending.map(p=>esc(p.name)).join("، ")}</div>` : ""}
+      ${rptFoot(pg)}
+    </div>`;
+  }
 
   /* ---- 4) الفعاليات المنفذة ---- */
   pg++;
@@ -2897,7 +2960,7 @@ function reportHtml(title, rangeLabel, data){
       </div>
     </div>`;
 
-  return `<div class="rpt-doc">${cover}${intro}${numbers}${events}${competitions}${gallery}${alignment}${impact}${closing}</div>`;
+  return `<div class="rpt-doc">${cover}${intro}${numbers}${planPage}${events}${competitions}${gallery}${alignment}${impact}${closing}</div>`;
 }
 
 
@@ -2929,6 +2992,12 @@ function viewReports(){
       }
       data = buildReportData(week.startDate, effectiveEnd);
     }
+  } else if (REPORT_MODE === "quarterly"){
+    const q = REPORT_QUARTERS[REPORT_QUARTER] || REPORT_QUARTERS[0];
+    const fmt = iso => new Date(iso+"T00:00:00").toLocaleDateString("ar-SA-u-ca-gregory", {day:"numeric", month:"long", year:"numeric"});
+    title = "التقرير الربعي";
+    rangeLabel = `${q.name}: ${fmt(q.from)} — ${fmt(q.to)}`;
+    data = buildReportData(q.from, q.to);
   } else {
     const monthStart = isoDate(REPORT_YEAR, REPORT_MONTH, 1);
     const monthEnd = isoDate(REPORT_YEAR, REPORT_MONTH, new Date(REPORT_YEAR, REPORT_MONTH+1, 0).getDate());
@@ -2941,16 +3010,19 @@ function viewReports(){
 
   return `
     <div class="topbar">
-      ${sectionTitle("الإنجاز والتوثيق", "التقارير الأسبوعية والشهرية", "report")}
+      ${sectionTitle("الإنجاز والتوثيق", "التقارير الأسبوعية والشهرية والربعية", "report")}
     </div>
 
     <div class="report-toolbar">
       <div class="report-mode-toggle">
         <button class="${REPORT_MODE==='weekly'?'active':''}" data-action="reportSetMode" data-mode="weekly">أسبوعي</button>
         <button class="${REPORT_MODE==='monthly'?'active':''}" data-action="reportSetMode" data-mode="monthly">شهري</button>
+        <button class="${REPORT_MODE==='quarterly'?'active':''}" data-action="reportSetMode" data-mode="quarterly">ربعي</button>
       </div>
       ${REPORT_MODE==='weekly' ? `
         <select id="report-week-select" data-action-change="reportSelectWeek">${weekOptions}</select>
+      ` : REPORT_MODE==='quarterly' ? `
+        <select id="report-quarter-select">${REPORT_QUARTERS.map((q,i)=>`<option value="${i}" ${i===REPORT_QUARTER?"selected":""}>${q.name} (${q.from} — ${q.to})</option>`).join("")}</select>
       ` : `
         <div class="cal-nav">
           <button data-action="reportPrevMonth">${ICONS.chevronNext}</button>
@@ -2963,7 +3035,7 @@ function viewReports(){
     </div>
 
     <div class="report-card" id="report-card">
-      ${data ? reportHtml(title, rangeLabel, data) : emptyState("لا توجد خطة أسبوعية مسجّلة بعد")}
+      ${data ? reportHtml(title, rangeLabel, data, {quarterly: REPORT_MODE==="quarterly"}) : emptyState("لا توجد خطة أسبوعية مسجّلة بعد")}
     </div>
   `;
 }
@@ -3008,7 +3080,7 @@ const TAB_TITLES = {
   weekly:["الجدولة","الجدول الأسبوعي"],
   calendar:["العام الدراسي","التقويم السنوي"],
   competitions:["تثبيت الحضور والتميز","الابتكار والمسابقات"],
-  reports:["الإنجاز والتوثيق","التقارير الأسبوعية والشهرية"],
+  reports:["الإنجاز والتوثيق","التقارير الأسبوعية والشهرية والربعية"],
   etec:["الاعتماد المدرسي","شواهد زيارة هيئة تقويم التعليم"],
   tasks:["الإدارة","المهام"],
   volunteer:["النشاط الطلابي","العمل التطوعي"],
@@ -3819,6 +3891,12 @@ document.addEventListener("change", async (e) => {
   }
   if (e.target.id === "report-week-select") {
     REPORT_WEEK_ID = e.target.value;
+    REPORT_COPIED = false;
+    render();
+    return;
+  }
+  if (e.target.id === "report-quarter-select") {
+    REPORT_QUARTER = parseInt(e.target.value, 10) || 0;
     REPORT_COPIED = false;
     render();
     return;
