@@ -529,6 +529,122 @@ function mergeCompetitions(localArr, remoteArr){
   });
   return Array.from(map.values());
 }
+/* يدمج نسخًا مكررة من نفس المسابقة (نفس الاسم) في نسخة واحدة: يجمع الشواهد والمراحل والطلاب من كل
+   النسخ ويملأ الحقول الفارغة — لا يُفقد شيء. أول عنصر في المصفوفة هو الأساس (يحدد معرّف النسخة الباقية). */
+function mergeDuplicateCompetitions(group){
+  const base = JSON.parse(JSON.stringify(group[0]));
+  for (let i = 1; i < group.length; i++) {
+    const other = group[i];
+    base.evidence = mergeEvidenceArray(base.evidence, other.evidence);
+    const stageMap = new Map((base.stages||[]).map(s => [s.name, s]));
+    (other.stages||[]).forEach(os => {
+      const existing = stageMap.get(os.name);
+      if (existing) {
+        existing.evidence = mergeEvidenceArray(existing.evidence, os.evidence);
+        if (!existing.start && os.start) existing.start = os.start;
+        if (!existing.end && os.end) existing.end = os.end;
+        if (!existing.location && os.location) existing.location = os.location;
+      } else {
+        stageMap.set(os.name, os);
+      }
+    });
+    base.stages = Array.from(stageMap.values());
+    const studentMap = new Map((base.students||[]).map(s => [s.name, s]));
+    (other.students||[]).forEach(os => { if (!studentMap.has(os.name)) studentMap.set(os.name, os); });
+    base.students = Array.from(studentMap.values());
+    ["result","impact","deadline","organizer","level","status"].forEach(key => {
+      const a = (base[key]||"").toString().trim();
+      const b = (other[key]||"").toString().trim();
+      if (!a && b) base[key] = other[key];
+      else if (a && b && a !== b) base[key] = a + " / " + b;
+    });
+  }
+  return base;
+}
+/* توحيد النسخ المكررة بعد أي دمج بين الأجهزة، وعند بدء التشغيل. السبب: أي متصفح جديد (جوال آخر، متصفح
+   واتساب، رابط مشاهدة يفتحه شخص لأول مرة) يشغّل الإضافات التلقائية محليًا بمعرّفات عشوائية قبل وصول
+   المزامنة، والدمج يقارن بالمعرّف لا بالمحتوى فتظهر نسختان من كل عنصر. هنا يُوحَّد كل مكرر (المسابقات
+   بالاسم، ومراحلها بالاسم، وفعاليات الجدول بالعنوان+التاريخ/اليوم، والشواهد بالرابط السحابي) والنسخة
+   الباقية هي الأصغر معرّفًا فيتفق عليها كل الأجهزة. لا يُفقد شيء: الشواهد والحقول تُدمج، وسجل تنفيذ
+   الفعالية المحذوفة يُنقل للباقية. يعيد true إن تغيّر شيء. */
+function dedupeSharedData(){
+  let changed = false;
+  const byId = (a, b) => String(a.id).localeCompare(String(b.id));
+  const dedupeEv = (arr) => {
+    if (!arr || arr.length < 2) return;
+    const seen = new Set(); let drop = false;
+    const kept = arr.filter(e => {
+      if (!e.cloudUrl) return true;
+      if (seen.has(e.cloudUrl)) { drop = true; return false; }
+      seen.add(e.cloudUrl); return true;
+    });
+    if (drop) { arr.splice(0, arr.length, ...kept); changed = true; }
+  };
+
+  /* المسابقات */
+  const cg = new Map();
+  DATA.competitions.forEach(c => { const k = (c.name||"").trim(); if (!cg.has(k)) cg.set(k, []); cg.get(k).push(c); });
+  if ([...cg.values()].some(g => g.length > 1)) {
+    const out = [];
+    cg.forEach(group => {
+      if (group.length === 1) { out.push(group[0]); return; }
+      out.push(mergeDuplicateCompetitions([...group].sort(byId)));
+    });
+    DATA.competitions = out; changed = true;
+  }
+  DATA.competitions.forEach(c => {
+    const sg = new Map();
+    (c.stages||[]).forEach(st => { if (!sg.has(st.name)) sg.set(st.name, []); sg.get(st.name).push(st); });
+    if ([...sg.values()].some(g => g.length > 1)) {
+      c.stages = [...sg.values()].map(g => {
+        if (g.length === 1) return g[0];
+        const base = {...g[0]};
+        for (let i = 1; i < g.length; i++) {
+          base.evidence = mergeEvidenceArray(base.evidence, g[i].evidence);
+          ["start","end","location"].forEach(k => { if (!base[k] && g[i][k]) base[k] = g[i][k]; });
+        }
+        return base;
+      });
+      changed = true;
+    }
+    dedupeEv(c.evidence);
+    (c.stages||[]).forEach(st => dedupeEv(st.evidence));
+  });
+
+  /* فعاليات الجدول/التقويم */
+  const keyOf = w => w.recurring ? `R@${w.title}@${w.day}` : `O@${w.title}@${w.date}`;
+  const wg = new Map();
+  DATA.weekly.forEach(w => { const k = keyOf(w); if (!wg.has(k)) wg.set(k, []); wg.get(k).push(w); });
+  if ([...wg.values()].some(g => g.length > 1)) {
+    const out = [];
+    wg.forEach(group => {
+      if (group.length === 1) { out.push(group[0]); return; }
+      const sorted = [...group].sort(byId);
+      const base = {...sorted[0]};
+      for (let i = 1; i < sorted.length; i++) {
+        const other = sorted[i];
+        if (!base.time && other.time) base.time = other.time;
+        if (!base.location && other.location) base.location = other.location;
+        Object.keys(DATA.eventLog||{}).filter(k => k.startsWith(other.id + "@")).forEach(k => {
+          const nk = base.id + k.slice(other.id.length);
+          const cur = DATA.eventLog[nk];
+          DATA.eventLog[nk] = cur ? {...DATA.eventLog[k], ...cur, evidence: mergeEvidenceArray(cur.evidence, DATA.eventLog[k].evidence)} : DATA.eventLog[k];
+          delete DATA.eventLog[k];
+        });
+      }
+      out.push(base);
+    });
+    DATA.weekly = out; changed = true;
+  }
+
+  /* شواهد مكررة بنفس الرابط السحابي داخل نفس العنصر */
+  DATA.tasks.forEach(t => dedupeEv(t.evidence));
+  ((DATA.activityPlan && DATA.activityPlan.categories) || []).forEach(cat => (cat.programs||[]).forEach(p => dedupeEv(p.evidence)));
+  Object.keys(DATA.eventLog||{}).forEach(k => dedupeEv(DATA.eventLog[k] && DATA.eventLog[k].evidence));
+  Object.keys(DATA.etec||{}).forEach(k => dedupeEv(DATA.etec[k] && DATA.etec[k].evidence));
+  Object.keys((DATA.volunteer && DATA.volunteer.forms) || {}).forEach(k => dedupeEv(DATA.volunteer.forms[k] && DATA.volunteer.forms[k].evidence));
+  return changed;
+}
 /* دمج خاص ببنود شواهد زيارة هيئة تقويم التعليم (DATA.etec) — كائن مفاتيحه معرّف البند (e1، e2...)
    وليس مصفوفة، فنفس فكرة mergeEventLog بالضبط: كل بند يُدمَج بمفاتيحه مع remote، وشواهده بالذات
    تُدمَج بمعرّفها (لا تُستبدل) حتى لا يضيع شاهد رُفع على هذا الجهاز قبل وصول آخر لقطة من جهاز آخر */
@@ -587,6 +703,7 @@ function mergeRemoteData(remote){
     DATA.volunteer.forms = mergeVolunteerForms(DATA.volunteer.forms, remote.volunteer.forms);
   }
   ensureDataShape();
+  dedupeSharedData();
 }
 
 function initSync(){
@@ -2573,16 +2690,16 @@ function rptFoot(n, label="تقرير النشاط الطلابي · مدارس 
 }
 /* ============================================================ */
 /* لوحة التقرير — عدادات وأرقام كبيرة وشواهد قابلة للتشغيل، بلا نصوص إنشائية.
-   الفيديو المرفوع سحابيًا (cloudUrl) يُشغَّل مباشرة داخل بطاقته فيعمل في رابط التقرير المستقل على أي
-   جهاز؛ والفيديو الموجود على هذا الجهاز فقط يُفتح بالنافذة المنبثقة عند الطلب (لا يُضمَّن محتواه في
-   HTML المُعاد بناؤه). الطباعة/PDF لا تعرض الفيديو فتُستبدل ببطاقة نائبة. */
+   الفيديو لا يُضمَّن في الصفحة كعنصر <video> إطلاقًا: الجوال (آيفون خصوصًا) يرفض تحميل أكثر من عدد محدود
+   من عناصر الفيديو في الصفحة الواحدة فتظهر الباقية سوداء ومشطوبة. بدلًا من ذلك تُعرض بطاقة تشغيل
+   خفيفة، وعند الضغط يُفتح الفيديو في نافذة واحدة (يعمل مع رابط التقرير المستقل لأنه يقرأ الرابط
+   السحابي). الطباعة/PDF لا تعرض الفيديو فتُستبدل ببطاقة نائبة. */
 /* ============================================================ */
 function reportTileHtml(e){
   const tag = e.tag ? `<span class="dash-tag">${esc(e.tag)}</span>` : "";
   let media;
   if (e.type === "video") {
-    if (e.cloudUrl) media = `<video controls playsinline preload="metadata" src="${esc(e.cloudUrl)}#t=0.1"></video><div class="dash-ph">🎞️ فيديو</div>`;
-    else if (e.dataUrl) media = `<button class="dash-play" data-action="playVideoEvidence" data-kind="${e.kind}" data-id="${esc(e.parentId)}" data-eid="${esc(e.id)}">▶</button><div class="dash-ph">🎞️ فيديو</div>`;
+    if (e.cloudUrl || e.dataUrl) media = `<button class="dash-play" data-action="playVideoEvidence" data-kind="${e.kind}" data-id="${esc(e.parentId)}" data-eid="${esc(e.id)}"><span>▶</span><small>تشغيل الفيديو</small></button><div class="dash-ph">🎞️ فيديو</div>`;
     else media = `<div class="dash-ph show">⏳ لم يصل بعد لهذا الجهاز</div>`;
   } else {
     const src = e.dataUrl || e.cloudUrl;
@@ -2637,6 +2754,13 @@ function reportHtml(title, rangeLabel, data){
     (lg.evidence||[]).forEach(e => evidence.push({...hydrateEvidence(e), kind:"eventlog", parentId:k, cap:(ev?ev.title:"فعالية مجدولة")+" · "+iso, tag:"فعالية"}));
   });
 
+  /* نفس الملف السحابي لا يظهر مرتين في المعرض حتى لو تكرّر بمعرّفات مختلفة بسبب المزامنة */
+  const seenUrl = new Set();
+  for (let i = 0; i < evidence.length; i++) {
+    const u = evidence[i].cloudUrl;
+    if (!u) continue;
+    if (seenUrl.has(u)) { evidence.splice(i, 1); i--; } else seenUrl.add(u);
+  }
   const videos = evidence.filter(e => e.type === "video").length;
   const images = evidence.length - videos;
   /* الفعالية تُحتسب منفذة فقط إن حلّ موعدها — فلا تظهر فعاليات الأرباع القادمة كأنها نُفّذت */
@@ -2968,7 +3092,19 @@ function mountVideoLightbox(){
   const video = document.createElement("video");
   video.controls = true;
   video.autoplay = true;
+  video.playsInline = true;
   video.src = src;
+  /* إن تعذّر التشغيل (مثلًا فيديو بترميز HEVC من الآيفون على متصفح لا يدعمه): نجرّب نسخة H.264 mp4
+     يولّدها Cloudinary تلقائيًا، وإن فشلت أيضًا نعرض رابطًا لفتح الفيديو مباشرة */
+  let retried = false;
+  video.addEventListener("error", () => {
+    const can = /^https:\/\/res\.cloudinary\.com\/.+\/video\/upload\//.test(src) && !src.includes("/f_mp4");
+    if (can && !retried) { retried = true; video.src = src.replace("/video/upload/", "/video/upload/f_mp4,vc_h264,ac_aac/").replace(/\.[a-z0-9]+$/i, ".mp4"); video.load(); video.play().catch(()=>{}); return; }
+    const note = document.createElement("div");
+    note.className = "video-fail";
+    note.innerHTML = `تعذّر تشغيل الفيديو هنا — <a href="${esc(src)}" target="_blank" rel="noopener">افتحه في صفحة مستقلة</a>`;
+    mount.appendChild(note);
+  });
   mount.appendChild(video);
 }
 
@@ -3854,34 +3990,7 @@ document.addEventListener("change", async (e) => {
     groups.forEach(group => {
       if (group.length === 1) { deduped.push(group[0]); return; }
       changed = true;
-      const base = JSON.parse(JSON.stringify(group[0]));
-      for (let i = 1; i < group.length; i++) {
-        const other = group[i];
-        base.evidence = mergeEvidenceArray(base.evidence, other.evidence);
-        const stageMap = new Map((base.stages||[]).map(s => [s.name, s]));
-        (other.stages||[]).forEach(os => {
-          const existing = stageMap.get(os.name);
-          if (existing) {
-            existing.evidence = mergeEvidenceArray(existing.evidence, os.evidence);
-            if (!existing.start && os.start) existing.start = os.start;
-            if (!existing.end && os.end) existing.end = os.end;
-            if (!existing.location && os.location) existing.location = os.location;
-          } else {
-            stageMap.set(os.name, os);
-          }
-        });
-        base.stages = Array.from(stageMap.values());
-        const studentMap = new Map((base.students||[]).map(s => [s.name, s]));
-        (other.students||[]).forEach(os => { if (!studentMap.has(os.name)) studentMap.set(os.name, os); });
-        base.students = Array.from(studentMap.values());
-        ["result","impact","deadline","organizer","level","status"].forEach(key => {
-          const a = (base[key]||"").toString().trim();
-          const b = (other[key]||"").toString().trim();
-          if (!a && b) base[key] = other[key];
-          else if (a && b && a !== b) base[key] = a + " / " + b;
-        });
-      }
-      deduped.push(base);
+      deduped.push(mergeDuplicateCompetitions(group));
     });
     if (changed) DATA.competitions = deduped;
     DATA.__dedupedCompetitionsByName = true;
@@ -3936,7 +4045,7 @@ document.addEventListener("change", async (e) => {
     umrahTrips.forEach(t => {
       const title = `رحلة عمرة — الفصل ${t.cls} (${t.count} طالبًا)`;
       if (!already.has(title + "@" + t.date)) {
-        DATA.weekly.push({id:uid(), recurring:false, day:"", date:t.date, time:"", title, location:"مكة المكرمة"});
+        DATA.weekly.push({id:"w-umrah-"+t.date, recurring:false, day:"", date:t.date, time:"", title, location:"مكة المكرمة"});
       }
     });
     DATA.__addedUmrahTrips2026 = true;
@@ -4030,6 +4139,7 @@ document.addEventListener("change", async (e) => {
     DATA.__addedNov2026ProgramVideos = true;
     await persist();
   }
+  if (dedupeSharedData()) await persist();
   render();
   initSync();
 })();
