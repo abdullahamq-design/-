@@ -4133,6 +4133,66 @@ document.addEventListener("change", async (e) => {
     DATA.__dedupedWeeklyByKey = true;
     await persist();
   }
+  /* إضافة لمرة واحدة: شواهد (28 مقطع فيديو) أرسلها المستخدم لبرامج نفّذها فعلًا — تُربط بالبرنامج المطابق
+     في الخطة إن وُجد، وإلا يُنشأ له برنامج جديد في أنسب تصنيف. الملفات مستضافة كأصول ثابتة على موقع
+     المنصة (assets/evidence) وتُضاف بروابط cloudUrl بلا نسخة محلية (نفس شكل شاهد وصل من جهاز آخر).
+     كل المعرّفات (برامج وشواهد) ثابتة وليست عشوائية عمدًا، حتى إذا شغّلها جهازان قبل التزامن دمجها
+     التزامن كعنصر واحد بدل تكرارها (راجع __dedupedWeeklyByKey أعلاه). إضافة فقط — لا يُحذف ولا يُعدَّل
+     أي برنامج أو شاهد موجود. */
+  if (!DATA.__addedNov2026ProgramVideos) {
+    const BASE = "https://mauve-zeta-26.vercel.app/assets/evidence/";
+    const mkEv = ([slug, name]) => ({id:"ev-n26-"+slug, type:"video", name, cloudUrl: BASE+slug+".mp4"});
+    const pushEv = (arr, items) => items.map(mkEv).forEach(e => { if (!arr.some(x => x.id === e.id)) arr.push(e); });
+
+    const onExisting = {
+      plg44: [["khamisiya-1","خميسية الأندلس — مباراة حماسية وعلى مائدة الخميس"], ["khamisiya-2","خميسية الأندلس — نبدأ بالصلاة وروح الفريق"], ["khamisiya-3","خميسية الأندلس — مقطع ترحيبي والعشاء الجماعي"]],
+      plg15: [["weekly-recap","ملخص مرئي: إنترنت الأشياء ودوري الأبطال وسير الحصص واجتماع فريق ريادة النشاط"], ["iot-slides","إنترنت الأشياء — أين يختبئ في حياتنا اليومية"], ["iot-talk","إنترنت الأشياء — مقطع من اللقاء في قاعة التدريب"]],
+      plg5:  [["bir-walidayn","برًّا بأبي وأمي — تقديم أ. أحمد عطية الزهراني"]],
+      plg12: [["chemistry-day","برنامج الكيمياء — يوم الكيمياء العالمي"], ["chemistry-radio","إذاعة الكيمياء الصباحية — تقديم طلاب القسم الثانوي"]],
+      plg13: [["vast-space","الفضاء الواسع — أ. أحمد شوقي واصل"], ["space-week-launch","انطلاق لقاء أسبوع الفضاء"]],
+    };
+    Object.keys(onExisting).forEach(pid => {
+      const p = findPlanProgram(pid);
+      if (!p) return;
+      if (!p.evidence) p.evidence = [];
+      pushEv(p.evidence, onExisting[pid]);
+    });
+
+    const robotComp = DATA.competitions.find(c => c.name === "بطولة الروبوت السعودية — فئة رياضة الروبوت (WRO)");
+    if (robotComp) {
+      if (!robotComp.evidence) robotComp.evidence = [];
+      pushEv(robotComp.evidence, [["mubdeun-robot","مبدعون الأندلس — فريق الروبوت بالقسم الثانوي (متأهلون للنهائي)"], ["black-stone-robot","روبوت الحجر الأسود — برمجة وتوصيل بأيدي الطلاب"]]);
+    }
+
+    const APPROX = " (التاريخ تقريبي — يُعدَّل من زر التعديل)";
+    const W11 = {semester:1, week:11, date:"2026-11-08"};
+    const newPrograms = [
+      {cat:"plc14", slug:"robot-club", ...W11, name:"نادي الروبوت — فريق الثانوي يدرّب طلاب المتوسط", desc:"تدريب عملي على بناء الروبوت وبرمجته يقدّمه فريق الروبوت بالقسم الثانوي لطلاب المرحلة المتوسطة، لنقل الخبرة من جيل إلى جيل"+APPROX, location:"", ev:[["robot-club-training","نادي الروبوت — تدريب بأيدي فريق الثانوي"]]},
+      {cat:"plc14", slug:"champions-league", ...W11, name:"دوري أبطال الأندلس", desc:"دوري كرة قدم بين طلاب القسم الثانوي بنقل مباشر وتعليق لتعزيز الروح الرياضية والتنافس الإيجابي"+APPROX, location:"الملعب", ev:[["champions-league","دوري أبطال الأندلس — بث مباشر"]]},
+      {cat:"plc7", slug:"coffee-gratitude", ...W11, name:"قهوة امتنان", desc:"مبادرة تكريم لمعلمي المرحلة الثانوية المواظبين على الحضور مبكرًا بقهوة وبطاقة شكر"+APPROX, location:"", ev:[["coffee-gratitude","قهوة امتنان — تكريم المواظبين على الحضور مبكرًا"]]},
+      {cat:"plc7", slug:"teachers-gifts", ...W11, name:"تكريم المعلمين بهدايا رمزية", desc:"جولة على الفصول وغرف المعلمين لتقديم هدايا رمزية تقديرًا لجهودهم"+APPROX, location:"", ev:[["teachers-gifts","تكريم المعلمين — توزيع الهدايا"]]},
+      {cat:"plc7", slug:"national-day", semester:1, week:4, date:"2026-09-23", name:"الاحتفال باليوم الوطني (فيلم قصير)", desc:"احتفال المرحلة الثانوية باليوم الوطني: عرضة وأجواء وطنية ومشهد تمثيلي عن تاريخ الوطن", location:"الساحة", ev:[["national-day-film","اليوم الوطني — فيلم قصير عن الاحتفال"]]},
+      {cat:"plc1", slug:"quran-maqraa", ...W11, name:"المقرأة القرآنية — تلاوة وتدبّر", desc:"حلقات تلاوة وتدبّر لطلاب القسم الثانوي لتجويد القراءة وربط الطالب بالقرآن"+APPROX, location:"المصلى", ev:[["quran-maqraa-1","المقرأة القرآنية — تلاوة وتدبّر"], ["quran-maqraa-2","المقرأة القرآنية — قراءة مجوّدة بصوت ندي"]]},
+      {cat:"plc5", slug:"mock-tahsili", ...W11, name:"الاختبار التحصيلي المحاكي — الصف الثالث الثانوي", desc:"اختبار تحصيلي محاكي لطلاب الثالث الثانوي بمتابعة قائد القسم لرفع الجاهزية للاختبار الرسمي"+APPROX, location:"الفصل", ev:[["mock-tahsili","الاختبار التحصيلي المحاكي — كلمة قائد القسم الثانوي"]]},
+      {cat:"plc3", slug:"imam-alandalus", ...W11, name:"إمام الأندلس — مشروع تعظيم قدر الصلاة", desc:"مبادرة ضمن مشروع تعظيم قدر الصلاة لطلاب الصفوف الأولية: صفوف مترامّة وركوع بطمأنينة لغرس حب الصلاة"+APPROX, location:"المصلى", ev:[["imam-alandalus","إمام الأندلس — صفوف مترامّة وركوع بطمأنينة"]]},
+      {cat:"plc3", slug:"zad-fatiha", ...W11, name:"برنامج زاد — اللقاء الثاني: القراءة الصحيحة لسورة الفاتحة", desc:"لقاء تدريبي ضمن برنامج زاد لفئة الخدمات المساندة عن القراءة الصحيحة لسورة الفاتحة"+APPROX, location:"قاعة التدريب", ev:[["zad-fatiha","برنامج زاد — القراءة الصحيحة لسورة الفاتحة"]]},
+      {cat:"plc3", slug:"school-day", semester:1, week:7, date:"2026-10-12", name:"اليوم الدراسي المتميز — الطابور والحصص", desc:"جولة مباشرة في ثانوية الأندلس الأهلية: الطابور الصباحي، الانطلاق إلى الفصول بحماس وانضباط، حصص تفاعلية وطلاب مجتهدون (الاثنين 12 أكتوبر 2026)", location:"ثانوية الأندلس", ev:[["school-day-1","اليوم الدراسي — الطابور والانطلاق إلى الفصول"], ["school-day-live","بث مباشر — الحصة الأولى (12 أكتوبر 2026)"]]},
+      {cat:"plc8", slug:"marble-factory", ...W11, name:"زيارة مصنع الرخام والجرانيت السعودي", desc:"زيارة تعليمية بالمدينة الصناعية ببحرة ضمن مسابقة موهوبة (صنّاع المستقبل)، بشرح من أهل الخبرة وإشراف أ. عبدالله القرني وأ. أحمد شوقي"+APPROX, location:"خارج مرافق المدرسة", ev:[["marble-factory-visit","زيارة مصنع الرخام والجرانيت السعودي"]]},
+      {cat:"plc6", slug:"swimming", ...W11, name:"برنامج السباحة — تعلّم مهارة الإنقاذ", desc:"حصص ضمن الخطة المهارية لبرنامج السباحة: تعلّم مهارة الإنقاذ مع وناسة ومرح في جدول السباحة"+APPROX, location:"المسبح", ev:[["swimming","السباحة — تعلّم مهارة الإنقاذ"]]},
+      {cat:"plc6", slug:"naskh", ...W11, name:"دورة تحسين الخط العربي — خط النسخ", desc:"دورة لتحسين الخط العربي (خط النسخ): شرح مبسّط لرسم الحروف ومتابعة فردية لكل طالب"+APPROX, location:"قاعة التدريب", ev:[["naskh-calligraphy","دورة تحسين الخط العربي — خط النسخ"]]},
+    ];
+    newPrograms.forEach(np => {
+      const cat = DATA.activityPlan.categories.find(c => c.key === np.cat);
+      if (!cat) return;
+      const pid = "plg-n26-" + np.slug;
+      if (cat.programs.some(p => p.id === pid)) return;
+      const prog = {id: pid, semester: np.semester, week: np.week, date: np.date, name: np.name, desc: np.desc, targetCount: 0, actualCount: 0, location: np.location, students: [], evidence: [], done: true};
+      pushEv(prog.evidence, np.ev);
+      cat.programs.push(prog);
+    });
+    DATA.__addedNov2026ProgramVideos = true;
+    await persist();
+  }
   render();
   initSync();
 })();
