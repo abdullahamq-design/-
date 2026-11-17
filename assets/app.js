@@ -815,11 +815,13 @@ let AUTHED = false;
 let VIEW_ONLY = false;
 /* رابط التقرير المستقل: ?report=quarterly (أو weekly / monthly / 1) — يعرض لوحة التقرير وحدها بلا شريط
    جانبي ولا تسجيل دخول، وهو وضع «عرض فقط» تلقائيًا فلا يمكن منه تعديل أي بيانات */
-let REPORT_ONLY = false, REPORT_ONLY_MODE = "quarterly";
+let REPORT_ONLY = false, REPORT_ONLY_MODE = "quarterly", REPORT_ONLY_Q = null;
 try {
   const _qp = new URLSearchParams(location.search);
   REPORT_ONLY = _qp.has("report");
   if (REPORT_ONLY && ["weekly","monthly","quarterly"].includes(_qp.get("report"))) REPORT_ONLY_MODE = _qp.get("report");
+  const _qn = parseInt(_qp.get("q"), 10);
+  if (_qn >= 1 && _qn <= 4) REPORT_ONLY_Q = _qn - 1;
   VIEW_ONLY = _qp.get("view") === "1" || REPORT_ONLY;
 } catch(e){ VIEW_ONLY = false; REPORT_ONLY = false; }
 const VIEWONLY_ALLOWED_CLICK = new Set([
@@ -886,6 +888,7 @@ const REPORT_QUARTERS = (() => {
 })();
 const _todayIsoQ = isoDate(_now.getFullYear(), _now.getMonth(), _now.getDate());
 let REPORT_QUARTER = (() => {
+  if (REPORT_ONLY_Q !== null) return REPORT_ONLY_Q;
   const i = REPORT_QUARTERS.findIndex(q => _todayIsoQ >= q.from && _todayIsoQ <= q.to);
   return i >= 0 ? i : (_todayIsoQ > SY_END ? 3 : 0);
 })();
