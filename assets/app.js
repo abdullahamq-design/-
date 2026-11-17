@@ -696,7 +696,15 @@ let AUTHED = false;
    أدناه، وأي إجراء جديد يُضاف مستقبلاً يُحظَر تلقائيًا ما لم يُضَف صراحة للقائمة) — لمشاركة المنصة
    للاطلاع فقط دون كشف كلمة المرور الحقيقية أو خطر تعديل البيانات من قِبل من يحمل الرابط */
 let VIEW_ONLY = false;
-try { VIEW_ONLY = new URLSearchParams(location.search).get("view") === "1"; } catch(e){ VIEW_ONLY = false; }
+/* رابط التقرير المستقل: ?report=quarterly (أو weekly / monthly / 1) — يعرض لوحة التقرير وحدها بلا شريط
+   جانبي ولا تسجيل دخول، وهو وضع «عرض فقط» تلقائيًا فلا يمكن منه تعديل أي بيانات */
+let REPORT_ONLY = false, REPORT_ONLY_MODE = "quarterly";
+try {
+  const _qp = new URLSearchParams(location.search);
+  REPORT_ONLY = _qp.has("report");
+  if (REPORT_ONLY && ["weekly","monthly","quarterly"].includes(_qp.get("report"))) REPORT_ONLY_MODE = _qp.get("report");
+  VIEW_ONLY = _qp.get("view") === "1" || REPORT_ONLY;
+} catch(e){ VIEW_ONLY = false; REPORT_ONLY = false; }
 const VIEWONLY_ALLOWED_CLICK = new Set([
   "setTab","toggleEvidence","toggleStudents","togglePlanStudents","toggleImpact","toggleStages",
   "etecFilter","etecToggleInd","reportSetMode","reportNextMonth","reportPrevMonth","reportPrint",
@@ -704,9 +712,9 @@ const VIEWONLY_ALLOWED_CLICK = new Set([
   "playVideoEvidence","closeVideoLightbox","dismissInstallBanner","setFilter",
   "openStoragePanel","closeStoragePanel","printPlan","cancelVolFormEdit",
 ]);
-const VIEWONLY_ALLOWED_CHANGE_ID = new Set(["report-week-select"]);
+const VIEWONLY_ALLOWED_CHANGE_ID = new Set(["report-week-select","report-quarter-select"]);
 let LOGIN_ERROR = "";
-let TAB = "dashboard";
+let TAB = REPORT_ONLY ? "reports" : "dashboard";
 let TASK_FILTER = "الكل";
 let SHOW_WEEKLY_FORM = false;
 let EDIT_WEEKLY_ID = null;
@@ -745,7 +753,7 @@ let CAL_YEAR = _inSY ? _now.getFullYear() : _syS.getFullYear();
 let CAL_MONTH = _inSY ? _now.getMonth() : _syS.getMonth();
 let CAL_SELECTED = _inSY ? isoDate(_now.getFullYear(), _now.getMonth(), _now.getDate()) : SY_START;
 let CAL_VIEW = "grid";
-let REPORT_MODE = "weekly";
+let REPORT_MODE = REPORT_ONLY ? REPORT_ONLY_MODE : "weekly";
 let REPORT_WEEK_ID = null;
 /* الأرباع: كل فصل دراسي (18 أسبوعًا) يُقسَّم إلى ربعين متساويين من 9 أسابيع — الفصل الأول من 30 أغسطس
    إلى اليوم السابق لبداية الفصل الثاني، والفصل الثاني من بدايته إلى نهاية العام الدراسي */
@@ -2563,404 +2571,143 @@ function reportPlainText(title, rangeLabel, data){
 function rptFoot(n, label="تقرير النشاط الطلابي · مدارس الأندلس الأهلية"){
   return `<div class="rpt-foot"><span>${n}</span><span>${esc(label)}</span></div>`;
 }
-/* عنصر <video> لا يظهر شيئًا عند الطباعة أو تصديره PDF — لذلك نستبدله ببطاقة نائبة واضحة بدل شاشة فارغة */
-function reportEvidenceMedia(e){
+/* ============================================================ */
+/* لوحة التقرير — عدادات وأرقام كبيرة وشواهد قابلة للتشغيل، بلا نصوص إنشائية.
+   الفيديو المرفوع سحابيًا (cloudUrl) يُشغَّل مباشرة داخل بطاقته فيعمل في رابط التقرير المستقل على أي
+   جهاز؛ والفيديو الموجود على هذا الجهاز فقط يُفتح بالنافذة المنبثقة عند الطلب (لا يُضمَّن محتواه في
+   HTML المُعاد بناؤه). الطباعة/PDF لا تعرض الفيديو فتُستبدل ببطاقة نائبة. */
+/* ============================================================ */
+function reportTileHtml(e){
+  const tag = e.tag ? `<span class="dash-tag">${esc(e.tag)}</span>` : "";
+  let media;
   if (e.type === "video") {
-    return `<div class="rpt-video-placeholder">🎞️<span>شاهد فيديو</span></div>`;
+    if (e.cloudUrl) media = `<video controls playsinline preload="metadata" src="${esc(e.cloudUrl)}#t=0.1"></video><div class="dash-ph">🎞️ فيديو</div>`;
+    else if (e.dataUrl) media = `<button class="dash-play" data-action="playVideoEvidence" data-kind="${e.kind}" data-id="${esc(e.parentId)}" data-eid="${esc(e.id)}">▶</button><div class="dash-ph">🎞️ فيديو</div>`;
+    else media = `<div class="dash-ph show">⏳ لم يصل بعد لهذا الجهاز</div>`;
+  } else {
+    const src = e.dataUrl || e.cloudUrl;
+    media = src ? `<img src="${src}" alt="" loading="lazy">` : `<div class="dash-ph show">⏳ لم يصل بعد لهذا الجهاز</div>`;
   }
-  const src = e.dataUrl || e.cloudUrl;
-  if (!src) return `<div class="rpt-video-placeholder">⏳<span>لم يصل بعد لهذا الجهاز</span></div>`;
-  return `<img src="${src}" alt="">`;
+  return `<figure class="dash-tile"><div class="dash-media">${media}</div><figcaption>${esc(e.cap)}${tag}</figcaption></figure>`;
 }
 
-function reportHtml(title, rangeLabel, data, opts){
-  const quarterly = !!(opts && opts.quarterly);
-  const done = data.tasksInRange.filter(t=>t.done);
-  const notDone = data.tasksInRange.filter(t=>!t.done);
-  /* كل شاهد مرفوع يظهر — سواء كانت المهمة مؤرّخة أو متكررة */
+function reportHtml(title, rangeLabel, data){
+  const nowD = new Date();
+  const today = isoDate(nowD.getFullYear(), nowD.getMonth(), nowD.getDate());
+  const done = data.tasksInRange.filter(t => t.done);
+  const comps = data.compsInRange;
+  const students = comps.reduce((n,c) => n + (c.students||[]).length, 0);
   const evidence = [];
-  const seenT = new Set();
-  done.forEach(t => { seenT.add(t.id); (t.evidence||[]).forEach(e => evidence.push({...hydrateEvidence(e), cap:t.title})); });
-  DATA.tasks.forEach(t => { if (!seenT.has(t.id)) (t.evidence||[]).forEach(e => evidence.push({...hydrateEvidence(e), cap:t.title})); });
-  DATA.competitions.forEach(c => (c.evidence||[]).forEach(e => evidence.push({...hydrateEvidence(e), cap:c.name})));
-  /* شواهد الفعاليات المجدولة المُنفّذة داخل الفترة */
+
+  /* برامج خطة رائد النشاط: يُعدّ البرنامج منفذًا إن عُلّم منتهيًا أو رُفع له شاهد (سواء كان من الخطة
+     الأصلية أو مستحدثًا لاحقًا). ويُنسب للفترة بتاريخه المسجّل، إلا إن كان منفذًا وتاريخه المسجّل
+     مستقبلي (لا يمكن تنفيذه قبل موعده) فيُنسب لليوم الحالي حتى يُصحَّح تاريخه. */
+  const planGroups = [], planPending = [], planNoEvidence = [];
+  let planExecuted = 0;
+  ((DATA.activityPlan && DATA.activityPlan.categories) || []).forEach(cat => {
+    const inRange = [];
+    (cat.programs||[]).forEach(p => {
+      const ran = !!p.done || (p.evidence||[]).length > 0;
+      const when = (ran && p.date > today) ? today : p.date;
+      if (when >= data.range0 && when <= data.range1) inRange.push({p, ran});
+    });
+    inRange.filter(x => !x.ran).forEach(x => planPending.push(x.p));
+    const executed = inRange.filter(x => x.ran).map(x => x.p);
+    if (!executed.length) return;
+    planGroups.push({name: cat.name, n: executed.length});
+    planExecuted += executed.length;
+    executed.forEach(p => {
+      if (!(p.evidence||[]).length) planNoEvidence.push(p);
+      (p.evidence||[]).forEach(e => evidence.push({...hydrateEvidence(e), kind:"planprogram", parentId:p.id, cap:p.name, tag:cat.name}));
+    });
+  });
+  planGroups.sort((a,b) => b.n - a.n);
+  const planTotal = planExecuted + planPending.length;
+  const planPct = planTotal ? Math.round(planExecuted/planTotal*100) : 0;
+
+  data.tasksInRange.forEach(t => (t.evidence||[]).forEach(e => evidence.push({...hydrateEvidence(e), kind:"task", parentId:t.id, cap:t.title, tag:"مهمة"})));
+  comps.forEach(c => {
+    (c.evidence||[]).forEach(e => evidence.push({...hydrateEvidence(e), kind:"competition", parentId:c.id, cap:c.name, tag:"مسابقة"}));
+    (c.stages||[]).forEach(s => (s.evidence||[]).forEach(e => evidence.push({...hydrateEvidence(e), kind:"compstage", parentId:c.id+"::"+s.id, cap:c.name+" · "+s.name, tag:"مسابقة"})));
+  });
   Object.keys(DATA.eventLog||{}).forEach(k => {
     const lg = DATA.eventLog[k]; const iso = k.split("@")[1] || "";
     if (!lg || iso < data.range0 || iso > data.range1) return;
     const ev = DATA.weekly.find(w => w.id === k.split("@")[0]);
-    (lg.evidence||[]).forEach(e => evidence.push({...hydrateEvidence(e), cap:(ev?ev.title:"فعالية مجدولة")+" · "+iso}));
+    (lg.evidence||[]).forEach(e => evidence.push({...hydrateEvidence(e), kind:"eventlog", parentId:k, cap:(ev?ev.title:"فعالية مجدولة")+" · "+iso, tag:"فعالية"}));
   });
-  /* التقرير الربعي فقط: برامج خطة رائد النشاط (activityPlan) المنفذة داخل الربع وشواهدها — لا تظهر في
-     الأسبوعي والشهري. يُعدّ البرنامج منفذًا إن عُلّم منتهيًا أو رُفع له شاهد؛ ويُنسب للربع بتاريخه المسجَّل. */
-  const planGroups = [], planPending = [], planEv = [];
-  let planExecuted = 0;
-  if (quarterly) {
-    ((DATA.activityPlan && DATA.activityPlan.categories) || []).forEach(cat => {
-      const inRange = (cat.programs||[]).filter(p => p.date >= data.range0 && p.date <= data.range1).sort((a,b)=>a.date.localeCompare(b.date));
-      const executed = inRange.filter(p => p.done || (p.evidence||[]).length);
-      inRange.filter(p => !executed.includes(p)).forEach(p => planPending.push(p));
-      if (!executed.length) return;
-      planGroups.push({cat, programs: executed});
-      planExecuted += executed.length;
-      executed.forEach(p => (p.evidence||[]).forEach(e => planEv.push({...hydrateEvidence(e), cap:p.name})));
-    });
-    evidence.unshift(...planEv);
-  }
-  /* نسبة الإنجاز العامة (تظهر في الغلاف) يجب أن تعكس العمل الفعلي كله في الفترة — لا المهام فقط،
-     بل الفعاليات المتكررة المنفَّذة أيضًا (زي الطابور واستقبال الطلاب)، وإلا تظهر 0% في الغلاف رغم
-     تنفيذ عدة فعاليات فعليًا بشواهد. نبقي أيضًا نسبة إنجاز المهام وحدها منفصلة لعرضها في سياقها الخاص. */
+
+  const videos = evidence.filter(e => e.type === "video").length;
+  const images = evidence.length - videos;
+  /* الفعالية تُحتسب منفذة فقط إن حلّ موعدها — فلا تظهر فعاليات الأرباع القادمة كأنها نُفّذت */
+  const occurred = data.weeklyEvents.filter(w => w.date <= today);
+  const umrah = data.weeklyEvents.filter(w => (w.title||"").includes("رحلة عمرة"));
+  const umrahDone = umrah.filter(w => w.date <= today).length;
   const taskPct = data.tasksInRange.length ? Math.round(done.length/data.tasksInRange.length*100) : 0;
-  const doneEvents = data.weeklyEvents.filter(w => { const lg = getLog(w.id, w.date); return lg && lg.done; }).length;
-  const totalForPct = data.tasksInRange.length + data.weeklyEvents.length;
-  const doneForPct = done.length + doneEvents;
-  const pct = totalForPct ? Math.round(doneForPct/totalForPct*100) : 0;
-  const comps = data.compsInRange;
-  const wins = DATA.competitions.filter(c=>c.result && c.result.trim());
-  const students = DATA.competitions.reduce((n,c)=> n + ((c.students||[]).length), 0);
-  let pg = 0;
 
-  /* ---- 1) الغلاف ---- */
-  const cover = `
-    <div class="rpt-page dark">
-      <div class="rpt-cover-head">
-        <img src="${LOGO.whiteLockup}" alt="">
-        <div class="rpt-cover-org">
-          <div class="a">مدارس الأندلس الأهلية</div>
-          <div class="b">القسم الثانوي — بنين</div>
-        </div>
-      </div>
-      <div class="rpt-eyebrow-w">${esc(title)}</div>
-      <div class="rpt-cover-title">تقرير النشاط<br>الطلابي</div>
-      <div class="rpt-cover-sub">للعام الدراسي 1448هـ<small>${esc(rangeLabel)}</small></div>
-      <div class="rpt-chips">
-        <div class="rpt-chip">${data.weeklyEvents.length} فعالية منفذة</div>
-        <div class="rpt-chip">${done.length} مهمة منجزة</div>
-        <div class="rpt-chip">${comps.length} مسابقة متابَعة</div>
-        ${quarterly ? `<div class="rpt-chip">${planExecuted} برنامجًا منفذًا من الخطة</div>` : ""}
-      </div>
-      <div class="rpt-signbox">
-        <div class="bar"></div>
-        <div>
-          <div class="r">رائد النشاط الطلابي</div>
-          <div class="n">عبدالله محمد القرني</div>
-        </div>
-      </div>
-    </div>`;
+  const kpis = [
+    {n: planExecuted, l:"برنامج منفذ من الخطة", s:`من ${planTotal} في الفترة`, c:"var(--navy)", bar: planPct},
+    {n: evidence.length, l:"شاهد موثّق", s:`🎞️ ${videos} فيديو · 🖼️ ${images} صورة`, c:"var(--cyan)"},
+    {n: occurred.length, l:"فعالية منفذة", s:"", c:"var(--purple)"},
+    {n: done.length, l:"مهمة منجزة", s:`من ${data.tasksInRange.length}`, c:"var(--blue)", bar: taskPct},
+    {n: comps.length, l:"مسابقة متابَعة", s:`${students} طالبًا مسجلًا`, c:"var(--magenta)"},
+    ...(umrah.length ? [{n: umrahDone, l:"رحلة عمرة منفذة", s:`من ${umrah.length} مجدولة`, c:"var(--coral)"}] : []),
+  ];
+  const kpiHtml = kpis.map(k => `
+    <div class="dash-kpi" style="--k:${k.c};">
+      <div class="n">${k.n}</div><div class="l">${k.l}</div>
+      ${k.s ? `<div class="s">${k.s}</div>` : ""}
+      ${k.bar !== undefined ? `<div class="bar"><i style="width:${k.bar}%"></i></div>` : ""}
+    </div>`).join("");
 
-  /* ---- 2) كلمة رائد النشاط ---- */
-  pg++;
-  const intro = `
-    <div class="rpt-page">
-      <div class="rpt-watermark">٠١</div>
-      <div class="rpt-eyebrow">افتتاحية</div>
-      <div class="rpt-h1">كلمة رائد النشاط</div>
-      <div class="rpt-body" style="margin-top:26px;">
-        <p style="text-align:center; font-size:17px; color:var(--navy); font-weight:700;">بِسْمِ اللهِ الرَّحْمَنِ الرَّحِيمِ</p>
-        <p style="text-align:center; color:var(--muted);">الحمد لله والصلاة والسلام على رسول الله، وبعد..</p>
-        <p>يسعدني أن أقدّم هذا التقرير الذي يرصد مسيرة النشاط الطلابي في <b>مدارس الأندلس الأهلية — القسم الثانوي</b>
-        خلال الفترة ${esc(rangeLabel)}، موثّقًا ما تحقّق من برامج وفعاليات أثرت الحياة المدرسية لأبنائنا الطلاب.</p>
-        <p>شهدت هذه الفترة تنفيذ <b>${data.weeklyEvents.length} فعالية وبرنامجًا</b> وإنجاز <b>${done.length} مهمة</b>
-        من أصل ${data.tasksInRange.length}، إلى جانب متابعة <b>${comps.length} مسابقة وأولمبياد</b> على المستويين
-        المحلي والوطني، بما يخدم توجّه الإدارة نحو تعزيز الابتكار والمراكز التنافسية.</p>
-        ${quarterly ? `<p>كما نُفّذ خلال هذا الربع <b>${planExecuted} برنامجًا</b> من برامج خطة رائد النشاط، موثّقة بـ<b>${planEv.length} شاهدًا</b>.</p>` : ""}
-        <p>سائلًا الله أن يجعل هذه الجهود في ميزان الحسنات، وأن يوفقنا لما فيه خير أبنائنا الطلاب ونماء وطننا الغالي.</p>
-      </div>
-      <div class="rpt-stats">
-        <div class="rpt-stat"><div class="n">${data.weeklyEvents.length}</div><div class="l">فعالية وبرنامجًا</div></div>
-        <div class="rpt-stat"><div class="n">${done.length}</div><div class="l">مهمة منجزة</div></div>
-        <div class="rpt-stat"><div class="n">${comps.length}</div><div class="l">مسابقة متابَعة</div></div>
-        <div class="rpt-stat"><div class="n">${pct}%</div><div class="l">نسبة الإنجاز</div></div>
-      </div>
-      <div style="margin-top:40px; padding-top:20px; border-top:1px solid #E6EAF2; display:flex; align-items:center; gap:14px; justify-content:flex-end;">
-        <div style="text-align:end;">
-          <div style="font-family:'Cairo'; font-weight:800; font-size:15px; color:var(--navy);">عبدالله محمد القرني</div>
-          <div style="font-size:11.5px; color:var(--muted); margin-top:3px;">رائد النشاط الطلابي — القسم الثانوي</div>
-        </div>
-        <div style="width:3px; height:38px; background:var(--cyan); border-radius:3px;"></div>
-      </div>
-      ${rptFoot(pg)}
-    </div>`;
+  const palette = ["var(--navy)","var(--cyan)","var(--purple)","var(--magenta)","var(--coral)","var(--blue)"];
+  const maxN = Math.max(1, ...planGroups.map(g => g.n));
+  const chart = planGroups.length ? planGroups.map((g,i) => `
+    <div class="dash-bar-row">
+      <div class="nm">${esc(g.name)}</div>
+      <div class="br"><i style="width:${Math.round(g.n/maxN*100)}%; background:${palette[i%palette.length]};"></i></div>
+      <div class="vl" style="color:${palette[i%palette.length]};">${g.n}</div>
+    </div>`).join("") : `<div class="dash-empty">لا توجد برامج منفذة من الخطة في هذه الفترة</div>`;
 
-  /* ---- 3) الأرقام تتحدث ---- */
-  pg++;
-  const numbers = `
-    <div class="rpt-page">
-      <div class="rpt-watermark">٠٢</div>
-      <div class="rpt-eyebrow">لمحة عامة</div>
-      <div class="rpt-h1">الأرقام تتحدّث</div>
-      <div class="rpt-lead">حصاد الفترة في أرقام موجزة</div>
-      <div class="rpt-bigstats">
-        <div class="rpt-bigstat" style="background:var(--navy);"><div class="badge">فعاليات</div>
-          <div class="n">${data.weeklyEvents.length}</div><div class="l">فعالية وبرنامجًا</div></div>
-        <div class="rpt-bigstat" style="background:var(--cyan);"><div class="badge">مسابقات</div>
-          <div class="n">${comps.length}</div><div class="l">مسابقة وأولمبياد</div></div>
-        <div class="rpt-bigstat" style="background:var(--purple);"><div class="badge">توثيق</div>
-          <div class="n">${evidence.length}</div><div class="l">شاهد مصوّر</div></div>
-      </div>
-      <div class="rpt-bigstats">
-        <div class="rpt-bigstat soft"><div class="badge">إنجاز</div>
-          <div class="n">${done.length}</div><div class="l">مهمة منجزة من ${data.tasksInRange.length}</div></div>
-        <div class="rpt-bigstat soft"><div class="badge">طلاب</div>
-          <div class="n">${students}</div><div class="l">طالبًا مسجلًا في المسابقات</div></div>
-        <div class="rpt-bigstat soft"><div class="badge">تميّز</div>
-          <div class="n">${wins.length}</div><div class="l">إنجازًا محقّقًا</div></div>
-      </div>
-      ${data.plansInRange.length ? `
-        <div class="rpt-domain" style="background:var(--magenta); margin-top:26px;">
-          <div><div class="n">${data.plansInRange.length}</div><div class="l">أسبوعًا ضمن الخطة التشغيلية</div></div>
-          <div class="pill">محاور التركيز</div>
-        </div>
-        <div class="rpt-cards one">
-          ${data.plansInRange.map(p=>`<div class="rpt-cardx" style="border-inline-end-color:var(--magenta);">
-            <div class="t"><span class="rpt-datepill" style="background:var(--magenta);">${esc(p.startDate)} — ${esc(p.endDate)}</span></div>
-            <div class="d">${esc(p.focus)}</div></div>`).join("")}
-        </div>` : ""}
-      ${rptFoot(pg)}
-    </div>`;
+  const compRows = comps.length ? comps.map(c => {
+    const st = COMP_STATUS_COLOR[c.status] || "var(--muted)";
+    return `<div class="dash-comp">
+      <div class="nm">${esc(c.name)}${c.result ? `<div class="rs">🏆 ${esc(c.result)}</div>` : ""}</div>
+      <span class="chip" style="background:${st};">${esc(c.status)}</span>
+    </div>`; }).join("") : `<div class="dash-empty">لا توجد مسابقات نشطة</div>`;
 
-  /* ---- 3.5) برامج خطة رائد النشاط المنفذة (التقرير الربعي فقط) ---- */
-  let planPage = "";
-  if (quarterly) {
-    pg++;
-    const planTotal = planExecuted + planPending.length;
-    planPage = `
-    <div class="rpt-page">
-      <div class="rpt-eyebrow">خطة رائد النشاط</div>
-      <div class="rpt-h1">برامج الخطة المنفذة</div>
-      <div class="rpt-lead">البرامج المنفذة والموثّقة خلال ${esc(rangeLabel)}</div>
-      <div class="rpt-domain" style="background:var(--navy);">
-        <div><div class="n">${planExecuted}</div><div class="l">برنامجًا منفذًا من ${planTotal} برنامجًا في الفترة</div></div>
-        <div class="pill">${planEv.length} شاهد</div>
-      </div>
-      ${planGroups.length ? planGroups.map(g => `
-        <div style="font-weight:800; color:var(--navy); margin:18px 0 8px; font-size:14px;">${esc(g.cat.name)} <span style="color:var(--muted); font-weight:600;">· ${g.programs.length}</span></div>
-        <div class="rpt-cards two">
-          ${g.programs.map(p => { const ne = (p.evidence||[]).length, ns = (p.students||[]).length;
-            return `<div class="rpt-cardx" style="border-inline-end-color:var(--cyan);">
-              <div class="t">✔ ${esc(p.name)}<span class="rpt-datepill" style="background:var(--cyan);">${esc(p.date)}</span></div>
-              <div class="d">${esc(p.desc||"")}${p.location?` · ${esc(p.location)}`:""}${ns?` · 👥 ${ns} طالبًا`:""}${ne?` · 📎 ${ne} شاهد`:""}</div></div>`; }).join("")}
-        </div>`).join("") : `<div class="rpt-empty2">لا توجد برامج منفذة ضمن هذه الفترة</div>`}
-      ${planPending.length ? `<div class="rpt-body" style="margin-top:22px; font-size:12.5px; color:var(--muted);"><b>مخطط لها ضمن الفترة ولم يُوثَّق تنفيذها بعد (${planPending.length}):</b> ${planPending.map(p=>esc(p.name)).join("، ")}</div>` : ""}
-      ${rptFoot(pg)}
-    </div>`;
-  }
+  return `
+  <div class="dash-doc">
+    <header class="dash-head">
+      <img src="${LOGO.whiteLockup}" alt="">
+      <div class="ttl"><div class="a">${esc(title)}</div><div class="b">${esc(rangeLabel)}</div></div>
+      <div class="org">القسم الثانوي — بنين<br>رائد النشاط: عبدالله محمد القرني</div>
+    </header>
 
-  /* ---- 4) الفعاليات المنفذة ---- */
-  pg++;
-  const events = `
-    <div class="rpt-page">
-      <div class="rpt-watermark">٠٣</div>
-      <div class="rpt-eyebrow">المجال الأول</div>
-      <div class="rpt-h1">الفعاليات والأنشطة المنفذة</div>
-      <div class="rpt-lead">البرامج التي نُفذت خلال الفترة وفق الجدول التشغيلي</div>
-      <div class="rpt-domain" style="background:var(--navy);">
-        <div><div class="n">${data.weeklyEvents.length}</div><div class="l">فعالية وبرنامجًا</div></div>
-        <div class="pill">تنفيذٌ ميداني</div>
-      </div>
-      ${data.weeklyEvents.length ? `<div class="rpt-cards">
-        ${data.weeklyEvents.map(w=>{
-          const lg = (DATA.eventLog||{})[w.id+"@"+w.date];
-          const ok = lg && lg.done; const en = lg&&lg.evidence?lg.evidence.length:0;
-          return `<div class="rpt-cardx"${ok?' style="border-inline-end-color:var(--cyan);"':''}>
-          <div class="t">${ok?"✔ ":""}${esc(w.title)}<span class="rpt-datepill"${ok?' style="background:var(--cyan);"':''}>${esc(w.date)}</span></div>
-          <div class="d">${esc(w.time)}${w.location?` · ${esc(w.location)}`:""}${ok?" · مُنفّذ":""}${en?` · 📎 ${en} شاهد`:""}</div></div>`;}).join("")}
-      </div>` : `<div class="rpt-empty2">لا توجد فعاليات متكررة مسجّلة ضمن هذه الفترة</div>`}
+    <section class="dash-kpis">${kpiHtml}</section>
 
-      <div class="rpt-domain" style="background:var(--cyan); margin-top:30px;">
-        <div><div class="n">${done.length}</div><div class="l">مهمة منجزة من ${data.tasksInRange.length}</div></div>
-        <div class="pill">نسبة إنجاز المهام ${taskPct}%</div>
+    <section class="dash-row">
+      <div class="dash-card">
+        <h3>برامج الخطة المنفذة حسب التصنيف</h3>
+        ${chart}
       </div>
-      ${done.length ? `<div class="rpt-cards two">
-        ${done.map(t=>`<div class="rpt-cardx" style="border-inline-end-color:var(--cyan);">
-          <div class="t">${esc(t.title)}</div>
-          <div class="d">${(t.evidence&&t.evidence.length)?`موثّقة بـ ${t.evidence.length} شاهد`:"منجزة"}</div></div>`).join("")}
-      </div>` : `<div class="rpt-empty2">لا توجد مهام منجزة ضمن هذه الفترة</div>`}
-      ${notDone.length ? `
-        <div class="rpt-domain" style="background:var(--coral); margin-top:30px;">
-          <div><div class="n">${notDone.length}</div><div class="l">مهمة قيد التنفيذ</div></div>
-          <div class="pill">متابعة مستمرة</div>
-        </div>
-        <div class="rpt-cards two">
-          ${notDone.map(t=>`<div class="rpt-cardx" style="border-inline-end-color:var(--coral);">
-            <div class="t">${esc(t.title)}</div><div class="d">لم تُنجز بعد</div></div>`).join("")}
-        </div>` : ""}
-      ${rptFoot(pg)}
-    </div>`;
+      <div class="dash-card">
+        <h3>المسابقات</h3>
+        ${compRows}
+      </div>
+    </section>
 
-  /* ---- 5) الابتكار والمسابقات ---- */
-  pg++;
-  const competitions = `
-    <div class="rpt-page">
-      <div class="rpt-watermark">٠٤</div>
-      <div class="rpt-eyebrow">المجال الثاني</div>
-      <div class="rpt-h1">الابتكار والمسابقات</div>
-      <div class="rpt-lead">متابعة المسابقات والأولمبيادات والمراكز التنافسية</div>
-      <div class="rpt-domain" style="background:var(--purple);">
-        <div><div class="n">${comps.length}</div><div class="l">مسابقة وبرنامج تنافسي</div></div>
-        <div class="pill">تنمية المهارات والاكتشاف</div>
-      </div>
-      ${comps.length ? `<div class="rpt-cards two">
-        ${comps.map(c=>{
-          const st = COMP_STATUS_COLOR[c.status];
-          const n = (c.students||[]).length;
-          return `<div class="rpt-cardx" style="border-inline-end-color:${st};">
-            <div class="t">${esc(c.name)}<span class="rpt-datepill" style="background:${st};">${esc(c.status)}</span></div>
-            <div class="d">${esc(c.organizer)} · ${esc(c.level)}${c.deadline?` · الموعد ${esc(c.deadline)}`:""}${n?` · ${n} طالبًا مسجلًا`:""}${c.result?`<br><b style="color:${st};">🏆 ${esc(c.result)}</b>`:""}</div>
-          </div>`;}).join("")}
-      </div>` : `<div class="rpt-empty2">لا توجد مسابقات نشطة ضمن هذه الفترة</div>`}
-      ${students ? `
-        <div class="rpt-domain" style="background:var(--blue); margin-top:30px;">
-          <div><div class="n">${students}</div><div class="l">طالبًا مسجلًا في المسابقات</div></div>
-          <div class="pill">مشاركة طلابية</div>
-        </div>
-        <div class="rpt-cards">
-          ${DATA.competitions.filter(c=>(c.students||[]).length).flatMap(c=>
-            c.students.map(s=>`<div class="rpt-cardx" style="border-inline-end-color:var(--blue);">
-              <div class="t">${esc(s.name)}</div>
-              <div class="d">${esc(s.grade||"—")} · ${esc(c.name)}</div></div>`)).join("")}
-        </div>` : ""}
-      ${rptFoot(pg)}
-    </div>`;
+    <section class="dash-card dash-gallery-card">
+      <h3>الشواهد <span class="cnt">${evidence.length}</span></h3>
+      ${evidence.length ? `<div class="dash-gallery">${evidence.map(reportTileHtml).join("")}</div>` : `<div class="dash-empty">لا توجد شواهد في هذه الفترة</div>`}
+    </section>
 
-  /* ---- 6) معرض الشواهد ---- */
-  pg++;
-  const gallery = `
-    <div class="rpt-page">
-      <div class="rpt-watermark">٠٥</div>
-      <div class="rpt-eyebrow">لقطات من الميدان</div>
-      <div class="rpt-h1">معرض الأنشطة</div>
-      <div class="rpt-lead">مشاهد توثّق تفاعل طلابنا في مختلف برامج الفترة</div>
-      ${evidence.length ? `
-        <div class="rpt-gal wide">
-          <figure>${reportEvidenceMedia(evidence[0])}
-            <figcaption>${esc(evidence[0].cap)}</figcaption></figure>
-        </div>
-        ${evidence.length>1 ? `<div class="rpt-gal">
-          ${evidence.slice(1).map(e=>`<figure>
-            ${reportEvidenceMedia(e)}
-            <figcaption>${esc(e.cap)}</figcaption></figure>`).join("")}
-        </div>` : ""}
-      ` : `<div class="rpt-empty2">لا توجد شواهد مصوّرة مرفوعة بعد — أضِفها من تبويب «المهام» أو «المسابقات» لتظهر هنا تلقائيًا</div>`}
-      ${rptFoot(pg)}
-    </div>`;
-
-  /* ---- 6.5) التوافق مع الإطار الوزاري ---- */
-  pg++;
-  /* التوافق مع إطار الوزارة مفهوم يخص الخطة السنوية كاملة (تنوّع وشمول عبر العام الدراسي)،
-     وليس فترة التقرير الضيقة (أسبوع أو شهر واحد) — نحسبه من كل المهام وكل أسابيع الخطة بلا تقييد
-     بنطاق تاريخ التقرير المعروض، وإلا يظهر تقرير أسبوع واحد وكأن الخطة السنوية لا تغطي إلا مجالاً
-     واحدًا من أصل سبعة رغم أن التوزيع الفعلي عبر العام يغطيها جميعًا */
-  const covR = MOE_DOMAINS.map(dm => {
-    const n = DATA.tasks.filter(t=>t.domain===dm.key).length
-            + DATA.weeklyPlan.filter(pl=>pl.domain===dm.key).length;
-    return {...dm, n};
-  });
-  const covRMax = Math.max(1, ...covR.map(c=>c.n));
-  const covRDone = covR.filter(c=>c.n>0).length;
-  const alignment = `
-    <div class="rpt-page">
-      <div class="rpt-watermark">٠٦</div>
-      <div class="rpt-eyebrow">المرجعية النظامية</div>
-      <div class="rpt-h1">التوافق مع إطار وزارة التعليم</div>
-      <div class="rpt-lead">دليل الخطط الدراسية · المركز الوطني للمناهج</div>
-
-      <div class="rpt-domain" style="background:var(--navy);">
-        <div><div class="n">${covRDone}/${MOE_DOMAINS.length}</div><div class="l">مجالات نشاط مُفعّلة في الخطة</div></div>
-        <div class="pill">تنوّع وشمول</div>
-      </div>
-
-      <div style="margin:16px 0 26px;">
-        ${covR.map(c=>`
-          <div style="display:flex; align-items:center; gap:12px; margin-bottom:11px;">
-            <div style="width:150px; font-size:12.5px; font-weight:800; color:${c.color}; text-align:end;">${c.key}</div>
-            <div style="flex:1; height:11px; background:#EEF1F6; border-radius:6px; overflow:hidden;">
-              <div style="height:100%; width:${Math.round(c.n/covRMax*100)}%; min-width:3px; background:${c.color}; border-radius:6px;"></div>
-            </div>
-            <div style="width:26px; text-align:center; font-weight:800; font-size:12.5px; color:${c.n?c.color:'#9AA4B8'};">${c.n}</div>
-          </div>`).join("")}
-      </div>
-
-      <div class="rpt-domain" style="background:var(--cyan);">
-        <div><div class="n">٠٩</div><div class="l">مستهدفات النشاط الطلابي المعتمدة</div></div>
-        <div class="pill">مرجع القياس</div>
-      </div>
-      <div class="rpt-cards two" style="margin-bottom:24px;">
-        ${MOE_TARGETS.map((t,i)=>`<div class="rpt-cardx" style="border-inline-end-color:var(--cyan);">
-          <div class="t">${String(i+1).padStart(2,"0")} · ${esc(t)}</div></div>`).join("")}
-      </div>
-
-      <div class="rpt-domain" style="background:var(--purple);">
-        <div><div class="n">٠٢</div><div class="l">مسارا تنفيذ النشاط الطلابي</div></div>
-        <div class="pill">صفي ولاصفي</div>
-      </div>
-      <div class="rpt-cards two">
-        <div class="rpt-cardx" style="border-inline-end-color:var(--purple);">
-          <div class="t">النشاط الصفي</div>
-          <div class="d">حصة النشاط الأسبوعية — تبدأ من الأسبوع الثاني وتتوقف قبل الاختبارات النهائية بأسبوعين.</div></div>
-        <div class="rpt-cardx" style="border-inline-end-color:var(--purple);">
-          <div class="t">النشاط اللاصفي</div>
-          <div class="d">ساعة يوميًا وفق خطة زمنية معتمدة من مدير المدرسة دون الإخلال بالحصص الدراسية.</div></div>
-      </div>
-      ${rptFoot(pg)}
-    </div>`;
-
-  /* ---- 7) الأثر التربوي ---- */
-  pg++;
-  const impact = `
-    <div class="rpt-page">
-      <div class="rpt-watermark">٠٧</div>
-      <div class="rpt-eyebrow">النتائج والأثر</div>
-      <div class="rpt-h1">الأثر التربوي للنشاط الطلابي</div>
-      <div class="rpt-lead">انعكاسات ملموسة على شخصية الطالب وقيمه ومهاراته</div>
-      <div class="rpt-impact">
-        <div class="rpt-impactx" style="border-top-color:var(--navy);">
-          <div class="t">التحفيز والتميّز</div>
-          <div class="d">حفّزت برامج التكريم والمسابقات الطلاب على التفوق والانضباط، وأبرزت نماذج ملهمة بين أقرانهم.</div></div>
-        <div class="rpt-impactx" style="border-top-color:var(--purple);">
-          <div class="t">تنمية المهارات</div>
-          <div class="d">طوّرت المسابقات العلمية واللغوية مهارات التفكير والبحث والاكتشاف العلمي لدى الطلاب.</div></div>
-        <div class="rpt-impactx" style="border-top-color:var(--cyan);">
-          <div class="t">الانتماء والمواطنة</div>
-          <div class="d">رسّخت الفعاليات الوطنية والاجتماعية قيم الانتماء للوطن والمدرسة في نفوس الطلاب.</div></div>
-        <div class="rpt-impactx" style="border-top-color:var(--magenta);">
-          <div class="t">المشاركة الطلابية</div>
-          <div class="d">وسّعت الأندية واللجان دائرة المشاركة، ومنحت الطلاب مساحة حقيقية للقيادة والمبادرة.</div></div>
-        <div class="rpt-impactx" style="border-top-color:var(--blue);">
-          <div class="t">التوثيق والشفافية</div>
-          <div class="d">أتاح توثيق الشواهد المصوّرة متابعة دقيقة للأثر، ورفع تقارير موثّقة للإدارة أولًا بأول.</div></div>
-        <div class="rpt-impactx" style="border-top-color:var(--coral);">
-          <div class="t">بيئة عمل محفّزة</div>
-          <div class="d">رفعت البرامج المشتركة مع المعلمين من جودة الأداء وروح الفريق الواحد داخل المدرسة.</div></div>
-      </div>
-      <div class="rpt-quote">
-        ❞ ${data.weeklyEvents.length} فعالية وبرنامجًا لم تكن مجرد أنشطة، بل تجارب صنعت في الطالب ثقةً وانتماءً ومهارةً وقيمة.
-      </div>
-      ${rptFoot(pg)}
-    </div>`;
-
-  /* ---- 8) الخاتمة ---- */
-  const closing = `
-    <div class="rpt-page dark">
-      <div class="rpt-eyebrow">خاتمة التقرير</div>
-      <div class="rpt-end-title">شكرًا<br>وتقديرًا</div>
-      <div class="rpt-end-body">
-        <p>نتقدّم بخالص الشكر والتقدير لقيادة <b>مدارس الأندلس الأهلية</b> على دعمهم المتواصل،
-        ولجميع المعلمين والإداريين الكرام، وأولياء الأمور على تعاونهم، ولطلابنا الأعزاء الذين كانوا محور كل نجاح.</p>
-        <p>نسأل الله أن يجعل هذا العمل خالصًا لوجهه الكريم، وأن يوفقنا في الفترة القادمة لتحقيق المزيد من الإنجازات.</p>
-      </div>
-      <div class="rpt-end-sign">
-        <img src="${LOGO.whiteMark}" alt="">
-        <div class="who">
-          <div style="text-align:end;">
-            <div class="n">عبدالله محمد القرني</div>
-            <div class="r">رائد النشاط الطلابي — القسم الثانوي</div>
-          </div>
-          <div class="bar"></div>
-        </div>
-      </div>
-    </div>`;
-
-  return `<div class="rpt-doc">${cover}${intro}${numbers}${planPage}${events}${competitions}${gallery}${alignment}${impact}${closing}</div>`;
+    ${planNoEvidence.length ? `
+    <section class="dash-card">
+      <h3>منفذة وتنتظر شواهد <span class="cnt">${planNoEvidence.length}</span></h3>
+      <div class="dash-chips">${planNoEvidence.map(p => `<span>${esc(p.name)}</span>`).join("")}</div>
+    </section>` : ""}
+  </div>`;
 }
 
 
@@ -3035,7 +2782,7 @@ function viewReports(){
     </div>
 
     <div class="report-card" id="report-card">
-      ${data ? reportHtml(title, rangeLabel, data, {quarterly: REPORT_MODE==="quarterly"}) : emptyState("لا توجد خطة أسبوعية مسجّلة بعد")}
+      ${data ? reportHtml(title, rangeLabel, data) : emptyState("لا توجد خطة أسبوعية مسجّلة بعد")}
     </div>
   `;
 }
@@ -3142,6 +2889,18 @@ function render(){
 
   const showTopbarDefault = TAB !== "weekly" && TAB !== "tasks" && TAB !== "calendar" && TAB !== "vision" && TAB !== "competitions" && TAB !== "reports" && TAB !== "plan" && TAB !== "etec" && TAB !== "volunteer";
 
+  if (REPORT_ONLY) {
+    document.getElementById("app").innerHTML = `
+      <div class="report-only">${body}</div>
+      ${VIDEO_LIGHTBOX ? `
+        <div class="video-lightbox">
+          <div class="video-lightbox-inner" id="video-lightbox-inner">
+            <button class="video-lightbox-close" data-action="closeVideoLightbox">${ICONS.x}</button>
+          </div>
+        </div>` : ""}`;
+    mountVideoLightbox();
+    return;
+  }
   document.getElementById("app").innerHTML = `
     ${VIEW_ONLY ? `
       <div class="install-banner" style="background:var(--navy); color:#fff;">
